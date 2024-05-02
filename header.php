@@ -11,14 +11,18 @@
   <script src="assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
   <script src="assets/js/sidebarmenu.js"></script>
   <script src="assets/js/app.min.js"></script>
-  <script src="assets/libs/apexcharts/dist/apexcharts.min.js"></script>
+  <!-- <script src="assets/libs/apexcharts/dist/apexcharts.min.js"></script> -->
   <script src="assets/libs/simplebar/dist/simplebar.js"></script>
-  <script src="assets/js/dashboard.js"></script>
+  <!-- <script src="assets/js/dashboard.js"></script> -->
+  <!-- fontawesome -->
+  <!-- <link rel="stylesheet" href="assets/css/fontawesome.min.css"> -->
+  <link rel="stylesheet" href="assets/css/all.min.css">
+  <script src="assets/js/all.min.js"></script>
   <!-- solar icons -->
   <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
   <!-- DATATABLE -->
-  <link rel="stylesheet" href="https://cdn.datatables.net/2.0.5/css/dataTables.dataTables.css" />
-  <script src="https://cdn.datatables.net/2.0.5/js/dataTables.js"></script>
+  <link href="assets/js/datatables.min.css" rel="stylesheet">
+  <script src="assets/js/datatables.min.js"></script>
   
 </head>
 
