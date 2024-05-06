@@ -3,8 +3,8 @@
 ?>
 <!-- CONTENT HERE -->
 <?php
-//  include("route.php");
-  include("admin/views/product-management/product_list.php");
+ include("route.php");
+  // include("admin/views/category-management/category.php");
 ?>
 <!-- END CONTENT -->
 <?php

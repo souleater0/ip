@@ -14,36 +14,6 @@ function generateBarcode($text){
     return $barcode_image;
 }
 ?>
-<style>
-  .table thead th{
-    background: #f8f9fd;
-    color: #060606;
-  }
-  .table-cs-color{
-    --bs-table-color: #000;
-    /* --bs-table-bg: #FFF; */
-    --bs-table-border-color: #cac8e6;
-    --bs-table-striped-bg: #d5d3f2;
-    --bs-table-striped-color: #000;
-    --bs-table-active-bg: #cac8e6;
-    --bs-table-active-color: #000;
-    --bs-table-hover-bg: #dee2e6;
-    --bs-table-hover-color: #000;
-  }
-  .card .card-header:not(.border-0) h5:after{
-    content: "";
-    height: 30px;
-    width: 3px;
-    background: #26B1FF;
-    position: absolute;
-    left: 0px;
-    top: 15px;
-    border-radius: 0 3px 3px 0;
-  }
-  select.dt-input{
-    margin-right: 10px;
-  }
-</style>
 <div class="body-wrapper-inner">
         <div class="container-fluid">
           <div class="card">
@@ -67,35 +37,55 @@ function generateBarcode($text){
                     <thead>
                         <tr>
                             <th>Product Name</th>
+                            <th>Brand</th>
+                            <th>Category</th>
+                            <th>Status</th>
                             <th>Product Barcode</th>
                             <th class="text-center">Stocks</th>
+                            <th class="text-center">Unit</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td>Dutch Mill</td>
+                            <td>Dutch Mill Co., Ltd</td>
+                            <td>Yoghurt Drink</td>
+                            <td><span class="btn btn-sm rounded text-white" style="background-color: #FFBE08;">Low Stock</span></td>
                             <td><?php echo "<img src='data:image/png;base64," . base64_encode(generateBarcode("P0000001")) . "' width='180'>";?></td>
-                            <td class="text-center"><span class="btn btn-secondary btn-sm">10</span></td>
-                            <td><button class="btn btn-primary btn-sm"><i class="fa-regular fa-pen-to-square"></i></button>&nbsp;<button class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button></td>
+                            <td class="text-center"><span class="btn btn-secondary btn-sm">5</span></td>
+                            <td>pcs</td>
+                            <td><button class="btn btn-info btn-sm"><i class="fa-solid fa-eye"></i></button>&nbsp;<button class="btn btn-primary btn-sm"><i class="fa-regular fa-pen-to-square"></i></button>&nbsp;<button class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button></td>
                         </tr>
                         <tr>
                             <td>Cheeze Whiz</td>
+                            <td>Kraft Foods</td>
+                            <td>Spread</td>
+                            <td><span class="btn btn-sm rounded text-white" style="background-color: #00E200;">In Stock</span></td>
                             <td><?php echo "<img src='data:image/png;base64," . base64_encode(generateBarcode("P0000001")) . "' width='180'>";?></td>
-                            <td class="text-center"><span class="btn btn-secondary btn-sm">10</span></td>
-                            <td><button class="btn btn-primary btn-sm"><i class="fa-regular fa-pen-to-square"></i></button>&nbsp;<button class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button></td>
+                            <td class="text-center"><span class="btn btn-secondary btn-sm">15</span></td>
+                            <td>pcs</td>
+                            <td><button class="btn btn-info btn-sm"><i class="fa-solid fa-eye"></i></button>&nbsp;<button class="btn btn-primary btn-sm"><i class="fa-regular fa-pen-to-square"></i></button>&nbsp;<button class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button></td>
                         </tr>
                         <tr>
                             <td>Milo</td>
+                            <td>Dutch Mill Co., Ltd</td>
+                            <td>Yoghurt Drink</td>
+                            <td><span class="btn btn-sm rounded text-white" style="background-color: #FF0808;">Out of Stock</span></td>
                             <td><?php echo "<img src='data:image/png;base64," . base64_encode(generateBarcode("P0000001")) . "' width='180'>";?></td>
-                            <td class="text-center"><span class="btn btn-secondary btn-sm">10</span></td>
-                            <td><button class="btn btn-primary btn-sm"><i class="fa-regular fa-pen-to-square"></i></button>&nbsp;<button class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button></td>
+                            <td class="text-center"><span class="btn btn-secondary btn-sm">0</span></td>
+                            <td>pcs</td>
+                            <td><button class="btn btn-info btn-sm"><i class="fa-solid fa-eye"></i></button>&nbsp;<button class="btn btn-primary btn-sm"><i class="fa-regular fa-pen-to-square"></i></button>&nbsp;<button class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button></td>
                         </tr>
                         <tr>
                             <td>Bear Brand</td>
+                            <td>Dutch Mill Co., Ltd</td>
+                            <td>Yoghurt Drink</td>
+                            <td><span class="btn btn-sm rounded text-white" style="background-color: #00E200;">In Stock</span></td>
                             <td><?php echo "<img src='data:image/png;base64," . base64_encode(generateBarcode("P0000001")) . "' width='180'>";?></td>
                             <td class="text-center"><span class="btn btn-secondary btn-sm">10</span></td>
-                            <td><button class="btn btn-primary btn-sm"><i class="fa-regular fa-pen-to-square"></i></button>&nbsp;<button class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button></td>
+                            <td>pcs</td>
+                            <td><button class="btn btn-info btn-sm"><i class="fa-solid fa-eye"></i></button>&nbsp;<button class="btn btn-primary btn-sm"><i class="fa-regular fa-pen-to-square"></i></button>&nbsp;<button class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button></td>
                         </tr>
                     </tbody>
                 </table>

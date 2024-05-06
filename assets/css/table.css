@@ -1,0 +1,28 @@
+  .table thead th{
+    background: #f8f9fd;
+    color: #060606;
+  }
+  .table-cs-color{
+    --bs-table-color: #000;
+    /* --bs-table-bg: #FFF; */
+    --bs-table-border-color: #cac8e6;
+    --bs-table-striped-bg: #d5d3f2;
+    --bs-table-striped-color: #000;
+    --bs-table-active-bg: #cac8e6;
+    --bs-table-active-color: #000;
+    --bs-table-hover-bg: #dee2e6;
+    --bs-table-hover-color: #000;
+  }
+  .card .card-header:not(.border-0) h5:after{
+    content: "";
+    height: 30px;
+    width: 3px;
+    background: #26B1FF;
+    position: absolute;
+    left: 0px;
+    top: 15px;
+    border-radius: 0 3px 3px 0;
+  }
+  select.dt-input{
+    margin-right: 10px;
+  }

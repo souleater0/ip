@@ -1,3 +1,6 @@
+<?php
+$route = $_GET['route'] ?? 'home';
+?>
 <!doctype html>
 <html lang="en">
 
@@ -7,6 +10,7 @@
   <title>EC - Inventory System</title>
   <link rel="shortcut icon" type="image/png" href="assets/images/logos/favicon.png" />
   <link rel="stylesheet" href="assets/css/styles.min.css" />
+  <link rel="stylesheet" href="assets/css/table.css">
   <script src="assets/libs/jquery/dist/jquery.min.js"></script>
   <script src="assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
   <script src="assets/js/sidebarmenu.js"></script>
@@ -25,7 +29,6 @@
   <script src="assets/js/datatables.min.js"></script>
   
 </head>
-
 <body>
   <!--  Body Wrapper -->
   <div class="page-wrapper" id="main-wrapper" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full"
@@ -58,39 +61,39 @@
             <li>
               <span class="sidebar-divider lg"></span>
             </li>
-            <li class="nav-small-cap" data-bs-toggle="collapse" data-bs-target="#collapseProduct" aria-expanded="false" aria-controls="collapseProduct">
+            <li class="nav-small-cap" data-bs-toggle="collapse" data-bs-target="#collapseProduct" aria-expanded="<?php echo ($route == 'product-management') ? 'true' : 'false'; ?>" aria-controls="collapseProduct">
               <iconify-icon icon="solar:menu-dots-linear" class="nav-small-cap-icon fs-4"></iconify-icon>
               <span class="hide-menu text-uppercase">product management</span>
             </li>
-            <div class="collapse" id="collapseProduct">
+            <div class="collapse <?php echo ($route == 'product-management' || $route == 'category-management' || $route == 'brand-management' || $route == 'unit-management' || $route == 'tax-management') ? 'show' : ''; ?>" id="collapseProduct">
             <li class="sidebar-item">
-              <a class="sidebar-link" href="./ui-buttons.html" aria-expanded="false">
-                <iconify-icon icon="solar:layers-minimalistic-bold-duotone"></iconify-icon>
-                <span class="hide-menu">Buttons</span>
-              </a>
-            </li>
-            <li class="sidebar-item">
-              <a class="sidebar-link" href="./ui-alerts.html" aria-expanded="false">
-                <iconify-icon icon="solar:danger-circle-line-duotone"></iconify-icon>
-                <span class="hide-menu">Alerts</span>
-              </a>
-            </li>
-            <li class="sidebar-item">
-              <a class="sidebar-link" href="./ui-card.html" aria-expanded="false">
-                <iconify-icon icon="solar:bookmark-square-minimalistic-line-duotone"></iconify-icon>
-                <span class="hide-menu">Card</span>
-              </a>
-            </li>
-            <li class="sidebar-item">
-              <a class="sidebar-link" href="index.php" aria-expanded="false">
+              <a class="sidebar-link" href="index.php?route=product-management" aria-expanded="false">
                 <iconify-icon icon="mdi:cart"></iconify-icon>
-                <span class="hide-menu">Product List</span>
+                <span class="hide-menu">Products</span>
               </a>
             </li>
             <li class="sidebar-item">
-              <a class="sidebar-link" href="./ui-typography.html" aria-expanded="false">
-                <iconify-icon icon="solar:text-field-focus-line-duotone"></iconify-icon>
-                <span class="hide-menu">Typography</span>
+              <a class="sidebar-link" href="index.php?route=category-management" aria-expanded="false">
+                <iconify-icon icon="material-symbols:category"></iconify-icon>
+                <span class="hide-menu">Category</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a class="sidebar-link" href="index.php?route=brand-management" aria-expanded="false">
+                <iconify-icon icon="mdi:tags"></iconify-icon>
+                <span class="hide-menu">Brand</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a class="sidebar-link" href="index.php?route=unit-management" aria-expanded="false">
+                <iconify-icon icon="mdi:scale"></iconify-icon>
+                <span class="hide-menu">Units</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a class="sidebar-link" href="index.php?route=tax-management" aria-expanded="false">
+                <iconify-icon icon="tabler:receipt-tax"></iconify-icon>
+                <span class="hide-menu">Tax</span>
               </a>
             </li>
             </div>
@@ -104,32 +107,20 @@
             <div class="collapse" id="collapseStock">
             <li class="sidebar-item">
               <a class="sidebar-link" href="./ui-buttons.html" aria-expanded="false">
-                <iconify-icon icon="solar:layers-minimalistic-bold-duotone"></iconify-icon>
-                <span class="hide-menu">Buttons</span>
+                <iconify-icon icon="ph:stack-plus"></iconify-icon>
+                <span class="hide-menu">Stock In</span>
               </a>
             </li>
             <li class="sidebar-item">
               <a class="sidebar-link" href="./ui-alerts.html" aria-expanded="false">
-                <iconify-icon icon="solar:danger-circle-line-duotone"></iconify-icon>
-                <span class="hide-menu">Alerts</span>
+                <iconify-icon icon="ph:stack-minus"></iconify-icon>
+                <span class="hide-menu">Stock Out</span>
               </a>
             </li>
             <li class="sidebar-item">
-              <a class="sidebar-link" href="./ui-card.html" aria-expanded="false">
-                <iconify-icon icon="solar:bookmark-square-minimalistic-line-duotone"></iconify-icon>
-                <span class="hide-menu">Card</span>
-              </a>
-            </li>
-            <li class="sidebar-item">
-              <a class="sidebar-link" href="./ui-forms.html" aria-expanded="false">
-                <iconify-icon icon="solar:file-text-line-duotone"></iconify-icon>
-                <span class="hide-menu">Forms</span>
-              </a>
-            </li>
-            <li class="sidebar-item">
-              <a class="sidebar-link" href="./ui-typography.html" aria-expanded="false">
-                <iconify-icon icon="solar:text-field-focus-line-duotone"></iconify-icon>
-                <span class="hide-menu">Typography</span>
+              <a class="sidebar-link" href="./ui-alerts.html" aria-expanded="false">
+                <iconify-icon icon="mdi:receipt-text-pending"></iconify-icon>
+                <span class="hide-menu">Pending Inventory</span>
               </a>
             </li>
             </div>
@@ -138,7 +129,7 @@
             </li>
             <li class="nav-small-cap">
               <iconify-icon icon="solar:menu-dots-linear" class="nav-small-cap-icon fs-4"></iconify-icon>
-              <span class="hide-menu">AUTH</span>
+              <span class="hide-menu">Manage Users</span>
             </li>
             <li class="sidebar-item">
               <a class="sidebar-link" href="./authentication-login.html" aria-expanded="false">
@@ -150,25 +141,6 @@
               <a class="sidebar-link" href="./authentication-register.html" aria-expanded="false">
                 <iconify-icon icon="solar:user-plus-rounded-line-duotone"></iconify-icon>
                 <span class="hide-menu">Register</span>
-              </a>
-            </li>
-            <li>
-              <span class="sidebar-divider lg"></span>
-            </li>
-            <li class="nav-small-cap">
-              <iconify-icon icon="solar:menu-dots-linear" class="nav-small-cap-icon fs-4"></iconify-icon>
-              <span class="hide-menu">EXTRA</span>
-            </li>
-            <li class="sidebar-item">
-              <a class="sidebar-link" href="./icon-tabler.html" aria-expanded="false">
-                <iconify-icon icon="solar:sticker-smile-circle-2-line-duotone"></iconify-icon>
-                <span class="hide-menu">Icons</span>
-              </a>
-            </li>
-            <li class="sidebar-item">
-              <a class="sidebar-link" href="./sample-page.html" aria-expanded="false">
-                <iconify-icon icon="solar:planet-3-line-duotone"></iconify-icon>
-                <span class="hide-menu">Sample Page</span>
               </a>
             </li>
           </ul>
@@ -211,13 +183,9 @@
                     </a>
                     <a href="javascript:void(0)" class="d-flex align-items-center gap-2 dropdown-item">
                       <i class="ti ti-mail fs-6"></i>
-                      <p class="mb-0 fs-3">My Account</p>
+                      <p class="mb-0 fs-3">Settings</p>
                     </a>
-                    <a href="javascript:void(0)" class="d-flex align-items-center gap-2 dropdown-item">
-                      <i class="ti ti-list-check fs-6"></i>
-                      <p class="mb-0 fs-3">My Task</p>
-                    </a>
-                    <a href="./login.php" class="btn btn-outline-primary mx-3 mt-2 d-block">Logout</a>
+                    <a href="admin/login.php" class="btn btn-outline-primary mx-3 mt-2 d-block">Logout</a>
                   </div>
                 </div>
               </li>

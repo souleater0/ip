@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Matdash Free</title>
+  <title>Inventory System - Login</title>
   <link rel="shortcut icon" type="image/png" href="../assets/images/logos/favicon.png" />
   <link rel="stylesheet" href="../assets/css/styles.min.css" />
 </head>
@@ -21,9 +21,9 @@
             <div class="card mb-0">
               <div class="card-body">
                 <a href="./index.html" class="text-nowrap logo-img text-center d-block py-3 w-100">
-                  <img src="../assets/images/logos/logo.svg" alt="">
+                  <img src="../assets/images/logos/ecsolution_logo.png" alt="" width="300">
                 </a>
-                <p class="text-center">Your Social Campaigns</p>
+                <p class="text-center fw-bold">Inventory System</p>
                 <form>
                   <div class="mb-3">
                     <label for="exampleInputEmail1" class="form-label">Username</label>
@@ -42,7 +42,7 @@
                     </div>
                     <a class="text-primary fw-bold" href="./index.html">Forgot Password ?</a>
                   </div>
-                  <a href="./index.php" class="btn btn-primary w-100 py-8 fs-4 mb-4 rounded-2">Sign In</a>
+                  <a href="./../index.php?route=product-management" class="btn btn-primary w-100 py-8 fs-4 mb-4 rounded-2">Sign In</a>
                   <div class="d-flex align-items-center justify-content-center">
                     <p class="fs-4 mb-0 fw-bold">New to Matdash?</p>
                     <a class="text-primary fw-bold ms-2" href="./authentication-register.html">Create an account</a>
