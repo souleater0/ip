@@ -38,6 +38,7 @@ function generateBarcode($text){
                             <th>Category</th>
                             <th>Status</th>
                             <th>Product Barcode</th>
+                            <th>Location</th>
                             <th class="text-center">Stocks</th>
                             <th class="text-center">Purchase Price</th>
                             <th class="text-center">Selling Price</th>
@@ -52,6 +53,7 @@ function generateBarcode($text){
                             <td>Yoghurt Drink</td>
                             <td><span class="badge text-white" style="background-color: #FF8A08;">Low Stock</span></td>
                             <td><?php echo "<img src='data:image/png;base64," . base64_encode(generateBarcode("P0000001")) . "' width='180'>";?><br><span>P0000001</span></td>
+                            <td>Warehouse</td>
                             <td class="text-center"><span class="btn btn-secondary btn-sm">5</span></td>
                             <td class="text-center">21</td>
                             <td class="text-center">25</td>
@@ -64,6 +66,7 @@ function generateBarcode($text){
                             <td>Spread</td>
                             <td><span class="badge text-white" style="background-color: #FFAF61;">In Stock</span></td>
                             <td><?php echo "<img src='data:image/png;base64," . base64_encode(generateBarcode("P0000002")) . "' width='180'>";?><br><span>P0000002</span></td>
+                            <td>Warehouse</td>
                             <td class="text-center"><span class="btn btn-secondary btn-sm">15</span></td>
                             <td class="text-center">21</td>
                             <td class="text-center">25</td>
@@ -76,6 +79,7 @@ function generateBarcode($text){
                             <td>Chocolate Malt</td>
                             <td><span class="badge text-white" style="background-color: #FF0808;">Out of Stock</span></td>
                             <td><?php echo "<img src='data:image/png;base64," . base64_encode(generateBarcode("P0000003")) . "' width='180'>";?><br><span>P0000003</span></td>
+                            <td>Warehouse</td>
                             <td class="text-center"><span class="btn btn-secondary btn-sm">0</span></td>
                             <td class="text-center">21</td>
                             <td class="text-center">25</td>
@@ -88,6 +92,7 @@ function generateBarcode($text){
                             <td>Powdered Milk</td>
                             <td><span class="badge text-white" style="background-color: #FFAF61;">In Stock</span></td>
                             <td><?php echo "<img src='data:image/png;base64," . base64_encode(generateBarcode("P0000004")) . "' width='180'>";?><br><span>P0000004</span></td>
+                            <td>Warehouse</td>
                             <td class="text-center"><span class="btn btn-secondary btn-sm">10</span></td>
                             <td class="text-center">21</td>
                             <td class="text-center">25</td>
