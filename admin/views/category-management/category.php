@@ -57,7 +57,8 @@
     // let table = new DataTable('#myTable');
     $('#myTable').DataTable({
       responsive: true,
-      select: true
+    select: true,
+    autoWidth: false
     });
   });
 </script>

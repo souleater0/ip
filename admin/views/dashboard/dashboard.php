@@ -119,16 +119,16 @@
                           <td class="ps-0">
                             <div class="d-flex align-items-center gap-6">
                               <div>
-                                <h6 class="mb-0">Dutch Mill</h6>
-                                <span>Yoghurt Drink</span>
+                                <h6 class="mb-0">Milo</h6>
+                                <span>Nestle</span>
                               </div>
                             </div>
                           </td>
                           <td>
-                            <span class="badge text-white" style="background-color: #FF0808;">Low Stocks</span>
+                            <span class="badge text-white" style="background-color: #FF0808;">Out of Stock</span>
                           </td>
                           <td>
-                            <span class="text-dark">5</span>
+                            <span class="text-dark">0</span>
                           </td>
                         </tr>
                       </tbody>
