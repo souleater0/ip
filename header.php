@@ -27,7 +27,11 @@ $route = $_GET['route'] ?? 'home';
   <!-- DATATABLE -->
   <link href="assets/js/datatables.min.css" rel="stylesheet">
   <script src="assets/js/datatables.min.js"></script>
-  
+  <!-- bootstrap select -->
+    <!-- Latest BS-Select compiled and minified CSS/JS -->
+    <link rel="stylesheet" href="assets/libs/bootstrap-select/dist/css/bootstrap-select.min.css">
+    <script src="assets/libs/bootstrap-select/dist/js/bootstrap-select.min.js"></script>
+
 </head>
 <body>
   <!--  Body Wrapper -->
@@ -104,9 +108,9 @@ $route = $_GET['route'] ?? 'home';
               <iconify-icon icon="solar:menu-dots-linear" class="nav-small-cap-icon fs-4"></iconify-icon>
               <span class="hide-menu text-uppercase">stock management</span>
             </li>
-            <div class="collapse" id="collapseStock">
+            <div class="collapse <?php echo ($route == 'stock-in') ? 'show' : ''; ?>" id="collapseStock">
             <li class="sidebar-item">
-              <a class="sidebar-link" href="./ui-buttons.html" aria-expanded="false">
+              <a class="sidebar-link" href="index.php?route=stock-in" aria-expanded="false">
                 <iconify-icon icon="ph:stack-plus"></iconify-icon>
                 <span class="hide-menu">Stock In</span>
               </a>

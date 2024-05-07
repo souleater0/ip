@@ -7,6 +7,9 @@ switch ($route){
     case "product-management":
         require 'admin/views/product-management/product_list.php';
         break;
+    case "view-product":
+        require 'admin/views/product-management/product_view.php';
+        break;
     case "category-management":
         require 'admin/views/category-management/category.php';
         break;
@@ -22,7 +25,10 @@ switch ($route){
     case "product-list":
         require 'admin/views/tax-management/product_list.php';
         break;
+    case "stock-in":
+        require 'admin/views/stock-management/stockin.php';
+        break;
     default:
-    require 'admin/views/product-management/product_list.php';
+    require 'admin/views/dashboard/dashboard.php';
 }
 ?>
