@@ -1,4 +1,5 @@
 <?php
+require 'admin/session_restrict.php';
 $route = $_GET['route'] ?? 'home';
 ?>
 <!doctype html>
@@ -189,7 +190,7 @@ $route = $_GET['route'] ?? 'home';
                       <i class="ti ti-mail fs-6"></i>
                       <p class="mb-0 fs-3">Settings</p>
                     </a>
-                    <a href="admin/login.php" class="btn btn-outline-primary mx-3 mt-2 d-block">Logout</a>
+                    <a href="admin/process/logout.php" class="btn btn-outline-primary mx-3 mt-2 d-block">Logout</a>
                   </div>
                 </div>
               </li>

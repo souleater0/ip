@@ -36,12 +36,12 @@ function generateBarcode($text){
                             <th></th>
                             <th>Product Name</th>
                             <th>Brand</th>
-                            <th>Category</th>
+                            <th>Category / Subcategory</th>
                             <th>Status</th>
-                            <th>Product Barcode</th>
-                            <th class="text-center">Stocks</th>
+                            <th>SKU</th>
                             <th class="text-center">Purchase Price</th>
                             <th class="text-center">Selling Price</th>
+                            <th class="text-center">Stocks</th>
                             <th class="text-center">Unit</th>
                             <th>Action</th>
                         </tr>
@@ -54,9 +54,9 @@ function generateBarcode($text){
                             <td>Yoghurt Drink</td>
                             <td><span class="badge text-white" style="background-color: #FF8A08;">Low Stock</span></td>
                             <td><span>P0000001</span></td>
-                            <td class="text-center"><span class="btn btn-secondary btn-sm">5</span></td>
                             <td class="text-center">21</td>
                             <td class="text-center">25</td>
+                            <td class="text-center"><span class="btn btn-secondary btn-sm">5</span></td>
                             <td>pcs</td>
                             <td><a class="btn btn-info btn-sm" href="index.php?route=view-product"><i class="fa-solid fa-eye"></i></a>&nbsp;<a class="btn btn-primary btn-sm"><i class="fa-regular fa-pen-to-square"></i></a>&nbsp;<a class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></a></td>
                         </tr>
@@ -67,9 +67,9 @@ function generateBarcode($text){
                             <td>Spread</td>
                             <td><span class="badge text-white" style="background-color: #FFAF61;">In Stock</span></td>
                             <td><span>P0000002</span></td>
-                            <td class="text-center"><span class="btn btn-secondary btn-sm">15</span></td>
                             <td class="text-center">21</td>
                             <td class="text-center">25</td>
+                            <td class="text-center"><span class="btn btn-secondary btn-sm">15</span></td>
                             <td>pcs</td>
                             <td><a class="btn btn-info btn-sm" href="index.php?route=view-product"><i class="fa-solid fa-eye"></i></a>&nbsp;<a class="btn btn-primary btn-sm"><i class="fa-regular fa-pen-to-square"></i></a>&nbsp;<a class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></a></td>
                         </tr>
@@ -80,9 +80,9 @@ function generateBarcode($text){
                             <td>Chocolate Malt</td>
                             <td><span class="badge text-white" style="background-color: #FF0808;">Out of Stock</span></td>
                             <td><span>P0000003</span></td>
-                            <td class="text-center"><span class="btn btn-secondary btn-sm">0</span></td>
                             <td class="text-center">21</td>
                             <td class="text-center">25</td>
+                            <td class="text-center"><span class="btn btn-secondary btn-sm">0</span></td>
                             <td>pcs</td>
                             <td><a class="btn btn-info btn-sm" href="index.php?route=view-product"><i class="fa-solid fa-eye"></i></a>&nbsp;<a class="btn btn-primary btn-sm"><i class="fa-regular fa-pen-to-square"></i></a>&nbsp;<a class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></a></td>
                         </tr>
@@ -90,12 +90,12 @@ function generateBarcode($text){
                             <td></td>
                             <td>Bear Brand</td>
                             <td>Nestle</td>
-                            <td>Powdered Milk</td>
+                            <td>Powdered Milk / Bebe Powder</td>
                             <td><span class="badge text-white" style="background-color: #FFAF61;">In Stock</span></td>
                             <td><span>P0000004</span></td>
-                            <td class="text-center"><span class="btn btn-secondary btn-sm">10</span></td>
                             <td class="text-center">21</td>
                             <td class="text-center">25</td>
+                            <td class="text-center"><span class="btn btn-secondary btn-sm">10</span></td>
                             <td>pcs</td>
                             <td><a class="btn btn-info btn-sm" href="index.php?route=view-product"><i class="fa-solid fa-eye"></i></a>&nbsp;<a class="btn btn-primary btn-sm"><i class="fa-regular fa-pen-to-square"></i></a>&nbsp;<a class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></a></td>
                         </tr>
