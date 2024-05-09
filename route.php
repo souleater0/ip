@@ -1,5 +1,5 @@
 <?php
-$route = $_GET['route'] ?? 'home';
+$route = $_GET['route'] ?? 'dashboard';
 switch ($route){
     case "dashboard":
         require 'admin/views/dashboard/dashboard.php';
@@ -29,6 +29,6 @@ switch ($route){
         require 'admin/views/stock-management/stockin.php';
         break;
     default:
-    require 'admin/views/dashboard/dashboard.php';
+        require 'admin/views/dashboard/dashboard.php';
 }
 ?>

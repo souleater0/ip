@@ -9,9 +9,9 @@
   <title>Inventory System - Login</title>
   <link rel="shortcut icon" type="image/png" href="../assets/images/logos/favicon.png" />
   <link rel="stylesheet" href="../assets/css/styles.min.css" />
-  <link rel="stylesheet" href="../assets/libs/toastr/css/toastr.min.css">
   <script src="../assets/libs/jquery/dist/jquery.min.js"></script>
-  <script src="../assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="../assets/libs/toastr/css/toastr.min.css">
   <script src="../assets/libs/toastr/js/toastr.min.js"></script>
 </head>
 <body>
@@ -58,23 +58,6 @@
   </div>
   <script>
     $(document).ready(function(){
-      toastr.options = {
-                "closeButton": true,
-                "debug": false,
-                "newestOnTop": true,
-                "progressBar": true,
-                "positionClass": "toast-top-right",
-                "preventDuplicates": true,
-                "onclick": null,
-                "showDuration": "300",
-                "hideDuration": "1000",
-                "timeOut": "5000",
-                "extendedTimeOut": "1000",
-                "showEasing": "swing",
-                "hideEasing": "linear",
-                "showMethod": "fadeIn",
-                "hideMethod": "fadeOut"
-      }
       $('#submit_login').click(function(){
           var formData = $('#login_form').serialize();
           // alert(formData);

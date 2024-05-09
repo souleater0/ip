@@ -20,4 +20,20 @@ require_once 'function.php';
         echo json_encode($response);
         exit();
     }
+    if(!empty($_POST['action']) && $_POST['action'] == 'addCategory') {
+        if(AddCategory($pdo)){
+            $response = array(
+                'success' => true,
+                'message' => 'Category has been added successfully'
+            );
+        }else{
+            $response = array(
+                'success' => false,
+                'message' => 'Category already Exist!'
+            );
+        }
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
 ?>

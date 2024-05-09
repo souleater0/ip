@@ -1,4 +1,5 @@
 <?php
+  require_once 'admin/process/function.php';
   include("header.php");
 ?>
 <!-- CONTENT HERE -->

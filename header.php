@@ -13,7 +13,7 @@ $route = $_GET['route'] ?? 'home';
   <link rel="stylesheet" href="assets/css/styles.min.css" />
   <link rel="stylesheet" href="assets/css/table.css">
   <script src="assets/libs/jquery/dist/jquery.min.js"></script>
-  <script src="assets/libs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script src="assets/js/sidebarmenu.js"></script>
   <script src="assets/js/app.min.js"></script>
   <script src="assets/libs/apexcharts/dist/apexcharts.min.js"></script>
@@ -32,6 +32,12 @@ $route = $_GET['route'] ?? 'home';
     <!-- Latest BS-Select compiled and minified CSS/JS -->
     <link rel="stylesheet" href="assets/libs/bootstrap-select/dist/css/bootstrap-select.min.css">
     <script src="assets/libs/bootstrap-select/dist/js/bootstrap-select.min.js"></script>
+
+  <!-- TOASTR -->
+  <link rel="stylesheet" href="assets/libs/toastr/css/toastr.min.css">
+  <script src="assets/libs/toastr/js/toastr.min.js"></script>
+  <script src="assets/js/all.js"></script>
+
 
 </head>
 <body>
