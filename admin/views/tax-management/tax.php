@@ -14,51 +14,7 @@
 
       </div>
       <div class="card-body">
-        <table id="myTable" class="table table-hover table-cs-color">
-          <thead>
-            <tr>
-              <th>Tax Name</th>
-              <th class="text-start">Percentage</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>1% Tax</td>
-              <td class="text-start">1%</td>
-              <td><button class="btn btn-primary btn-sm"><i
-                    class="fa-regular fa-pen-to-square"></i></button>&nbsp;<button class="btn btn-danger btn-sm"><i
-                    class="fa-solid fa-trash"></i></button></td>
-            </tr>
-            <tr>
-              <td>2% Tax</td>
-              <td class="text-start">2%</td>
-              <td><button class="btn btn-primary btn-sm"><i
-                    class="fa-regular fa-pen-to-square"></i></button>&nbsp;<button class="btn btn-danger btn-sm"><i
-                    class="fa-solid fa-trash"></i></button></td>
-            </tr>
-            <tr>
-              <td>3% Tax</td>
-              <td class="text-start">3%</td>
-              <td><button class="btn btn-primary btn-sm"><i
-                    class="fa-regular fa-pen-to-square"></i></button>&nbsp;<button class="btn btn-danger btn-sm"><i
-                    class="fa-solid fa-trash"></i></button></td>
-            </tr>
-            <tr>
-              <td>5% Tax</td>
-              <td class="text-start">5%</td>
-              <td><button class="btn btn-primary btn-sm"><i
-                    class="fa-regular fa-pen-to-square"></i></button>&nbsp;<button class="btn btn-danger btn-sm"><i
-                    class="fa-solid fa-trash"></i></button></td>
-            </tr>
-            <tr>
-              <td>10% Tax</td>
-              <td class="text-start">10%</td>
-              <td><button class="btn btn-primary btn-sm"><i
-                    class="fa-regular fa-pen-to-square"></i></button>&nbsp;<button class="btn btn-danger btn-sm"><i
-                    class="fa-solid fa-trash"></i></button></td>
-            </tr>
-          </tbody>
+        <table id="taxTable" class="table table-hover table-cs-color">
         </table>
       </div>
     </div>
@@ -66,11 +22,20 @@
 </div>
 <script>
   $(document).ready( function () {
-    // let table = new DataTable('#myTable');
-    $('#myTable').DataTable( {
-      responsive: true,
-    select: true,
-    autoWidth: false
-  });
+    var table = $('#taxTable').DataTable({
+        responsive: true,
+        select: true,
+        autoWidth: false,
+        ajax:{
+          url: 'admin/process/table.php?table_type=tax',
+          dataSrc: 'data'
+        },
+        columns:[
+          {data: 'tax_id', visible: false},
+          {data: 'tax_name', title: 'Tax Type'},
+          {data: 'tax_percentage', title: 'Percentage', className: 'text-center'},
+          {"data": null, title: 'Action', "defaultContent": "<button class='btn btn-primary btn-sm btn-edit'><i class='fa-regular fa-pen-to-square'></i></button>&nbsp;<button class='btn btn-danger btn-sm'><i class='fa-solid fa-trash'></i></button>"}
+        ]
+    });
   });
 </script>

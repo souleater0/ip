@@ -21,16 +21,47 @@ require_once 'function.php';
         exit();
     }
     if(!empty($_POST['action']) && $_POST['action'] == 'addCategory') {
-        if(AddCategory($pdo)){
-            $response = array(
-                'success' => true,
-                'message' => 'Category has been added successfully'
-            );
-        }else{
+
+        if(empty($_POST['category_name'])){
             $response = array(
                 'success' => false,
-                'message' => 'Category already Exist!'
+                'message' => 'Please Enter a Category Name!'
             );
+        }else{
+            if(AddCategory($pdo)){
+                $response = array(
+                    'success' => true,
+                    'message' => 'Category has been added successfully'
+                );
+            }else{
+                $response = array(
+                    'success' => false,
+                    'message' => 'Category already Exist!'
+                );
+            }
+        }
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
+    if(!empty($_POST['action']) && $_POST['action'] == 'updateCategory') {
+        if(empty($_POST['category_name'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please Enter a Category Name!'
+            );
+        }else{
+            if(updateCategory($pdo)){
+                $response = array(
+                    'success' => true,
+                    'message' => 'Category has been updated successfully'
+                );
+            }else{
+                $response = array(
+                    'success' => false,
+                    'message' => 'Category already Exist!'
+                );
+            }
         }
         header('Content-Type: application/json');
         echo json_encode($response);

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3309
--- Generation Time: May 09, 2024 at 03:07 PM
+-- Generation Time: May 10, 2024 at 03:24 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.1.25
 
@@ -67,15 +67,10 @@ CREATE TABLE `category` (
 
 INSERT INTO `category` (`category_id`, `parent_category_id`, `category_name`) VALUES
 (1, NULL, 'Food'),
-(2, NULL, 'Electronics'),
-(3, 2, 'Smarthphones'),
-(4, NULL, 'Dairy'),
-(5, 4, 'Powdered Milk'),
-(6, NULL, 'Fruit Preserves'),
-(7, 6, 'Jam'),
-(8, NULL, 'Shampoo'),
-(9, 8, 'Anti-dandruff'),
-(25, 2, 'test');
+(2, NULL, 'Dairy'),
+(3, 2, 'Yogurt Drink'),
+(4, NULL, 'Fruit Preserves'),
+(5, 4, 'Syrup');
 
 -- --------------------------------------------------------
 
@@ -85,11 +80,22 @@ INSERT INTO `category` (`category_id`, `parent_category_id`, `category_name`) VA
 
 CREATE TABLE `item` (
   `item_id` int(11) NOT NULL,
+  `item_sku` varchar(255) DEFAULT NULL,
   `item_barcode` varchar(255) DEFAULT NULL,
   `item_qty` int(11) DEFAULT NULL,
-  `item_expiry` varchar(255) DEFAULT NULL,
+  `item_expiry` date DEFAULT NULL,
+  `product_sku` varchar(255) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `item`
+--
+
+INSERT INTO `item` (`item_id`, `item_sku`, `item_barcode`, `item_qty`, `item_expiry`, `product_sku`, `created_at`) VALUES
+(1, 'ITM00001', 'IGWDZX', 5, '2024-05-30', 'P00001', '2024-05-10 08:26:11'),
+(2, 'ITM00002', 'IGWDZY', 5, '2024-05-30', 'P00001', '2024-05-10 08:26:54'),
+(3, 'ITM00002', 'IGWDZD', 0, '2024-05-31', 'P00002', '2024-05-10 11:51:46');
 
 -- --------------------------------------------------------
 
@@ -140,6 +146,8 @@ CREATE TABLE `product` (
   `product_sku` varchar(255) DEFAULT NULL,
   `product_pp` int(11) DEFAULT NULL,
   `product_sp` int(11) DEFAULT NULL,
+  `product_min` int(11) DEFAULT NULL,
+  `product_max` int(11) DEFAULT NULL,
   `unit_id` int(11) DEFAULT NULL,
   `tax_id` int(11) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
@@ -150,8 +158,9 @@ CREATE TABLE `product` (
 -- Dumping data for table `product`
 --
 
-INSERT INTO `product` (`product_id`, `product_name`, `product_description`, `brand_id`, `category_id`, `status_id`, `product_sku`, `product_pp`, `product_sp`, `unit_id`, `tax_id`, `created_at`, `updated_at`) VALUES
-(1, 'Red Mongo 340g', NULL, 2, 7, 1, 'P00001', 102, 110, 1, 1, '2024-05-08 09:00:02', '2024-05-08 09:40:17');
+INSERT INTO `product` (`product_id`, `product_name`, `product_description`, `brand_id`, `category_id`, `status_id`, `product_sku`, `product_pp`, `product_sp`, `product_min`, `product_max`, `unit_id`, `tax_id`, `created_at`, `updated_at`) VALUES
+(1, 'Red Mongo 340g', 'Red Mongo 340g 12oz', 2, 5, NULL, 'P00001', 102, 110, 10, 20, 1, 1, '2024-05-10 07:47:44', '2024-05-10 09:01:32'),
+(2, 'Green Kaong 340g', 'Green Kaong 340g 12oz', 2, 5, NULL, 'P00002', 102, 110, 10, 20, 1, 1, '2024-05-10 11:52:30', '2024-05-10 12:59:57');
 
 -- --------------------------------------------------------
 
@@ -333,7 +342,8 @@ ALTER TABLE `category`
 -- Indexes for table `item`
 --
 ALTER TABLE `item`
-  ADD PRIMARY KEY (`item_id`);
+  ADD PRIMARY KEY (`item_id`),
+  ADD KEY `fr_prod_sku` (`product_sku`);
 
 --
 -- Indexes for table `permissions`
@@ -351,7 +361,8 @@ ALTER TABLE `product`
   ADD KEY `fr_category_id` (`category_id`),
   ADD KEY `fr_status_id` (`status_id`),
   ADD KEY `fr_unit_id` (`unit_id`),
-  ADD KEY `fr_tax_id` (`tax_id`);
+  ADD KEY `fr_tax_id` (`tax_id`),
+  ADD KEY `product_sku` (`product_sku`);
 
 --
 -- Indexes for table `roles`
@@ -411,7 +422,13 @@ ALTER TABLE `brand`
 -- AUTO_INCREMENT for table `category`
 --
 ALTER TABLE `category`
-  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `item`
+--
+ALTER TABLE `item`
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `permissions`
@@ -423,7 +440,7 @@ ALTER TABLE `permissions`
 -- AUTO_INCREMENT for table `product`
 --
 ALTER TABLE `product`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `roles`
@@ -458,6 +475,12 @@ ALTER TABLE `users`
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `item`
+--
+ALTER TABLE `item`
+  ADD CONSTRAINT `fr_prod_sku` FOREIGN KEY (`product_sku`) REFERENCES `product` (`product_sku`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
 -- Constraints for table `product`

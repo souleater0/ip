@@ -10,23 +10,12 @@
             <h5 class="mt-1 mb-0">Manage Category</h5>
           </div>
           <div class="col">
-            <button class="btn btn-primary btn-sm float-end" id="addCategoryBTN" data-bs-toggle="modal" data-bs-target="#exampleModal"><i class="fa-solid fa-plus"></i>&nbsp;Add Category</button>
+            <button class="btn btn-primary btn-sm float-end" id="addCategoryBTN" data-bs-toggle="modal" data-bs-target="#categoryModal"><i class="fa-solid fa-plus"></i>&nbsp;Add Category</button>
           </div>
-
         </div>
-
       </div>
       <div class="card-body">
-        <table id="myTable" class="table table-hover table-cs-color">
-          <thead>
-            <tr>
-              <th>Category Name</th>
-              <th>Parent Category Name</th>
-              <th class="exclude">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-          </tbody>
+        <table id="categoryTable" class="table table-hover table-cs-color">
         </table>
       </div>
     </div>
@@ -34,12 +23,12 @@
 </div>
 
 <!-- Modal -->
-<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
     <form id="categoryForm">
       <div class="modal-header">
-        <h1 class="modal-title fs-5" id="exampleModalLabel">Category</h1>
+        <h1 class="modal-title fs-5" id="categoryModalLabel">Category</h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body border">
@@ -62,6 +51,7 @@
       </div>
       <div class="modal-footer">
         <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> -->
+        <button type="button" class="btn btn-primary" id="updateCategory" update-id="">UPDATE</button>
         <button type="button" class="btn btn-primary" id="addCategory">ADD</button>
       </div>
       </form>
@@ -70,25 +60,25 @@
 </div>
 <script>
   $(document).ready(function () {
-    var table = $('#myTable').DataTable({
+    var table = $('#categoryTable').DataTable({
         responsive: true,
         select: true,
         autoWidth: false,
         ajax:{
-          url: 'admin/process/table.php',
+          url: 'admin/process/table.php?table_type=category',
           dataSrc: 'data'
         },
         columns:[
           {data: 'category_id', visible: false},
-          {data: 'category_name'},
+          {data: 'category_name', title: 'Category Name'},
           {data: 'parent_category_id', visible: false},
-          {data: 'parent_category_name'},
-          {"data": null, "defaultContent": "<button class='btn btn-primary btn-sm btn-edit'>Edit</button>&nbsp;<button class='btn btn-danger btn-sm'>Delete</button>"}
+          {data: 'parent_category_name', title: 'Parent Category Name'},
+          {"data": null, title: 'Action', "defaultContent": "<button class='btn btn-primary btn-sm btn-edit'><i class='fa-regular fa-pen-to-square'></i></button>&nbsp;<button class='btn btn-danger btn-sm'><i class='fa-solid fa-trash'></i></button>"}
         ]
     });
     function LoadTable(){
         $.ajax({
-            url: 'admin/process/table.php',
+            url: 'admin/process/table.php?table_type=category',
             dataType: 'json',
             success: function(data) {
               table.clear().rows.add(data.data).draw(false); // Update data without redrawing
@@ -110,6 +100,8 @@
       $('#mainCategory').val('');
       $('#subCategory').val('');
       $('#subCategory').selectpicker('refresh');
+      $('#addCategory').show();
+      $('#updateCategory').hide();
     });
     
 
@@ -124,6 +116,7 @@
             success: function(response) {
                 if(response.success==true){
                     LoadTable();
+                    $('#categoryModal').modal('hide');
                     toastr.success(response.message);
                 }else{
                     toastr.error(response.message);
@@ -131,14 +124,36 @@
             }
         });
     });
-    $('#myTable').on('click', 'button.btn-edit', function () {
+    $('#updateCategory').click(function(){
+      var formData = $('#categoryForm').serialize();
+      var update_id = $(this).attr("update-id");
+      $.ajax({
+            url: "admin/process/admin_action.php",
+            method: "POST",
+            data: formData+"&action=updateCategory&update_id="+update_id,
+            dataType: "json",
+            success: function(response) {
+                if(response.success==true){
+                    LoadTable();
+                    $('#categoryModal').modal('hide');
+                    toastr.success(response.message);
+                }else{
+                    toastr.error(response.message);
+                }
+            }
+        });
+    });
+    $('#categoryTable').on('click', 'button.btn-edit', function () {
       var data = table.row($(this).parents('tr')).data();
       // // Populate modal with data
       $('#mainCategory').val(data.category_name);
       $('#subCategory').val(data.parent_category_id);
       $('#subCategory').selectpicker('refresh');
-      $('#exampleModal').modal('show');
-      // alert(data.parent_category_id);
+      $('#addCategory').hide();
+      $('#updateCategory').show();
+      $('#categoryModal').modal('show');
+      // var update_id = $(this).attr("update-id");
+      $("#updateCategory").attr("update-id", data.category_id);
     });
   });
 </script>

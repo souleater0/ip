@@ -15,45 +15,7 @@
 
       </div>
       <div class="card-body">
-        <table id="myTable" class="table table-hover table-cs-color">
-          <thead>
-            <tr>
-              <th>Brand Name</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Samsung</td>
-              <td><button class="btn btn-primary btn-sm"><i
-                    class="fa-regular fa-pen-to-square"></i></button>&nbsp;<button class="btn btn-danger btn-sm"><i
-                    class="fa-solid fa-trash"></i></button></td>
-            </tr>
-            <tr>
-              <td>Apple</td>
-              <td><button class="btn btn-primary btn-sm"><i
-                    class="fa-regular fa-pen-to-square"></i></button>&nbsp;<button class="btn btn-danger btn-sm"><i
-                    class="fa-solid fa-trash"></i></button></td>
-            </tr>
-            <tr>
-              <td>Nescafe</td>
-              <td><button class="btn btn-primary btn-sm"><i
-                    class="fa-regular fa-pen-to-square"></i></button>&nbsp;<button class="btn btn-danger btn-sm"><i
-                    class="fa-solid fa-trash"></i></button></td>
-            </tr>
-            <tr>
-              <td>YTS Quality</td>
-              <td><button class="btn btn-primary btn-sm"><i
-                    class="fa-regular fa-pen-to-square"></i></button>&nbsp;<button class="btn btn-danger btn-sm"><i
-                    class="fa-solid fa-trash"></i></button></td>
-            </tr>
-            <tr>
-              <td>Century Pacific Food</td>
-              <td><button class="btn btn-primary btn-sm"><i
-                    class="fa-regular fa-pen-to-square"></i></button>&nbsp;<button class="btn btn-danger btn-sm"><i
-                    class="fa-solid fa-trash"></i></button></td>
-            </tr>
-          </tbody>
+        <table id="brandTable" class="table table-hover table-cs-color">
         </table>
       </div>
     </div>
@@ -62,10 +24,19 @@
 <script>
   $(document).ready( function () {
     // let table = new DataTable('#myTable');
-    $('#myTable').DataTable( {
-      responsive: true,
-    select: true,
-    autoWidth: false
-  });
+  var table = $('#brandTable').DataTable({
+        responsive: true,
+        select: true,
+        autoWidth: false,
+        ajax:{
+          url: 'admin/process/table.php?table_type=brand',
+          dataSrc: 'data'
+        },
+        columns:[
+          {data: 'brand_id', visible: false},
+          {data: 'brand_name', title: 'Category Name'},
+          {"data": null, title: 'Action', "defaultContent": "<button class='btn btn-primary btn-sm btn-edit'><i class='fa-regular fa-pen-to-square'></i></button>&nbsp;<button class='btn btn-danger btn-sm'><i class='fa-solid fa-trash'></i></button>"}
+        ]
+    });
   });
 </script>
