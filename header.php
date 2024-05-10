@@ -76,9 +76,9 @@ $route = $_GET['route'] ?? 'home';
               <iconify-icon icon="solar:menu-dots-linear" class="nav-small-cap-icon fs-4"></iconify-icon>
               <span class="hide-menu text-uppercase">product management</span>
             </li>
-            <div class="collapse <?php echo ($route == 'product-management' || $route == 'category-management' || $route == 'brand-management' || $route == 'unit-management' || $route == 'tax-management') ? 'show' : ''; ?>" id="collapseProduct">
+            <div class="collapse <?php echo ($route == 'product-management'|| $route == 'view-product' || $route == 'category-management' || $route == 'brand-management' || $route == 'unit-management' || $route == 'tax-management') ? 'show' : ''; ?>" id="collapseProduct">
             <li class="sidebar-item">
-              <a class="sidebar-link" href="index.php?route=product-management" aria-expanded="false">
+              <a class="sidebar-link <?php echo ($route == 'view-product' )? 'active' : ''; ?>" href="index.php?route=product-management" aria-expanded="false">
                 <iconify-icon icon="mdi:cart"></iconify-icon>
                 <span class="hide-menu">Products</span>
               </a>
