@@ -67,4 +67,165 @@ require_once 'function.php';
         echo json_encode($response);
         exit();
     }
+    if(!empty($_POST['action']) && $_POST['action'] == 'addProduct') {
+        if(empty($_POST['sku_id'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter a SKU ID!'
+            );
+        }
+        else if(empty($_POST['product_name'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter a product name!'
+            );
+        }
+        else if(empty($_POST['product_desc'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter a product description!'
+            );
+        }
+        else if(empty($_POST['purchase_price'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter purchase price!'
+            );
+        }
+        else if(empty($_POST['min_qty'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter minimum quantity!'
+            );
+        }
+        else if(empty($_POST['max_qty'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter max quantity!'
+            );
+        }
+        else if(empty($_POST['unit_id'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please select units!'
+            );
+        }else{
+            if(addProduct($pdo)){
+                $response = array(
+                    'success' => true,
+                    'message' => 'Product has been added successfully'
+                );
+            }else{
+                $response = array(
+                    'success' => false,
+                    'message' => 'Product already Exist!'
+                );
+            }
+        }
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
+    if(!empty($_POST['action']) && $_POST['action'] == 'addBrand') {
+        if(empty($_POST['brand_name'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please Enter a Brand Name!'
+            );
+        }else{
+            if(AddBrand($pdo)){
+                $response = array(
+                    'success' => true,
+                    'message' => 'Brand has been added successfully'
+                );
+            }else{
+                $response = array(
+                    'success' => false,
+                    'message' => 'Brand already Exist!'
+                );
+            }
+        }
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
+    if(!empty($_POST['action']) && $_POST['action'] == 'updateBrand') {
+        if(empty($_POST['brand_name'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please Enter a Brand Name!'
+            );
+        }else{
+            if(updateBrand($pdo)){
+                $response = array(
+                    'success' => true,
+                    'message' => 'Brand has been updated successfully'
+                );
+            }else{
+                $response = array(
+                    'success' => false,
+                    'message' => 'Brand already Exist!'
+                );
+            }
+        }
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
+    if(!empty($_POST['action']) && $_POST['action'] == 'addUnit') {
+        if(empty($_POST['unit_name'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter a Unit Name!'
+            );
+        }else if(empty($_POST['unit_prefix'])){
+                $response = array(
+                    'success' => false,
+                    'message' => 'Please enter a Prefix Name!'
+                );
+        }else{
+            if(addUnit($pdo)){
+                $response = array(
+                    'success' => true,
+                    'message' => 'Unit has been added successfully'
+                );
+            }else{
+                $response = array(
+                    'success' => false,
+                    'message' => 'Unit already Exist!'
+                );
+            }
+        }
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
+    if(!empty($_POST['action']) && $_POST['action'] == 'updateUnit') {
+        if(empty($_POST['unit_name'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter a Unit Name!'
+            );
+        }else if(empty($_POST['unit_prefix'])){
+                $response = array(
+                    'success' => false,
+                    'message' => 'Please enter a Prefix Name!'
+                );
+        }else{
+            if(updateUnit($pdo)){
+                $response = array(
+                    'success' => true,
+                    'message' => 'Unit has been updated successfully'
+                );
+            }else{
+                $response = array(
+                    'success' => false,
+                    'message' => 'Unit already Exist!'
+                );
+            }
+        }
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
 ?>

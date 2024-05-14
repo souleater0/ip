@@ -13,6 +13,9 @@ function generateBarcode($text){
     $barcode_image = $generator->getBarcode($text, $generator::TYPE_CODE_128);
     return $barcode_image;
 }
+$product_id = $_GET['product'];
+$product = getProductSummary($product_id, $pdo);
+$items = getItembyID($product_id, $pdo);
 ?>
 <div class="body-wrapper-inner open-sans-regular">
     <div class="container-fluid" style="max-width: 100% !important;">
@@ -36,16 +39,16 @@ function generateBarcode($text){
                             <div class="mt-3">
                                 <div class="row align-items-stretch gy-5">
                                     <div class="col-lg-3 col-md-6">
-                                        <span class="text-dark fw-semibold ">Product Name: </span><br><span class="text-dark">Red Mongo 340g</span>
+                                        <span class="text-dark fw-semibold ">Product Name: </span><br><span class="text-dark"><?php echo !empty($product['product_name']) ? $product['product_name'] : 'none' ?></span>
                                     </div>
                                     <div class="col-lg-3 col-md-6">
-                                        <span class="text-dark fw-semibold ">Brand: </span><br><span class="text-dark">YS Quality</span>
+                                        <span class="text-dark fw-semibold ">Brand: </span><br><span class="text-dark"><?php echo !empty($product['brand_name']) ? $product['brand_name'] : 'none' ?></span>
                                     </div>
                                     <div class="col-lg-3 col-md-6">
-                                        <span class="text-dark fw-semibold ">Category / Subcategory: </span><br><span class="text-dark">Fruit Preserves/Syrup</span>
+                                        <span class="text-dark fw-semibold ">Category / Subcategory: </span><br><span class="text-dark"><?php echo !empty($product['category']) ? $product['category'] : 'none' ?></span>
                                     </div>
                                     <div class="col-lg-3 col-md-6">
-                                        <span class="text-dark fw-semibold ">SKU: </span><br><?php echo "<img src='data:image/png;base64," . base64_encode(generateBarcode("P0000004")) . "' width='180'>";?><br><span class="text-dark">P0000004</span>
+                                        <span class="text-dark fw-semibold ">SKU: </span><br><?php echo "<img src='data:image/png;base64," . base64_encode(generateBarcode(!empty($product['product_sku']) ? $product['product_sku'] : 'none')) . "' width='180'>";?><br><span class="text-dark"><?php echo !empty($product['product_sku']) ? $product['product_sku'] : 'none' ?></span>
                                     </div>
                                 </div>
                             </div>
@@ -55,39 +58,51 @@ function generateBarcode($text){
                             <div class="mt-3">
                                 <div class="row align-items-stretch gy-5">
                                     <div class="col-lg col-md-6">
-                                        <span class="text-dark fw-semibold ">Purchasing Price: </span><br><span class="text-dark">₱ 102</span>
+                                        <span class="text-dark fw-semibold ">Purchasing Price: </span><br><span class="text-dark"><?php echo !empty($product['product_pp']) ? '₱'.$product['product_pp'] : 'none' ?></span>
                                     </div>
                                     <div class="col-lg col-md-6">
-                                        <span class="text-dark fw-semibold ">Selling Price: </span><br><span class="text-dark">₱ 110</span>
+                                        <span class="text-dark fw-semibold ">Selling Price: </span><br><span class="text-dark"><?php echo !empty($product['product_sp']) ? '₱'.$product['product_sp'] : 'none' ?></span>
                                     </div>
                                     <div class="col-lg col-md-6 col-6">
-                                        <span class="text-dark fw-semibold ">Tax: </span><br><span class="text-dark">No Tax</span>
+                                        <span class="text-dark fw-semibold ">Tax: </span><br><span class="text-dark"><?php echo !empty($product['tax_name']) ? $product['tax_name'] : 'none' ?></span>
                                     </div>
                                     <div class="col-lg col-md-6 col-6">
-                                        <span class="text-dark fw-semibold ">Total Purchase Price: </span><br><span class="text-dark">₱ 1020</span>
+                                        <span class="text-dark fw-semibold ">Total Purchase Price: </span><br><span class="text-dark"><?php echo !empty($product['product_pp']) ? '₱'.$product['product_pp']*$product['stocks'] : 'none' ?></span>
                                     </div>
                                     <div class="col-lg col-md-6 col-6">
-                                        <span class="text-dark fw-semibold ">Total Selling Price: </span><br><span class="text-dark">₱ 1100</span>
+                                        <span class="text-dark fw-semibold ">Total Selling Price: </span><br><span class="text-dark"><?php echo !empty($product['product_sp']) ? '₱'.$product['product_sp']*$product['stocks'] : 'none' ?></span>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
                             <div class="py-3">
-                            <p class="text-dark text-break">Red and mung beans are beneficial to your health. They are rich in nutrients like protein, fiber and antioxidants.</p>
+                            <p class="text-dark text-break"><?php echo !empty($product['product_description']) ? $product['product_description'] : 'none' ?></p>
                             </div>
                         </div>
                         <div class="tab-pane fade" id="nav-stock" role="tabpanel" aria-labelledby="nav-stock-tab">
                             <div class="mt-3">
                                     <div class="row align-items-stretch gy-5">
                                         <div class="col-lg col-md-6 col-6">
-                                            <span class="text-dark fw-semibold ">Stock: </span><br><span class="text-dark">10</span>
+                                            <span class="text-dark fw-semibold ">Stock: </span><br><span class="text-dark"><?php echo !empty($product['stocks']) ? $product['stocks'] : 'none' ?></span>
                                         </div>   
                                         <div class="col-lg col-md-6 col-6">
-                                            <span class="text-dark fw-semibold ">Unit: </span><br><span class="text-dark">pcs</span>
+                                            <span class="text-dark fw-semibold ">Unit: </span><br><span class="text-dark"><?php echo !empty($product['unit']) ? $product['unit'] : 'none' ?></span>
                                         </div>
                                         <div class="col-lg col-md-6 col-6">
-                                        <span class="text-dark fw-semibold ">Status: </span><br><span class="text-dark"><span class="badge text-white" style="background-color: #FFAF61;">In Stock</span></span>
+                                        <span class="text-dark fw-semibold ">Status: </span><br><span class="text-dark">
+                                            <?php
+                                            if(!empty($product['status_id']) && $product['status_id'] == 1){
+                                                echo '<span class="badge text-white" style="background-color: #58D68D;">In Stock</span>';
+                                            }
+                                            if(!empty($product['status_id']) && $product['status_id'] == 2){
+                                                echo '<span class="badge text-white" style="background-color: #FFAF61;">Low Stock</span>';
+                                            }
+                                            if(!empty($product['status_id']) && $product['status_id'] == 3){
+                                                echo '<span class="badge text-white" style="background-color: #EC7063;">Out of Stock</span>';
+                                            }
+                                            ?>
+                                        </span>
                                         </div>
                                     </div>
                             </div>
@@ -103,7 +118,7 @@ function generateBarcode($text){
             <table id="myTable" class="table table-hover table-cs-color">
                     <thead>
                         <tr>
-                            <th></th>
+                            
                             <th>SKU</th>
                             <th class="text-start">Product Barcode</th>
                             <th class="text-center">Qty</th>
@@ -111,37 +126,70 @@ function generateBarcode($text){
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td></td>
-                            <td><span>ITM001</span></td>
-                            <td class="text-start"><span><?php echo "<img src='data:image/png;base64," . base64_encode(generateBarcode("ITM001")) . "' width='180'>";?></span></td>
-                            <td class="text-center"><span class="btn btn-secondary btn-sm">5</span></td>
-                            <td>2024-April-4</td>
-                        </tr>
-                        <tr>
-                            <td></td>
-                            <td><span>ITM002</span></td>
-                            <td class="text-start"><span><?php echo "<img src='data:image/png;base64," . base64_encode(generateBarcode("ITM002")) . "' width='180'>";?></span></td>
-                            <td class="text-center"><span class="btn btn-secondary btn-sm">5</span></td>
-                            <td>2024-April-4</td>
-                        </tr>
+                        
+                            <?php foreach($items as $item):?>
+                            <tr>
+                            <td><?php echo $item['item_sku'];?></td>
+                            <td class="text-start"><span><?php echo "<img src='data:image/png;base64," . base64_encode(generateBarcode(!empty($item['item_barcode']) ? $item['item_barcode'] : 'none')) . "' width='180'>";?></span></td>
+                            <td class="text-center"><span class="btn btn-secondary btn-sm"><?php echo $item['item_qty'];?></span></td>
+                            <td><?php echo $item['item_expiry'];?></td>
+                            </tr>
+                            <?php endforeach;?>
+                        
                     </tbody>
                 </table>
             </div>
         </div>
   </div>
 </div>
+<!-- Modal -->
+<div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+    <form id="categoryForm">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="categoryModalLabel">Category</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body border">
+        <div class="row gy-2">
+          <div class="col-lg-12">
+          <label for="mainCategory" class="form-label">Category Name</label>
+          <input type="text" class="form-control" id="mainCategory" name="category_name" placeholder="Ex. Food">
+          </div>
+          <div class="col-lg-12">
+            <label for="subCategory" class="form-label">Parent Category</label>
+            <select class="selectpicker form-control" id="subCategory" name="p_category_id" data-live-search="true">
+            <option value="">None</option>
+              <?php foreach ($categorys as $category):?>
+                <option value="<?php echo $category['category_id'];?>"><?php echo $category['category_name'];?></option>
+              <?php endforeach;?>
+            </select>
+          </div>
+          
+        </div>
+      </div>
+      <div class="modal-footer">
+        <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> -->
+        <button type="button" class="btn btn-primary" id="updateCategory" update-id="">UPDATE</button>
+        <button type="button" class="btn btn-primary" id="addCategory">ADD</button>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!-- END -->
 <script>
   $(document).ready( function () {
     // let table = new DataTable('#myTable');
     $('#myTable').DataTable( {
-      columnDefs: [
-        {
-            orderable: false,
-            render: DataTable.render.select(),
-            targets: 0
-        }
-    ],
+    //   columnDefs: [
+    //     {
+    //         orderable: false,
+    //         render: DataTable.render.select(),
+    //         targets: 0
+    //     }
+    // ],
     order: [[1, 'asc']],
     paging: true,
     scrollCollapse: true,

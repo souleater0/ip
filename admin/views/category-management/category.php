@@ -58,6 +58,7 @@
     </div>
   </div>
 </div>
+<!-- END -->
 <script>
   $(document).ready(function () {
     var table = $('#categoryTable').DataTable({

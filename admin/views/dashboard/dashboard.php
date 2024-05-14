@@ -148,7 +148,40 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            <div class="col-lg-4 d-flex align-items-stretch">
+              <div class="card w-100">
+                <div class="card-body p-4">
+                  <h5 class="card-title fw-semibold mb-4">Recently Added Products</h5>
+                  <div class="table-responsive" data-simplebar>
+                    <table class="table text-nowrap align-middle table-custom mb-0">
+                      <thead>
+                        <tr>
+                          <th scope="col" class="text-dark fw-normal ps-0">Product Name
+                          </th>
+                          <th scope="col" class="text-dark fw-normal">Date Added</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td class="ps-0">
+                            <div class="d-flex align-items-center gap-6">
+                              <div>
+                                <h6 class="mb-0">Milo</h6>
+                                <span>Nestle</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            2024-04-04
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
+              </div>
+            </div>
           </div>
     </div>
 </div>
