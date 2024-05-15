@@ -76,8 +76,8 @@
             </div>
           </div>
           <div class="col-lg-6">
-            <label for="category_id" class="form-label">Taxs</label>
-            <select class="selectpicker form-control" id="category_id" name="category_id" data-live-search="true">
+            <label for="tax_id" class="form-label">Taxs</label>
+            <select class="selectpicker form-control" id="tax_id" name="tax_id" data-live-search="true">
             <option value="">None</option>
               <?php foreach ($taxs as $tax):?>
                 <option value="<?php echo $tax['tax_id'];?>"><?php echo $tax['tax_name'];?></option>
@@ -145,10 +145,14 @@
           {data: null},
           {data: 'product_id', visible: false},
           {data: 'product_name', title: 'Product Name'},
-          // {data: 'brand_name', title: 'Brand Name'},
+          {data: 'product_description', visible: false},
+          {data: 'brand_id', visible: false},
+          {data: 'brand_name', visible: false},
+          {data: 'category_id', visible: false},
           {data: 'category', title: 'Category'},
           {data: 'product_sku', title: 'SKU'},
           {data: 'product_pp', title: 'Purchase Price',className: 'text-center'},
+          {data: 'tax_id', visible: false},
           {data: 'product_sp', title: 'Selling Price',className: 'text-center'},
           { 
                 "data": "status_id",
@@ -183,6 +187,7 @@
                 "title": "Stocks",
                 "className": "text-center"
           },
+          {data: 'unit_id', visible: false},
           {data: 'unit', title: 'Unit'},
           { 
             "data": null, 
@@ -211,6 +216,23 @@
         });
     }
     setInterval(LoadTable, 15000);
+    $('#addProductBTN').click(function(){
+      $('#product_name').val('');
+      $('#product_desc').val('');
+      $('#brand_id').val('');
+      $('#brand_id').selectpicker('refresh');
+      $('#purchase_price').val('');
+      $('#category_id').val('');
+      $('#category_id').selectpicker('refresh');
+      $('#tax_id').val('');
+      $('#tax_id').selectpicker('refresh');
+      $('#min_qty').val('');
+      $('#max_qty').val('');
+      $('#unit_id').val('');
+      $('#unit_id').selectpicker('refresh');
+      $('#addProduct').show();
+      $('#updateProduct').hide();
+    });
     $('#addProduct').click(function(){
         var formData = $('#productForm').serialize();
         //alert(formData);
@@ -229,6 +251,48 @@
                 }
             }
         });
+    });
+    $('#updateProduct').click(function(){
+      var formData = $('#productForm').serialize();
+      var update_id = $(this).attr("update-id");
+      $.ajax({
+            url: "admin/process/admin_action.php",
+            method: "POST",
+            data: formData+"&action=updateProduct&update_id="+update_id,
+            dataType: "json",
+            success: function(response) {
+                if(response.success==true){
+                    LoadTable();
+                    $('#productModal').modal('hide');
+                    toastr.success(response.message);
+                }else{
+                    toastr.error(response.message);
+                }
+            }
+        });
+    });
+    $('#productTable').on('click', 'button.btn-edit', function () {
+      var data = table.row($(this).parents('tr')).data();
+      // // Populate modal with data
+      $('#product_name').val(data.product_name);
+      $('#product_desc').val(data.product_description);
+      $('#brand_id').val(data.brand_id);
+      $('#brand_id').selectpicker('refresh');
+      $('#purchase_price').val(data.product_pp);
+      $('#category_id').val(data.category_id);
+      $('#category_id').selectpicker('refresh');
+      $('#tax_id').val(data.tax_id);
+      $('#tax_id').selectpicker('refresh');
+      $('#min_qty').val(data.product_min);
+      $('#max_qty').val(data.product_max);
+      $('#unit_id').val(data.unit_id);
+      $('#unit_id').selectpicker('refresh');
+
+      $('#addProduct').hide();
+      $('#updateProduct').show();
+      $('#productModal').modal('show');
+      // var update_id = $(this).attr("update-id");
+      $("#updateProduct").attr("update-id", data.product_id);
     });
   });
 </script>

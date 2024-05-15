@@ -224,6 +224,71 @@
             return array(); // Return an empty array if an error occurs
         }
     }
+    function addTax($pdo){
+        try {
+            $tax_name = $_POST['tax_name'];
+            $tax_percentage = $_POST['tax_percentage'];
+            // Check if tax with the same name already exists
+            $stmt_check = $pdo->prepare("SELECT COUNT(*) FROM tax WHERE tax_name = :tax_name OR tax_percentage = :tax_percentage");
+            $stmt_check->bindParam(':tax_name', $tax_name);
+            $stmt_check->bindParam(':tax_percentage', $tax_percentage, PDO::PARAM_INT);
+            $stmt_check->execute();
+            $count = $stmt_check->fetchColumn();
+            if ($count > 0) {
+                // Tax already exists, return false
+                return false;
+            }
+            $stmt = $pdo ->prepare("INSERT INTO tax (tax_name, tax_percentage) VALUES (:tax_name, :tax_percentage)");
+            //bind parameters
+            $stmt->bindParam(':tax_name', $tax_name);
+            $stmt->bindParam(':tax_percentage', $tax_percentage, PDO::PARAM_INT);
+            if ($stmt->execute()) {
+                // Tax added successfully
+                return true;
+            } else {
+                // Error occurred
+                return false;
+            }
+        }catch(PDOException $e){
+            // Handle database connection error
+            echo "Error: " . $e->getMessage();
+            return array(); // Return an empty array if an error occurs
+        }
+    }
+    function updateTax($pdo){
+        try {
+            $tax_name = $_POST['tax_name'];
+            $tax_percentage = $_POST['tax_percentage'];
+            $update_ID = $_POST['update_id'];
+            // Check if tax with the same name already exists
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM tax WHERE (tax_name = :tax_name OR tax_percentage = :tax_percentage) AND tax_id != :tax_id");
+            $stmt->bindParam(':tax_name', $tax_name);
+            $stmt->bindParam(':tax_percentage', $tax_percentage, PDO::PARAM_INT);
+            $stmt->bindParam(':tax_id', $update_ID, PDO::PARAM_INT);
+            $stmt->execute();
+            $count = $stmt->fetchColumn();
+            if ($count > 0) {
+                // Tax already exists, return false
+                return false;
+            }
+            $stmt = $pdo->prepare("UPDATE tax SET tax_name = :tax_name, tax_percentage = :tax_percentage WHERE tax_id = :tax_id");
+            //bind parameters
+            $stmt->bindParam(':tax_name', $tax_name);
+            $stmt->bindParam(':tax_percentage', $tax_percentage, PDO::PARAM_INT);
+            $stmt->bindParam(':tax_id', $update_ID, PDO::PARAM_INT);
+            if ($stmt->execute()) {
+                // Tax Update successfully
+                return true;
+            } else {
+                // Error occurred
+                return false;
+            }
+        }catch(PDOException $e){
+            // Handle database connection error
+            echo "Error: " . $e->getMessage();
+            return array(); // Return an empty array if an error occurs
+        }
+    }
     function getSKUID($pdo){
         try {
             $query = "SELECT product_sku FROM product ORDER BY product_sku DESC LIMIT 1";
@@ -376,6 +441,7 @@
             $brand_id = !empty($_POST['brand_id']) ? $_POST['brand_id'] : null;
             $category_id = !empty($_POST['category_id']) ? $_POST['category_id'] : null;
             $unit_id = !empty($_POST['unit_id']) ? $_POST['unit_id'] : null;
+            $tax_id = !empty($_POST['tax_id']) ? $_POST['tax_id'] : null;
 
             $stmt = $pdo ->prepare("INSERT INTO product (product_name,product_description,brand_id,category_id,product_sku,product_pp,product_min,product_max,unit_id,tax_id) VALUES (:product_name, :product_description, :brand_id, :category_id, :product_sku, :product_pp, :product_min, :product_max, :unit_id, :tax_id)");
 
@@ -388,9 +454,63 @@
             $stmt->bindParam(':product_min', $min_qty, PDO::PARAM_INT);
             $stmt->bindParam(':product_max', $max_qty, PDO::PARAM_INT);
             $stmt->bindParam(':unit_id', $unit_id, PDO::PARAM_INT);
-            $stmt->bindParam(':tax_id', $category_id, PDO::PARAM_INT);
+            $stmt->bindParam(':tax_id', $tax_id, PDO::PARAM_INT);
             if ($stmt->execute()) {
                 // Product added successfully
+                return true;
+            } else {
+                // Error occurred
+                return false;
+            }
+
+        }catch(PDOException $e){
+            // Handle database connection error
+            echo "Error: " . $e->getMessage();
+            return array(); // Return an empty array if an error occurs
+        }
+    }
+    function updateProduct($pdo){
+        try {
+            $sku_id = $_POST['sku_id'];
+            $product_name = $_POST['product_name'];
+            $purchase_price = $_POST['purchase_price'];
+            $min_qty = $_POST['min_qty'];
+            $max_qty = $_POST['max_qty'];
+            $update_ID = $_POST['update_id'];
+            //check product if exist
+            $stmt_check = $pdo->prepare("SELECT COUNT(*) FROM product WHERE product_name = :product_name AND product_id != :product_id");
+            $stmt_check->bindParam(':product_name', $product_name);
+            $stmt_check->bindParam(':product_id', $update_ID, PDO::PARAM_INT);
+            $stmt_check->execute();
+            $count = $stmt_check->fetchColumn();
+
+            if ($count > 0) {
+                // Category already exists, return false
+                return false;
+            }
+
+            //if not empty category and units
+            $product_desc = !empty($_POST['product_desc']) ? $_POST['product_desc'] : null;
+            $brand_id = !empty($_POST['brand_id']) ? $_POST['brand_id'] : null;
+            $category_id = !empty($_POST['category_id']) ? $_POST['category_id'] : null;
+            $unit_id = !empty($_POST['unit_id']) ? $_POST['unit_id'] : null;
+            $tax_id = !empty($_POST['tax_id']) ? $_POST['tax_id'] : null;
+
+            $stmt = $pdo ->prepare("UPDATE product SET product_name = :product_name,product_description =:product_description ,brand_id =:brand_id ,category_id =:category_id ,product_sku =:product_sku ,product_pp =:product_pp ,product_min =:product_min ,product_max = :product_max ,unit_id = :unit_id ,tax_id = :tax_id WHERE product_id = :product_id");
+            
+            $stmt->bindParam(':product_id', $update_ID, PDO::PARAM_INT);
+            $stmt->bindParam(':product_name', $product_name);
+            $stmt->bindParam(':product_description', $product_desc);
+            $stmt->bindParam(':brand_id', $brand_id, PDO::PARAM_INT);
+            $stmt->bindParam(':category_id', $category_id, PDO::PARAM_INT);
+            $stmt->bindParam(':product_sku', $sku_id);
+            $stmt->bindParam(':product_pp', $purchase_price, PDO::PARAM_INT);
+            $stmt->bindParam(':product_min', $min_qty, PDO::PARAM_INT);
+            $stmt->bindParam(':product_max', $max_qty, PDO::PARAM_INT);
+            $stmt->bindParam(':unit_id', $unit_id, PDO::PARAM_INT);
+            $stmt->bindParam(':tax_id', $tax_id, PDO::PARAM_INT);
+            if ($stmt->execute()) {
+                // Product updated successfully
                 return true;
             } else {
                 // Error occurred

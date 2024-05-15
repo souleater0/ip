@@ -11,7 +11,13 @@
                 $sql = 'SELECT
                 a.product_id,
                 a.product_name,
+                a.product_description,
+                c.brand_id,
                 c.brand_name,
+                CASE
+                    WHEN b2.category_name IS NULL then b.category_id
+                    ELSE b2.category_id
+                END AS category_id,
                 CASE
                     WHEN b2.category_name IS NULL then b.category_name
                     ELSE CONCAT(b2.category_name," / ", b.category_name)
@@ -26,6 +32,8 @@
                 END AS status_id,
                 a.product_min,
                 a.product_max,
+                a.tax_id,
+                a.unit_id,
                 COALESCE(SUM(g.item_qty), 0) AS stocks,
                 e.short_name AS unit
                 FROM product a

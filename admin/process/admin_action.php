@@ -126,6 +126,65 @@ require_once 'function.php';
         echo json_encode($response);
         exit();
     }
+    if(!empty($_POST['action']) && $_POST['action'] == 'updateProduct') {
+        if(empty($_POST['sku_id'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter a SKU ID!'
+            );
+        }
+        else if(empty($_POST['product_name'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter a product name!'
+            );
+        }
+        else if(empty($_POST['product_desc'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter a product description!'
+            );
+        }
+        else if(empty($_POST['purchase_price'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter purchase price!'
+            );
+        }
+        else if(empty($_POST['min_qty'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter minimum quantity!'
+            );
+        }
+        else if(empty($_POST['max_qty'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter max quantity!'
+            );
+        }
+        else if(empty($_POST['unit_id'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please select units!'
+            );
+        }else{
+            if(updateProduct($pdo)){
+                $response = array(
+                    'success' => true,
+                    'message' => 'Product has been updated successfully'
+                );
+            }else{
+                $response = array(
+                    'success' => false,
+                    'message' => 'Product already Exist!'
+                );
+            }
+        }
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
     if(!empty($_POST['action']) && $_POST['action'] == 'addBrand') {
         if(empty($_POST['brand_name'])){
             $response = array(
@@ -221,6 +280,62 @@ require_once 'function.php';
                 $response = array(
                     'success' => false,
                     'message' => 'Unit already Exist!'
+                );
+            }
+        }
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
+    if(!empty($_POST['action']) && $_POST['action'] == 'addTax') {
+        if(empty($_POST['tax_name'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter a Tax Type!'
+            );
+        }else if(empty($_POST['tax_percentage'])){
+                $response = array(
+                    'success' => false,
+                    'message' => 'Please enter a Percentage!'
+                );
+        }else{
+            if(addTax($pdo)){
+                $response = array(
+                    'success' => true,
+                    'message' => 'Tax has been added successfully'
+                );
+            }else{
+                $response = array(
+                    'success' => false,
+                    'message' => 'Tax already Exist!'
+                );
+            }
+        }
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
+    if(!empty($_POST['action']) && $_POST['action'] == 'updateTax') {
+        if(empty($_POST['tax_name'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter a Tax Type!'
+            );
+        }else if(isset($_POST['tax_percentage']) && $_POST['tax_percentage'] !== '' && !is_numeric($_POST['tax_percentage'])){
+                $response = array(
+                    'success' => false,
+                    'message' => 'Please enter a Percentage!'
+                );
+        }else{
+            if(updateTax($pdo)){
+                $response = array(
+                    'success' => true,
+                    'message' => 'Tax has been updated successfully'
+                );
+            }else{
+                $response = array(
+                    'success' => false,
+                    'message' => 'Tax already Exist!'
                 );
             }
         }
