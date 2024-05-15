@@ -1,3 +1,7 @@
+<?php
+$products = getProduct($pdo);
+?>
+
 <div class="body-wrapper-inner">
   <div class="container-fluid">
     <div class="card shadow-sm">
@@ -11,9 +15,9 @@
       </div>
       <div class="card-body">
       <select class="selectpicker" data-live-search="true">
-        <option data-tokens="ketchup mustard">Hot Dog, Fries and a Soda</option>
-        <option data-tokens="mustard">Burger, Shake and a Smile</option>
-        <option data-tokens="frosting">Sugar, Spice and all things nice</option>
+      <?php foreach ($products as $product):?>
+        <option value="<?php echo $product['product_id'];?>" data-tokens="<?php echo $product['product_name'];?>"><?php echo $product['product_name'];?></option>
+      <?php endforeach;?>
       </select>
 
       </div>

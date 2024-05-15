@@ -350,6 +350,20 @@
             return array(); // Return an empty array if an error occurs
         }
     }
+    function getProduct($pdo){
+        try {
+            $query = "SELECT * FROM product";
+            $stmt = $pdo->prepare($query);
+    
+            $stmt ->execute();
+            $products = $stmt -> fetchAll(PDO::FETCH_ASSOC);
+            return $products;
+        }catch(PDOException $e){
+            // Handle database connection error
+            echo "Error: " . $e->getMessage();
+            return array(); // Return an empty array if an error occurs
+        }
+    }
     function getProductSummary($product_id, $pdo){
         try {
             $query = "SELECT
