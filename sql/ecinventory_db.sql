@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3309
--- Generation Time: May 10, 2024 at 03:24 PM
+-- Generation Time: May 15, 2024 at 02:49 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.1.25
 
@@ -24,15 +24,6 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Stand-in structure for view `aw`
--- (See below for the actual view)
---
-CREATE TABLE `aw` (
-);
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `brand`
 --
 
@@ -47,7 +38,13 @@ CREATE TABLE `brand` (
 
 INSERT INTO `brand` (`brand_id`, `brand_name`) VALUES
 (1, 'Nescafe'),
-(2, 'YS Quality');
+(2, 'YS Quality'),
+(3, 'Apple'),
+(4, 'Starbucks'),
+(5, 'Jack N Jill'),
+(6, 'Lucky Me'),
+(7, 'Chupa Chups'),
+(8, 'Mixed Nuts');
 
 -- --------------------------------------------------------
 
@@ -58,19 +55,21 @@ INSERT INTO `brand` (`brand_id`, `brand_name`) VALUES
 CREATE TABLE `category` (
   `category_id` int(11) NOT NULL,
   `parent_category_id` int(11) DEFAULT NULL,
-  `category_name` varchar(255) DEFAULT NULL
+  `category_name` varchar(255) DEFAULT NULL,
+  `category_prefix` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `category`
 --
 
-INSERT INTO `category` (`category_id`, `parent_category_id`, `category_name`) VALUES
-(1, NULL, 'Food'),
-(2, NULL, 'Dairy'),
-(3, 2, 'Yogurt Drink'),
-(4, NULL, 'Fruit Preserves'),
-(5, 4, 'Syrup');
+INSERT INTO `category` (`category_id`, `parent_category_id`, `category_name`, `category_prefix`) VALUES
+(1, NULL, 'Food', 'F'),
+(2, NULL, 'Dairy', 'D'),
+(3, 2, 'Yogurt Drink', 'YD'),
+(4, NULL, 'Fruit Preserves', 'FP'),
+(5, 4, 'Syrup', 'SRP'),
+(6, 1, 'Peanuts', 'PNS');
 
 -- --------------------------------------------------------
 
@@ -93,9 +92,9 @@ CREATE TABLE `item` (
 --
 
 INSERT INTO `item` (`item_id`, `item_sku`, `item_barcode`, `item_qty`, `item_expiry`, `product_sku`, `created_at`) VALUES
-(1, 'ITM00001', 'IGWDZX', 5, '2024-05-30', 'P00001', '2024-05-10 08:26:11'),
-(2, 'ITM00002', 'IGWDZY', 5, '2024-05-30', 'P00001', '2024-05-10 08:26:54'),
-(3, 'ITM00002', 'IGWDZD', 0, '2024-05-31', 'P00002', '2024-05-10 11:51:46');
+(1, 'ITM00001', 'IGWDZX', 5, '2024-05-30', 'SRP00001', '2024-05-10 08:26:11'),
+(2, 'ITM00002', 'IGWDZY', 5, '2024-05-30', 'SRP00001', '2024-05-10 08:26:54'),
+(3, 'ITM00002', 'IGWDZD', 9, '2024-05-31', 'SRP00002', '2024-05-10 11:51:46');
 
 -- --------------------------------------------------------
 
@@ -159,8 +158,10 @@ CREATE TABLE `product` (
 --
 
 INSERT INTO `product` (`product_id`, `product_name`, `product_description`, `brand_id`, `category_id`, `status_id`, `product_sku`, `product_pp`, `product_sp`, `product_min`, `product_max`, `unit_id`, `tax_id`, `created_at`, `updated_at`) VALUES
-(1, 'Red Mongo 340g', 'Red Mongo 340g 12oz', 2, 5, NULL, 'P00001', 102, 110, 10, 20, 1, 1, '2024-05-10 07:47:44', '2024-05-10 09:01:32'),
-(2, 'Green Kaong 340g', 'Green Kaong 340g 12oz', 2, 5, NULL, 'P00002', 102, 110, 10, 20, 1, 1, '2024-05-10 11:52:30', '2024-05-10 12:59:57');
+(1, 'Red Mongo 340g', 'Red Mongo 340g 12oz', 2, 5, NULL, 'SRP00001', 102, 110, 10, 20, 1, 1, '2024-05-10 07:47:44', '2024-05-15 10:59:02'),
+(2, 'Green Kaong 340g', 'Green Kaong 340g 12oz', 2, 5, NULL, 'SRP00002', 102, 110, 10, 20, 1, 1, '2024-05-10 11:52:30', '2024-05-15 11:02:13'),
+(3, 'Milo 45', 'milo pawdir', 1, 1, NULL, 'F00001', 15, NULL, 20, 30, 1, 1, '2024-05-14 06:50:52', '2024-05-15 11:14:10'),
+(4, 'Ding Dong', 'Mix Nuts 100g', 8, 6, NULL, 'PNS00001', 72, NULL, 20, 30, 1, 1, '2024-05-15 07:09:05', '2024-05-15 11:14:08');
 
 -- --------------------------------------------------------
 
@@ -231,7 +232,7 @@ INSERT INTO `status` (`status_id`, `status_name`) VALUES
 CREATE TABLE `tax` (
   `tax_id` int(11) NOT NULL,
   `tax_name` varchar(255) DEFAULT NULL,
-  `tax_percentage` varchar(255) DEFAULT NULL
+  `tax_percentage` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -239,11 +240,12 @@ CREATE TABLE `tax` (
 --
 
 INSERT INTO `tax` (`tax_id`, `tax_name`, `tax_percentage`) VALUES
-(1, 'No Tax', '0'),
-(2, '1% Tax', '1'),
-(3, '3% Tax', '3'),
-(4, '5% Tax', '5'),
-(5, '10% Tax', '10');
+(1, 'No Tax', 0),
+(2, '1% Tax', 1),
+(3, '3% Tax', 3),
+(4, '5% Tax', 5),
+(5, '10% Tax', 10),
+(6, '4% Tax', 4);
 
 -- --------------------------------------------------------
 
@@ -265,12 +267,13 @@ INSERT INTO `unit` (`unit_id`, `unit_type`, `short_name`) VALUES
 (1, 'Pieces', 'pcs'),
 (2, 'Set', 'set'),
 (3, 'Pack', 'pks'),
-(4, 'Box', 'box'),
+(4, 'Box', 'bx'),
 (5, 'Kilogram', 'kgs'),
 (6, 'Ounce', 'oz'),
 (7, 'Pair', 'pr'),
-(8, 'Slice', 'slice'),
-(9, 'Pair', 'pr');
+(8, 'Slice', 'slc'),
+(9, 'Pair', 'pr'),
+(10, 'Grams', 'gr');
 
 -- --------------------------------------------------------
 
@@ -303,15 +306,6 @@ CREATE TABLE `user_roles` (
   `user_id` int(11) NOT NULL,
   `role_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Structure for view `aw`
---
-DROP TABLE IF EXISTS `aw`;
-
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `aw`  AS SELECT `category`.`category_name` AS `category_name`, `products`.`product_name` AS `product_name`, `subproducts`.`sub_product_name` AS `sub_product_name`, `subproducts`.`sub_product_barcode` AS `sub_product_barcode`, `subproducts`.`sub_product_description` AS `sub_product_description`, `subproducts`.`quantity` AS `quantity` FROM ((`products` join `subproducts` on(`products`.`product_id` = `subproducts`.`product_id`)) join `category` on(`products`.`category_id` = `category`.`category_id`)) ;
 
 -- --------------------------------------------------------
 
@@ -416,13 +410,13 @@ ALTER TABLE `user_roles`
 -- AUTO_INCREMENT for table `brand`
 --
 ALTER TABLE `brand`
-  MODIFY `brand_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `brand_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `category`
 --
 ALTER TABLE `category`
-  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `item`
@@ -440,7 +434,7 @@ ALTER TABLE `permissions`
 -- AUTO_INCREMENT for table `product`
 --
 ALTER TABLE `product`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `roles`
@@ -458,13 +452,13 @@ ALTER TABLE `status`
 -- AUTO_INCREMENT for table `tax`
 --
 ALTER TABLE `tax`
-  MODIFY `tax_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `tax_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `unit`
 --
 ALTER TABLE `unit`
-  MODIFY `unit_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `unit_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -480,7 +474,7 @@ ALTER TABLE `users`
 -- Constraints for table `item`
 --
 ALTER TABLE `item`
-  ADD CONSTRAINT `fr_prod_sku` FOREIGN KEY (`product_sku`) REFERENCES `product` (`product_sku`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+  ADD CONSTRAINT `fr_prod_sku` FOREIGN KEY (`product_sku`) REFERENCES `product` (`product_sku`) ON DELETE NO ACTION ON UPDATE CASCADE;
 
 --
 -- Constraints for table `product`

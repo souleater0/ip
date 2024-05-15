@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3309
--- Generation Time: May 14, 2024 at 02:58 PM
+-- Generation Time: May 10, 2024 at 03:24 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.1.25
 
@@ -47,12 +47,7 @@ CREATE TABLE `brand` (
 
 INSERT INTO `brand` (`brand_id`, `brand_name`) VALUES
 (1, 'Nescafe'),
-(2, 'YS Quality'),
-(3, 'Apple'),
-(4, 'Starbucks'),
-(5, 'Jack N Jill'),
-(6, 'Lucky Me'),
-(7, 'Chupa Chups');
+(2, 'YS Quality');
 
 -- --------------------------------------------------------
 
@@ -100,7 +95,7 @@ CREATE TABLE `item` (
 INSERT INTO `item` (`item_id`, `item_sku`, `item_barcode`, `item_qty`, `item_expiry`, `product_sku`, `created_at`) VALUES
 (1, 'ITM00001', 'IGWDZX', 5, '2024-05-30', 'P00001', '2024-05-10 08:26:11'),
 (2, 'ITM00002', 'IGWDZY', 5, '2024-05-30', 'P00001', '2024-05-10 08:26:54'),
-(3, 'ITM00002', 'IGWDZD', 9, '2024-05-31', 'P00002', '2024-05-10 11:51:46');
+(3, 'ITM00002', 'IGWDZD', 0, '2024-05-31', 'P00002', '2024-05-10 11:51:46');
 
 -- --------------------------------------------------------
 
@@ -165,8 +160,7 @@ CREATE TABLE `product` (
 
 INSERT INTO `product` (`product_id`, `product_name`, `product_description`, `brand_id`, `category_id`, `status_id`, `product_sku`, `product_pp`, `product_sp`, `product_min`, `product_max`, `unit_id`, `tax_id`, `created_at`, `updated_at`) VALUES
 (1, 'Red Mongo 340g', 'Red Mongo 340g 12oz', 2, 5, NULL, 'P00001', 102, 110, 10, 20, 1, 1, '2024-05-10 07:47:44', '2024-05-10 09:01:32'),
-(2, 'Green Kaong 340g', 'Green Kaong 340g 12oz', 2, 5, NULL, 'P00002', 102, 110, 10, 20, 1, 1, '2024-05-10 11:52:30', '2024-05-10 12:59:57'),
-(3, 'Milo 45', 'milo pawdir', 1, 1, NULL, 'P00003', 15, NULL, 20, 30, 1, 1, '2024-05-14 06:50:52', '2024-05-14 06:57:55');
+(2, 'Green Kaong 340g', 'Green Kaong 340g 12oz', 2, 5, NULL, 'P00002', 102, 110, 10, 20, 1, 1, '2024-05-10 11:52:30', '2024-05-10 12:59:57');
 
 -- --------------------------------------------------------
 
@@ -276,8 +270,7 @@ INSERT INTO `unit` (`unit_id`, `unit_type`, `short_name`) VALUES
 (6, 'Ounce', 'oz'),
 (7, 'Pair', 'pr'),
 (8, 'Slice', 'slice'),
-(9, 'Pair', 'pr'),
-(10, 'Grams', 'gr');
+(9, 'Pair', 'pr');
 
 -- --------------------------------------------------------
 
@@ -423,7 +416,7 @@ ALTER TABLE `user_roles`
 -- AUTO_INCREMENT for table `brand`
 --
 ALTER TABLE `brand`
-  MODIFY `brand_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `brand_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `category`
@@ -447,7 +440,7 @@ ALTER TABLE `permissions`
 -- AUTO_INCREMENT for table `product`
 --
 ALTER TABLE `product`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `roles`
@@ -471,7 +464,7 @@ ALTER TABLE `tax`
 -- AUTO_INCREMENT for table `unit`
 --
 ALTER TABLE `unit`
-  MODIFY `unit_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `unit_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `users`
