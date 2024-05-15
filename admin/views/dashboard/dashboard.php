@@ -63,6 +63,44 @@
             </div>
         </div>
         <div class="row">
+            <div class="col-lg-12 d-flex align-items-stretch">
+              <div class="card w-100">
+                <div class="card-body p-4">
+                  <h5 class="card-title fw-semibold mb-4">Expiring Soon</h5>
+                  <div class="table-responsive" data-simplebar>
+                    <table class="table text-nowrap align-middle table-custom mb-0">
+                      <thead>
+                        <tr>
+                          <th scope="col" class="text-dark fw-normal ps-0">Product Name
+                          </th>
+                          <th scope="col" class="text-dark fw-normal">SKU
+                          </th>
+                          <th scope="col" class="text-dark fw-normal">Expiry Date</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td class="ps-0">
+                            <div class="d-flex align-items-center gap-6">
+                              <div>
+                                <h6 class="mb-0">Milo</h6>
+                                <span>Nestle</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            ITEM00001
+                          </td>
+                          <td>
+                            2024-04-04
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
             <div class="col-lg-6 d-flex align-items-stretch">
               <div class="card w-100">
                 <div class="card-body p-4">

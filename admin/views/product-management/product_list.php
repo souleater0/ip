@@ -2,7 +2,6 @@
   $brands = getBrand($pdo);
   $categorys = getCategory($pdo);
   $units = getUnits($pdo);
-  $nextSku = getSKUID($pdo);
   $taxs = getTaxs($pdo);
 ?>
 <div class="body-wrapper-inner">
@@ -38,7 +37,7 @@
         <div class="row gy-2">
           <div class="col-lg-12">
             <label for="sku_id" class="form-label">SKU</label>
-            <input type="text" class="form-control bg-secondary-subtle" id="sku_id" name="sku_id" value="<?php echo $nextSku;?>" readonly>
+            <input type="text" class="form-control bg-secondary-subtle" id="sku_id" name="sku_id" value="" readonly>
           </div>
           <div class="col-lg-12">
             <label for="product_name" class="form-label">Product Name</label>
@@ -114,9 +113,33 @@
 </div>
 <!-- END -->
 <script>
-  $(document).ready( function () {
+$(document).ready( function () {
   $('#purchase_price, #min_qty,#max_qty ').on('input', function(){
       $(this).val($(this).val().replace(/\D/g,''));
+  });
+
+  $('#category_id').change(function () {  
+    var category_id = $(this).val();
+    //alert(category_id);
+    // If category_id is not empty, trigger the AJAX request
+    if (category_id !== '') {
+      $.ajax({
+        url: 'admin/process/admin_action.php',
+        method: 'POST',
+        data: { category_id: category_id, action : 'getSkuid' },
+        success: function(response) {
+          alert(response);
+          // $('#sku_id').val(response);
+        },
+        error: function(xhr, status, error) {
+          // console.error(xhr.responseText);
+          alert(error);
+        }
+      });
+    } else {
+      // If category_id is empty, set default SKU prefix
+      $('#sku_id').val('UNC00001');
+    }
   });
   var table = $('#productTable').DataTable({
         columnDefs: [

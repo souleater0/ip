@@ -291,17 +291,34 @@
     }
     function getSKUID($pdo){
         try {
-            $query = "SELECT product_sku FROM product ORDER BY product_sku DESC LIMIT 1";
-            $stmt = $pdo->prepare($query);
-    
-            $stmt ->execute();
-            if ($stmt->rowCount() > 0){
-                $last_id = $stmt->fetchColumn();
-                $next_id = ++$last_id;
-            }else{
-                $next_id = 'P00001';
+            // Get category_id from the AJAX request
+            $category_id = $_POST['category_id'];
+
+            if (!empty($category_id)) {
+                // Fetch the category prefix
+                $stmt = $pdo->prepare("SELECT category_prefix FROM categories WHERE id = ?");
+                $stmt->execute([$category_id]);
+                $category_prefix = $stmt->fetchColumn();
+            } else {
+                // Use default category prefix for products without a category
+                $category_prefix = "UNC";
             }
-            return $next_id;
+
+            // Fetch the latest SKU for the category
+            $query = "SELECT product_sku FROM products WHERE category_id = ? ORDER BY product_sku DESC LIMIT 1";
+            $stmt = $pdo->prepare($query);
+            $stmt->execute([$category_id]);
+
+            // If a SKU exists for the category, increment the last SKU number
+            if ($stmt->rowCount() > 0) {
+                $last_sku = $stmt->fetchColumn();
+                $last_number = intval(substr($last_sku, strlen($category_prefix)));
+                $next_sku = $category_prefix . sprintf('%05d', ++$last_number);
+            } else {
+                // If no SKU exists for the category, start from 1
+                $next_sku = $category_prefix . '00001';
+            }
+            return $next_sku;
         }catch(PDOException $e){
             // Handle database connection error
             echo "Error: " . $e->getMessage();

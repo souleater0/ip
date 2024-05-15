@@ -343,4 +343,27 @@ require_once 'function.php';
         echo json_encode($response);
         exit();
     }
+    if(!empty($_POST['action']) && $_POST['action'] == 'getSkuid') {
+        if(empty($_POST['category_id'])){
+            $response = array(
+                'success' => true,
+                'message' => 'Tax has been updated successfully'
+            );
+        }else{
+            if(getSKUID($pdo)){
+                $response = array(
+                    'success' => true,
+                    'message' => 'SKU retreived successful'
+                );
+            }else{
+                $response = array(
+                    'success' => false,
+                    'message' => 'Failed to retreive SKU!'
+                );
+            }
+        }
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
 ?>
