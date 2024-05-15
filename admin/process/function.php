@@ -289,26 +289,24 @@
             return array(); // Return an empty array if an error occurs
         }
     }
-    function getSKUID($pdo){
+    function getSKUID($pdo, $category_id){
         try {
             // Get category_id from the AJAX request
-            $category_id = $_POST['category_id'];
-
             if (!empty($category_id)) {
                 // Fetch the category prefix
-                $stmt = $pdo->prepare("SELECT category_prefix FROM categories WHERE id = ?");
+                $stmt = $pdo->prepare("SELECT category_prefix FROM category WHERE category_id = ?");
                 $stmt->execute([$category_id]);
                 $category_prefix = $stmt->fetchColumn();
             } else {
                 // Use default category prefix for products without a category
                 $category_prefix = "UNC";
             }
-
-            // Fetch the latest SKU for the category
-            $query = "SELECT product_sku FROM products WHERE category_id = ? ORDER BY product_sku DESC LIMIT 1";
+    
+            // // Fetch the latest SKU for the category
+            $query = "SELECT product_sku FROM product WHERE category_id = ? ORDER BY product_sku DESC LIMIT 1";
             $stmt = $pdo->prepare($query);
             $stmt->execute([$category_id]);
-
+    
             // If a SKU exists for the category, increment the last SKU number
             if ($stmt->rowCount() > 0) {
                 $last_sku = $stmt->fetchColumn();

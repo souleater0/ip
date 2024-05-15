@@ -59,7 +59,7 @@
           <div class="col-lg-6">
             <label for="category_id" class="form-label">Category</label>
             <select class="selectpicker form-control" id="category_id" name="category_id" data-live-search="true">
-            <option value="">None</option>
+                <option value="">None</option>
               <?php foreach ($categorys as $category):?>
                 <option value="<?php echo $category['category_id'];?>"><?php echo $category['category_name'];?></option>
               <?php endforeach;?>
@@ -126,10 +126,10 @@ $(document).ready( function () {
       $.ajax({
         url: 'admin/process/admin_action.php',
         method: 'POST',
-        data: { category_id: category_id, action : 'getSkuid' },
+        data: { category_id: category_id, action : 'getSKUID' },
         success: function(response) {
-          alert(response);
-          // $('#sku_id').val(response);
+          //alert(response);
+          $('#sku_id').val(response);
         },
         error: function(xhr, status, error) {
           // console.error(xhr.responseText);
@@ -138,7 +138,19 @@ $(document).ready( function () {
       });
     } else {
       // If category_id is empty, set default SKU prefix
-      $('#sku_id').val('UNC00001');
+      $.ajax({
+        url: 'admin/process/admin_action.php',
+        method: 'POST',
+        data: { category_id: category_id, action : 'getSKUID' },
+        success: function(response) {
+          //alert(response);
+          $('#sku_id').val(response);
+        },
+        error: function(xhr, status, error) {
+          // console.error(xhr.responseText);
+          alert(error);
+        }
+      });
     }
   });
   var table = $('#productTable').DataTable({
@@ -240,6 +252,7 @@ $(document).ready( function () {
     }
     setInterval(LoadTable, 15000);
     $('#addProductBTN').click(function(){
+      $('#sku_id').val('');
       $('#product_name').val('');
       $('#product_desc').val('');
       $('#brand_id').val('');
@@ -297,6 +310,8 @@ $(document).ready( function () {
     $('#productTable').on('click', 'button.btn-edit', function () {
       var data = table.row($(this).parents('tr')).data();
       // // Populate modal with data
+      
+      $('#sku_id').val(data.product_sku);
       $('#product_name').val(data.product_name);
       $('#product_desc').val(data.product_description);
       $('#brand_id').val(data.brand_id);
