@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3309
--- Generation Time: May 15, 2024 at 02:49 PM
+-- Generation Time: May 16, 2024 at 03:30 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.1.25
 
@@ -69,7 +69,8 @@ INSERT INTO `category` (`category_id`, `parent_category_id`, `category_name`, `c
 (3, 2, 'Yogurt Drink', 'YD'),
 (4, NULL, 'Fruit Preserves', 'FP'),
 (5, 4, 'Syrup', 'SRP'),
-(6, 1, 'Peanuts', 'PNS');
+(6, 1, 'Peanuts', 'PNS'),
+(7, NULL, 'Box of 6', 'BX');
 
 -- --------------------------------------------------------
 
@@ -416,7 +417,7 @@ ALTER TABLE `brand`
 -- AUTO_INCREMENT for table `category`
 --
 ALTER TABLE `category`
-  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `item`

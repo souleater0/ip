@@ -115,7 +115,7 @@ $route = $_GET['route'] ?? 'home';
               <iconify-icon icon="solar:menu-dots-linear" class="nav-small-cap-icon fs-4"></iconify-icon>
               <span class="hide-menu text-uppercase">stock management</span>
             </li>
-            <div class="collapse <?php echo ($route == 'stock-in') ? 'show' : ''; ?>" id="collapseStock">
+            <div class="collapse <?php echo ($route == 'stock-in'|| $route == 'costing' || $route == 'pending-inventory') ? 'show' : ''; ?>" id="collapseStock">
             <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=stock-in" aria-expanded="false">
                 <iconify-icon icon="ph:stack-plus"></iconify-icon>
@@ -129,9 +129,15 @@ $route = $_GET['route'] ?? 'home';
               </a>
             </li>
             <li class="sidebar-item">
-              <a class="sidebar-link" href="./ui-alerts.html" aria-expanded="false">
+              <a class="sidebar-link" href="index.php?route=pending-inventory" aria-expanded="false">
                 <iconify-icon icon="mdi:receipt-text-pending"></iconify-icon>
                 <span class="hide-menu">Pending Inventory</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a class="sidebar-link" href="index.php?route=costing" aria-expanded="false">
+                <iconify-icon icon="fluent:money-calculator-24-regular"></iconify-icon>
+                <span class="hide-menu">Costing</span>
               </a>
             </li>
             </div>

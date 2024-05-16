@@ -28,6 +28,12 @@ switch ($route){
     case "stock-in":
         require 'admin/views/stock-management/stockin.php';
         break;
+    case "pending-inventory":
+        require 'admin/views/stock-management/pending_inventory.php';
+        break;
+    case "costing":
+        require 'admin/views/stock-management/costing.php';
+        break;
     default:
         require 'admin/views/dashboard/dashboard.php';
 }

@@ -36,9 +36,11 @@
         // require_once 'config.php';
         try {
             $category_name = $_POST['category_name'];
+            $category_prefix = $_POST['category_prefix'];
             // Check if category with the same name already exists
-            $stmt_check = $pdo->prepare("SELECT COUNT(*) FROM category WHERE category_name = :category_name");
+            $stmt_check = $pdo->prepare("SELECT COUNT(*) FROM category WHERE category_name = :category_name OR category_prefix = :category_prefix");
             $stmt_check->bindParam(':category_name', $category_name);
+            $stmt_check->bindParam(':category_prefix', $category_prefix);
             $stmt_check->execute();
             $count = $stmt_check->fetchColumn();
 
@@ -47,10 +49,11 @@
                 return false;
             }
             $parent_category_id = !empty($_POST['p_category_id']) ? $_POST['p_category_id'] : null;
-            $stmt = $pdo ->prepare("INSERT INTO category (parent_category_id, category_name) VALUES (:parent_category_id, :category_name)");
+            $stmt = $pdo ->prepare("INSERT INTO category (parent_category_id, category_name, category_prefix) VALUES (:parent_category_id, :category_name, :category_prefix)");
             //bind parameters
             $stmt->bindParam(':parent_category_id', $parent_category_id, PDO::PARAM_INT);
             $stmt->bindParam(':category_name', $category_name);
+            $stmt->bindParam(':category_prefix', $category_prefix);
             if ($stmt->execute()) {
                 // Category added successfully
                 return true;
@@ -67,12 +70,14 @@
     function updateCategory($pdo){
         try {
             $category_name = $_POST['category_name'];
-            $p_category_id = $_POST['p_category_id'];
+            $parent_category_id = !empty($_POST['p_category_id']) ? $_POST['p_category_id'] : null;
+            $category_prefix = $_POST['category_prefix'];
             $update_ID = $_POST['update_id'];
 
-            $stmt_check = $pdo->prepare("SELECT COUNT(*) FROM category WHERE category_name = :category_name AND category_id != :category_id");
+            $stmt_check = $pdo->prepare("SELECT COUNT(*) FROM category WHERE (category_name = :category_name OR category_prefix = :category_prefix) AND category_id != :category_id");
             $stmt_check->bindParam(':category_name', $category_name);
             $stmt_check->bindParam(':category_id', $update_ID, PDO::PARAM_INT);
+            $stmt_check->bindParam(':category_prefix', $category_prefix);
             $stmt_check->execute();
             $count = $stmt_check->fetchColumn();
 
@@ -81,10 +86,11 @@
                 return false;
             }
 
-            $stmt = $pdo->prepare("UPDATE category SET parent_category_id = :parent_category_id, category_name = :category_name WHERE category_id = :category_id");
+            $stmt = $pdo->prepare("UPDATE category SET parent_category_id = :parent_category_id, category_name = :category_name, category_prefix = :category_prefix WHERE category_id = :category_id");
             //bind parameters
-            $stmt->bindParam(':parent_category_id', $p_category_id, PDO::PARAM_INT);
+            $stmt->bindParam(':parent_category_id', $parent_category_id, PDO::PARAM_INT);
             $stmt->bindParam(':category_name', $category_name);
+            $stmt->bindParam(':category_prefix', $category_prefix);
             $stmt->bindParam(':category_id', $update_ID, PDO::PARAM_INT);
 
             if ($stmt->execute()) {

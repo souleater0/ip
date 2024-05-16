@@ -38,6 +38,10 @@
           <input type="text" class="form-control" id="mainCategory" name="category_name" placeholder="Ex. Food">
           </div>
           <div class="col-lg-12">
+          <label for="category_prefix" class="form-label">Prefix</label>
+            <input type="text" class="form-control" id="category_prefix" name="category_prefix" placeholder="Ex. FD">
+          </div>
+          <div class="col-lg-12">
             <label for="subCategory" class="form-label">Parent Category</label>
             <select class="selectpicker form-control" id="subCategory" name="p_category_id" data-live-search="true">
             <option value="">None</option>
@@ -72,6 +76,7 @@
         columns:[
           {data: 'category_id', visible: false},
           {data: 'category_name', title: 'Category Name'},
+          {data: 'category_prefix', visible: false},
           {data: 'parent_category_id', visible: false},
           {data: 'parent_category_name', title: 'Parent Category Name'},
           {"data": null, title: 'Action', "defaultContent": "<button class='btn btn-primary btn-sm btn-edit'><i class='fa-regular fa-pen-to-square'></i></button>&nbsp;<button class='btn btn-danger btn-sm'><i class='fa-solid fa-trash'></i></button>"}
@@ -148,6 +153,7 @@
       var data = table.row($(this).parents('tr')).data();
       // // Populate modal with data
       $('#mainCategory').val(data.category_name);
+      $('#category_prefix').val(data.category_prefix);
       $('#subCategory').val(data.parent_category_id);
       $('#subCategory').selectpicker('refresh');
       $('#addCategory').hide();

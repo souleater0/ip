@@ -48,7 +48,7 @@
             ';
                 break;
             case 'category':
-                $sql = 'SELECT c.category_id, c.category_name AS category_name, c.parent_category_id, p.category_name AS parent_category_name
+                $sql = 'SELECT c.category_id, c.category_name AS category_name, c.category_prefix, c.parent_category_id, p.category_name AS parent_category_name
                         FROM category c
                         LEFT JOIN category p ON c.parent_category_id = p.category_id
                         ORDER BY c.category_id';

@@ -27,6 +27,12 @@ require_once 'function.php';
                 'success' => false,
                 'message' => 'Please Enter a Category Name!'
             );
+        
+        }else if(empty($_POST['category_prefix'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please Enter a Category Prefix!'
+            );
         }else{
             if(AddCategory($pdo)){
                 $response = array(
@@ -49,6 +55,11 @@ require_once 'function.php';
             $response = array(
                 'success' => false,
                 'message' => 'Please Enter a Category Name!'
+            );
+        }else if(empty($_POST['category_prefix'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please Enter a Category Prefix!'
             );
         }else{
             if(updateCategory($pdo)){
