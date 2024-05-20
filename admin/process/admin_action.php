@@ -365,4 +365,40 @@ require_once 'function.php';
     echo $sku;
     exit;
     }
+    if(!empty($_POST['action']) && $_POST['action'] == 'stockInItems') {
+        if (!isset($_POST['data']) || empty($_POST['data'])) { // Check if data is not set or empty
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter valid data!'
+            );
+        } else {
+            $data = json_decode($_POST['data'], true); // Decode JSON data
+    
+            // Check if decoding was successful
+            if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
+                $response = array(
+                    'success' => false,
+                    'message' => 'Invalid JSON data!'
+                );
+            } else {
+                // Call stockIN function with decoded data
+                if (stockIN($pdo, $data)) {
+                    $response = array(
+                        'success' => true,
+                        'message' => 'Stock has been recorded.'
+                    );
+                } else {
+                    $response = array(
+                        'success' => false,
+                        'message' => 'Failed to add stocks.'
+                    );
+                }
+            }
+        }
+    
+        // Send response
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
 ?>

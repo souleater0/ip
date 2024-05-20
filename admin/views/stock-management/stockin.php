@@ -72,16 +72,15 @@ $products = getProduct($pdo);
           }
         });
         $(document).on('change', '.selectpicker', function () {  
-        var product_sku = $(this).val();
-        $(this).closest('.row').find('input[name="product_name[]"]').val(product_sku);
+          var product_sku = $(this).val();
+          $(this).closest('.row').find('input[name="product_name[]"]').val(product_sku);
         });
-
         $(document).on('click', '.add-item-btn', function() {
         var barcodeQtyExpiry =
               '<div class="input-group appended-item mt-2">' +
-                  '<input type="text" class="form-control" name="barcode[]" placeholder="Scan Barcode">' +
-                  '<input type="number" class="form-control" name="qty[]" placeholder="Quantity">' +
-                  '<input type="date" class="form-control" name="expiry[]" placeholder="Expiry Date">' +
+                  '<input type="text" class="form-control" name="barcode[]" placeholder="Scan Barcode" required>' +
+                  '<input type="number" class="form-control" name="qty[]" placeholder="Quantity" required>' +
+                  '<input type="date" class="form-control" name="expiry[]" placeholder="Expiry Date" required>' +
                   '<button type="button" class="btn btn-danger remove-item-btn"><i class="fa-solid fa-trash"></i></button>' +
               '</div>';
           $(this).closest('.card').find('.barcode-qty-expiry').append(barcodeQtyExpiry);
@@ -155,6 +154,23 @@ $products = getProduct($pdo);
               productsData.push(productData);
           });
           console.log(productsData);
+          $.ajax({
+            url: "admin/process/admin_action.php",
+            method: "POST",
+            data: {
+              data: JSON.stringify(productsData),               
+              action: "stockInItems"},
+            dataType: "json",
+            success: function(response) {
+                if(response.success==true){
+                    LoadTable();
+                    $('#brandModal').modal('hide');
+                    toastr.success(response.message);
+                }else{
+                    toastr.error(response.message);
+                }
+            }
+          });
         });
     });
 </script>

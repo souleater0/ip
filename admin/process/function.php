@@ -558,4 +558,70 @@
             return array(); // Return an empty array if an error occurs
         }
     }
+    function stockIN($pdo, $postData) {
+        try {
+            // Decode JSON data from AJAX POST
+            if (is_array($postData)) {
+                // Convert array to JSON-encoded string
+                $postData = json_encode($postData);
+            }
+    
+            // Decode JSON data
+            $data = json_decode($postData, true);
+    
+            // Check if decoding was successful
+            if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
+                return false; // Return false if JSON data is invalid
+            }
+    
+            // Function to generate the next SKU
+            function getNextSku($pdo, $prefix) {
+                // Fetch the latest SKU for the prefix
+                $stmt = $pdo->prepare("SELECT item_sku FROM item WHERE item_sku LIKE ? ORDER BY item_sku DESC LIMIT 1");
+                $stmt->execute([$prefix . '%']);
+    
+                // If a SKU exists for the prefix, increment the last SKU number
+                if ($stmt->rowCount() > 0) {
+                    $last_sku = $stmt->fetchColumn();
+                    $last_number = intval(substr($last_sku, strlen($prefix)));
+                    return $prefix . sprintf('%05d', ++$last_number);
+                } else {
+                    // If no SKU exists for the prefix, start from 1
+                    return $prefix . '00001';
+                }
+            }
+    
+            // Prepare the insert statement
+            $stmt = $pdo->prepare("INSERT INTO item (item_sku, item_barcode, item_qty, item_expiry, product_sku, created_at) VALUES (:item_sku, :item_barcode, :item_qty, :item_expiry, :product_sku, :created_at)");
+    
+            foreach ($data as $product) {
+                $product_sku = $product['product_sku'];
+                foreach ($product['items'] as $item) {
+                    // Assuming a common prefix "ITM" for all items
+                    $prefix = 'ITM';
+    
+                    // Get the next SKU
+                    $item_sku = getNextSku($pdo, $prefix);
+    
+                    // Execute the insert statement
+                    $stmt->execute([
+                        ':item_sku' => $item_sku,
+                        ':item_barcode' => $item['barcode'],
+                        ':item_qty' => $item['qty'],
+                        ':item_expiry' => $item['expiry'],
+                        ':product_sku' => $product_sku,
+                        ':created_at' => date('Y-m-d H:i:s') // Add current datetime
+                    ]);
+                }
+            }
+    
+            // Return true if the operation was successful
+            return true;
+        } catch (PDOException $e) {
+            // Log or handle the database connection error
+            return false; // Return false in case of error
+        }
+    }
+    
+    
 ?>

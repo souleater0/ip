@@ -80,6 +80,9 @@
             }
         });
     }
+    $('#brandForm').on('submit', function(event){
+      event.preventDefault();
+    });
     $('#addBrandBTN').click(function(){
       $('#brand_name').val('');
       $('#addBrand').show();

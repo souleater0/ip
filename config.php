@@ -1,6 +1,6 @@
 <?php
 // Database configuration
-$dbHost = 'localhost:3309'; // Change this to your database host
+$dbHost = 'localhost'; // Change this to your database host
 $dbName = 'ecinventory_db'; // Change this to your database name
 $dbUser = 'root'; // Change this to your database username
 $dbPass = ''; // Change this to your database password
