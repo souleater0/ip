@@ -144,6 +144,45 @@ $route = $_GET['route'] ?? 'home';
             <li>
               <span class="sidebar-divider lg"></span>
             </li>
+            <li class="nav-small-cap" data-bs-toggle="collapse" data-bs-target="#collapseUser" aria-expanded="<?php echo ($route == 'product-management') ? 'true' : 'false'; ?>" aria-controls="collapseUser">
+              <iconify-icon icon="solar:menu-dots-linear" class="nav-small-cap-icon fs-4"></iconify-icon>
+              <span class="hide-menu text-uppercase">user management</span>
+            </li>
+            <div class="collapse <?php echo ($route == 'user-management'|| $route == 'role-management') ? 'show' : ''; ?>" id="collapseUser">
+            <li class="sidebar-item">
+              <a class="sidebar-link <?php echo ($route == 'user-management' )? 'active' : ''; ?>" href="index.php?route=user-management" aria-expanded="false">
+                <iconify-icon icon="mdi:cart"></iconify-icon>
+                <span class="hide-menu">User</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a class="sidebar-link" href="index.php?route=role-management" aria-expanded="false">
+                <iconify-icon icon="material-symbols:category"></iconify-icon>
+                <span class="hide-menu">Role</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a class="sidebar-link" href="index.php?route=brand-management" aria-expanded="false">
+                <iconify-icon icon="mdi:tags"></iconify-icon>
+                <span class="hide-menu">Brand</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a class="sidebar-link" href="index.php?route=unit-management" aria-expanded="false">
+                <iconify-icon icon="mdi:scale"></iconify-icon>
+                <span class="hide-menu">Units</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a class="sidebar-link" href="index.php?route=tax-management" aria-expanded="false">
+                <iconify-icon icon="tabler:receipt-tax"></iconify-icon>
+                <span class="hide-menu">Tax</span>
+              </a>
+            </li>
+            </div>
+            <li>
+              <span class="sidebar-divider lg"></span>
+            </li>
             <li class="nav-small-cap">
               <iconify-icon icon="solar:menu-dots-linear" class="nav-small-cap-icon fs-4"></iconify-icon>
               <span class="hide-menu">Manage Users</span>

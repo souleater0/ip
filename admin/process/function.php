@@ -32,6 +32,20 @@
             return array(); // Return an empty array if an error occurs
         }
     }
+    function getRole($pdo){
+        try {
+            $query = "SELECT * FROM roles";
+            $stmt = $pdo->prepare($query);
+    
+            $stmt ->execute();
+            $roles = $stmt -> fetchAll(PDO::FETCH_ASSOC);
+            return $roles;
+        }catch(PDOException $e){
+                    // Handle database connection error
+            echo "Error: " . $e->getMessage();
+            return array(); // Return an empty array if an error occurs
+        }
+    }
     function AddCategory($pdo){
         // require_once 'config.php';
         try {
@@ -345,7 +359,9 @@
     }
     function getTaxs($pdo){
         try {
-            $query = "SELECT * FROM tax";
+            $query = "SELECT * FROM tax
+                        ORDER BY 
+                CAST(SUBSTRING_INDEX(tax_name, ' ', 1) AS UNSIGNED) ASC";
             $stmt = $pdo->prepare($query);
     
             $stmt ->execute();
@@ -622,6 +638,27 @@
             return false; // Return false in case of error
         }
     }
-    
+    function updateCost($pdo){
+        try{
+            $selling_price = $_POST['selling_price'];
+            $tax_id = !empty($_POST['tax_id']) ? $_POST['tax_id'] : null;
+            $update_ID = $_POST['update_id'];
+
+            $stmt = $pdo ->prepare("UPDATE product SET product_sp =:product_sp, tax_id=:tax_id WHERE product_id = :product_id");
+            $stmt->bindParam(':product_id', $update_ID, PDO::PARAM_INT);
+            $stmt->bindParam(':product_sp', $selling_price, PDO::PARAM_INT);
+            $stmt->bindParam(':tax_id', $tax_id, PDO::PARAM_INT);
+            if ($stmt->execute()) {
+                // Cost updated successfully
+                return true;
+            } else {
+                // Error occurred
+                return false;
+            }
+        } catch (PDOException $e) {
+            // Log or handle the database connection error
+            return false; // Return false in case of error
+        }
+    }
     
 ?>

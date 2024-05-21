@@ -34,6 +34,12 @@ switch ($route){
     case "costing":
         require 'admin/views/stock-management/costing.php';
         break;
+    case "user-management":
+        require 'admin/views/user-management/users.php';
+        break;
+    case "role-management":
+        require 'admin/views/user-management/role.php';
+        break;
     default:
         require 'admin/views/dashboard/dashboard.php';
 }

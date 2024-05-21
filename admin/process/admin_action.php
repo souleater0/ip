@@ -401,4 +401,28 @@ require_once 'function.php';
         echo json_encode($response);
         exit();
     }
+    if(!empty($_POST['action']) && $_POST['action'] == 'updateCost') {
+        if(empty($_POST['selling_price'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter a Selling Price!'
+            );
+        }else{
+            if(updateCost($pdo)){
+                $response = array(
+                    'success' => true,
+                    'message' => 'Selling Price has been updated.'
+                );
+            }else{
+                $response = array(
+                    'success' => true,
+                    'message' => 'Failed to update Selling Price!'
+                );
+            }
+        }
+        // Send response
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
 ?>
