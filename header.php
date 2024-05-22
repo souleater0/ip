@@ -161,44 +161,7 @@ $route = $_GET['route'] ?? 'home';
                 <span class="hide-menu">Role</span>
               </a>
             </li>
-            <li class="sidebar-item">
-              <a class="sidebar-link" href="index.php?route=brand-management" aria-expanded="false">
-                <iconify-icon icon="mdi:tags"></iconify-icon>
-                <span class="hide-menu">Brand</span>
-              </a>
-            </li>
-            <li class="sidebar-item">
-              <a class="sidebar-link" href="index.php?route=unit-management" aria-expanded="false">
-                <iconify-icon icon="mdi:scale"></iconify-icon>
-                <span class="hide-menu">Units</span>
-              </a>
-            </li>
-            <li class="sidebar-item">
-              <a class="sidebar-link" href="index.php?route=tax-management" aria-expanded="false">
-                <iconify-icon icon="tabler:receipt-tax"></iconify-icon>
-                <span class="hide-menu">Tax</span>
-              </a>
-            </li>
             </div>
-            <li>
-              <span class="sidebar-divider lg"></span>
-            </li>
-            <li class="nav-small-cap">
-              <iconify-icon icon="solar:menu-dots-linear" class="nav-small-cap-icon fs-4"></iconify-icon>
-              <span class="hide-menu">Manage Users</span>
-            </li>
-            <li class="sidebar-item">
-              <a class="sidebar-link" href="./authentication-login.html" aria-expanded="false">
-                <iconify-icon icon="solar:login-3-line-duotone"></iconify-icon>
-                <span class="hide-menu">Login</span>
-              </a>
-            </li>
-            <li class="sidebar-item">
-              <a class="sidebar-link" href="./authentication-register.html" aria-expanded="false">
-                <iconify-icon icon="solar:user-plus-rounded-line-duotone"></iconify-icon>
-                <span class="hide-menu">Register</span>
-              </a>
-            </li>
           </ul>
         </nav>
         <!-- End Sidebar navigation -->

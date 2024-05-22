@@ -104,6 +104,27 @@
                 LEFT JOIN item g ON g.product_sku = a.product_sku
                 GROUP BY a.product_sku';
                 break;
+            case 'users':
+                $sql = 'SELECT
+                a.id,
+                a.display_name,
+                a.username,
+                a.role_id,
+                b.role_name,
+                a.isEnabled,
+                CASE 
+                    WHEN a.isEnabled = 1 THEN "Enabled"
+                    ELSE "Disabled"
+                END as status
+                FROM users a
+                INNER JOIN roles b ON b.id = a.role_id
+                ORDER BY display_name ASC';
+                break;
+                case 'roles':
+                    $sql = 'SELECT * FROM roles
+                    ORDER BY role_name ASC';
+                    break;
+                
             default:
             // If an invalid or unsupported table type is provided, return an error
             echo json_encode(['error' => 'Unsupported table type']);
