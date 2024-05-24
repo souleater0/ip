@@ -82,7 +82,7 @@ $roles = getRole($pdo);
           <div class="col-lg-12">
             <label for="user_password" class="form-label user-select-none">New Password</label>
             <div class="d-flex">
-            <input type="password" class="form-control" id="user_password" name="user_password" placeholder="" autocomplete="new-password">
+            <input type="password" class="form-control" id="user_password" name="user_password" placeholder="" autocomplete="password">
             <button type="button" class="btn btn-info" id="show_Pass"><i class="fa-solid fa-eye"></i></button>
             </div>
           </div>

@@ -1,4 +1,50 @@
 <?php
+    function getModules($pdo){
+        try {
+            $query = "SELECT * FROM modules";
+            $stmt = $pdo->prepare($query);
+    
+            $stmt ->execute();
+            $modules = $stmt -> fetchAll(PDO::FETCH_ASSOC);
+            return $modules;
+        }catch(PDOException $e){
+                    // Handle database connection error
+            echo "Error: " . $e->getMessage();
+            return array(); // Return an empty array if an error occurs
+        }
+    }
+    function getModulePermissions($pdo , $moduleID){
+        try {
+            $query = "SELECT * FROM permissions WHERE module_id = :module_id";
+            $stmt = $pdo->prepare($query);
+            $stmt->execute(['module_id' => $moduleID]);
+            $permissions = $stmt -> fetchAll(PDO::FETCH_ASSOC);
+            return $permissions;
+        }catch(PDOException $e){
+                    // Handle database connection error
+            echo "Error: " . $e->getMessage();
+            return array(); // Return an empty array if an error occurs
+        }
+    }
+    function userHasPermission ($pdo, $userId, $permissionName){
+        try {
+        $sql = "SELECT
+        a.permission_name
+        FROM permissions a
+        JOIN role_permissions b ON b.permission_id = a.id
+        JOIN roles c ON c.id = b.role_id
+        JOIN users d ON d.role_id = c.id
+        WHERE d.id = :user_id AND a.permission_name = :permission_name";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(['user_id'=> $userId, 'permission_name'=>$permissionName]);
+        return $stmt->fetch() !==false;
+        }catch(PDOException $e){
+            // Handle database connection error
+            echo "Error: " . $e->getMessage();
+            return array(); // Return an empty array if an error occurs
+        }
+    }
     function loginProcess($pdo){
             $username = $_POST['username'];
             $password = $_POST['password'];
@@ -75,6 +121,9 @@
             echo "Error: " . $e->getMessage();
             return array(); // Return an empty array if an error occurs
         }
+    }
+    function getPermissionList($pdo){
+
     }
     function getCategory($pdo){
         // require_once 'config.php';

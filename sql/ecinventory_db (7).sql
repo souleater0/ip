@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1:3309
--- Generation Time: May 16, 2024 at 03:30 PM
+-- Host: 127.0.0.1
+-- Generation Time: May 24, 2024 at 02:16 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.1.25
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -44,7 +44,8 @@ INSERT INTO `brand` (`brand_id`, `brand_name`) VALUES
 (5, 'Jack N Jill'),
 (6, 'Lucky Me'),
 (7, 'Chupa Chups'),
-(8, 'Mixed Nuts');
+(8, 'Mixed Nuts'),
+(9, 'Mat\'s Donut');
 
 -- --------------------------------------------------------
 
@@ -95,7 +96,37 @@ CREATE TABLE `item` (
 INSERT INTO `item` (`item_id`, `item_sku`, `item_barcode`, `item_qty`, `item_expiry`, `product_sku`, `created_at`) VALUES
 (1, 'ITM00001', 'IGWDZX', 5, '2024-05-30', 'SRP00001', '2024-05-10 08:26:11'),
 (2, 'ITM00002', 'IGWDZY', 5, '2024-05-30', 'SRP00001', '2024-05-10 08:26:54'),
-(3, 'ITM00002', 'IGWDZD', 9, '2024-05-31', 'SRP00002', '2024-05-10 11:51:46');
+(3, 'ITM00003', 'IGWDZD', 9, '2024-05-31', 'SRP00002', '2024-05-10 11:51:46');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `modules`
+--
+
+CREATE TABLE `modules` (
+  `id` int(11) NOT NULL,
+  `module_name` varchar(255) NOT NULL,
+  `description` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `modules`
+--
+
+INSERT INTO `modules` (`id`, `module_name`, `description`) VALUES
+(1, 'Dashboard Management', NULL),
+(2, 'Product Management', NULL),
+(3, 'Category Management', NULL),
+(4, 'Brand Management', NULL),
+(5, 'Unit Management', NULL),
+(6, 'Tax Management', NULL),
+(7, 'Stock In Management', NULL),
+(8, 'Stock Out Management', NULL),
+(9, 'Pending Inventory', NULL),
+(10, 'Costing Management', NULL),
+(11, 'User Management', NULL),
+(12, 'Role Management', NULL);
 
 -- --------------------------------------------------------
 
@@ -105,30 +136,39 @@ INSERT INTO `item` (`item_id`, `item_sku`, `item_barcode`, `item_qty`, `item_exp
 
 CREATE TABLE `permissions` (
   `id` int(11) NOT NULL,
-  `permission_name` varchar(255) DEFAULT NULL
+  `permission_name` varchar(255) NOT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `module_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `permissions`
 --
 
-INSERT INTO `permissions` (`id`, `permission_name`) VALUES
-(6, 'Create Brand'),
-(2, 'Create Category'),
-(14, 'Create Tax'),
-(10, 'Create Unit'),
-(8, 'Delete Brand'),
-(4, 'Delete Category'),
-(16, 'Delete Tax'),
-(12, 'Delete Unit'),
-(7, 'Edit Brand'),
-(3, 'Edit Category'),
-(15, 'Edit Tax'),
-(11, 'Edit Unit'),
-(5, 'Manage Brand'),
-(1, 'Manage Category'),
-(13, 'Manage Tax'),
-(9, 'Manage Unit');
+INSERT INTO `permissions` (`id`, `permission_name`, `description`, `module_id`) VALUES
+(1, 'Manage Dashboard', 'Permission to manage dashboard', 1),
+(2, 'Manage Product', NULL, 2),
+(3, 'View Product', NULL, 2),
+(4, 'Create Product', NULL, 2),
+(5, 'Update Product', NULL, 2),
+(6, 'Delete Product', NULL, 2),
+(7, 'Manage Category', NULL, 3),
+(8, 'Create Category', NULL, 3),
+(9, 'Update Category', NULL, 3),
+(10, 'Delete Category', NULL, 3),
+(11, 'Manage Brand', NULL, 4),
+(12, 'Create Brand', NULL, 4),
+(13, 'Update Brand', NULL, 4),
+(14, 'Delete Brand', NULL, 4),
+(15, 'Manage Unit', NULL, 5),
+(16, 'Create Unit', NULL, 5),
+(17, 'Update Unit', NULL, 5),
+(18, 'Delete Unit', NULL, 5),
+(19, 'Manage Tax', NULL, 6),
+(20, 'Create Tax', NULL, 6),
+(21, 'Update Tax', NULL, 6),
+(22, 'Delete Tax', NULL, 6),
+(23, 'Manage Stock In', NULL, 7);
 
 -- --------------------------------------------------------
 
@@ -159,19 +199,10 @@ CREATE TABLE `product` (
 --
 
 INSERT INTO `product` (`product_id`, `product_name`, `product_description`, `brand_id`, `category_id`, `status_id`, `product_sku`, `product_pp`, `product_sp`, `product_min`, `product_max`, `unit_id`, `tax_id`, `created_at`, `updated_at`) VALUES
-(1, 'Red Mongo 340g', 'Red Mongo 340g 12oz', 2, 5, NULL, 'SRP00001', 102, 110, 10, 20, 1, 1, '2024-05-10 07:47:44', '2024-05-15 10:59:02'),
+(1, 'Red Mongo 340g', 'Red Mongo 340g 12oz', 2, 5, NULL, 'SRP00001', 102, 102, 10, 20, 1, 1, '2024-05-10 07:47:44', '2024-05-21 08:15:35'),
 (2, 'Green Kaong 340g', 'Green Kaong 340g 12oz', 2, 5, NULL, 'SRP00002', 102, 110, 10, 20, 1, 1, '2024-05-10 11:52:30', '2024-05-15 11:02:13'),
-(3, 'Milo 45', 'milo pawdir', 1, 1, NULL, 'F00001', 15, NULL, 20, 30, 1, 1, '2024-05-14 06:50:52', '2024-05-15 11:14:10'),
-(4, 'Ding Dong', 'Mix Nuts 100g', 8, 6, NULL, 'PNS00001', 72, NULL, 20, 30, 1, 1, '2024-05-15 07:09:05', '2024-05-15 11:14:08');
-
--- --------------------------------------------------------
-
---
--- Stand-in structure for view `product count`
--- (See below for the actual view)
---
-CREATE TABLE `product count` (
-);
+(3, 'Milo 45', 'milo pawdir', 1, 5, NULL, 'F00001', 15, NULL, 20, 30, 1, 1, '2024-05-14 06:50:52', '2024-05-21 07:32:51'),
+(4, 'Ding Dong', 'Mix Nuts 100g', 8, 5, NULL, 'PNS00001', 72, 78, 20, 30, 1, 1, '2024-05-15 07:09:05', '2024-05-21 08:29:46');
 
 -- --------------------------------------------------------
 
@@ -203,6 +234,17 @@ CREATE TABLE `role_permissions` (
   `role_id` int(11) NOT NULL,
   `permission_id` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `role_permissions`
+--
+
+INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
+(1, 1),
+(1, 2),
+(1, 3),
+(1, 4),
+(1, 5);
 
 -- --------------------------------------------------------
 
@@ -286,6 +328,9 @@ CREATE TABLE `users` (
   `id` int(11) NOT NULL,
   `username` varchar(255) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
+  `display_name` varchar(255) DEFAULT NULL,
+  `role_id` int(11) DEFAULT NULL,
+  `isEnabled` tinyint(1) DEFAULT 0,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -294,28 +339,9 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `username`, `password`, `created_at`, `updated_at`) VALUES
-(1, 'admin', '$2y$10$R0gp0MB5zbbOjnMCF4O1R.xdYTxMnWRMZrD4.Ll2egd1eJBtIXKE2', '2024-05-08 12:30:37', NULL);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `user_roles`
---
-
-CREATE TABLE `user_roles` (
-  `user_id` int(11) NOT NULL,
-  `role_id` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Structure for view `product count`
---
-DROP TABLE IF EXISTS `product count`;
-
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `product count`  AS SELECT `b`.`product_id` AS `product_id`, `b`.`product_name` AS `product_name`, count(0) AS `stocks` FROM ((`category` `a` left join `products` `b` on(`b`.`category_id` = `a`.`category_id`)) join `subproducts` `c` on(`c`.`product_id` = `b`.`product_id`)) ;
+INSERT INTO `users` (`id`, `username`, `password`, `display_name`, `role_id`, `isEnabled`, `created_at`, `updated_at`) VALUES
+(1, 'admin', '$2y$10$Yvn5wPKG1D1ovcMe5wM2lemqHaX40cKBJ7ybknP0rtYFkVSYt0MmK', 'Jerome De Lara', 1, 1, '2024-05-08 12:30:37', '2024-05-24 03:49:31'),
+(3, 'jhondell', '$2y$10$JRSUatHPUFuxnBTk2t1PzeHke3itwMQXgGiKJrvWT.55bKynetknq', 'Jhondell', 2, 1, '2024-05-22 07:11:58', '2024-05-24 03:50:30');
 
 --
 -- Indexes for dumped tables
@@ -341,11 +367,18 @@ ALTER TABLE `item`
   ADD KEY `fr_prod_sku` (`product_sku`);
 
 --
+-- Indexes for table `modules`
+--
+ALTER TABLE `modules`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `permissions`
 --
 ALTER TABLE `permissions`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `permission_name` (`permission_name`);
+  ADD UNIQUE KEY `permission_name` (`permission_name`),
+  ADD KEY `fr_moduleid` (`module_id`);
 
 --
 -- Indexes for table `product`
@@ -394,14 +427,8 @@ ALTER TABLE `unit`
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `user_roles`
---
-ALTER TABLE `user_roles`
-  ADD PRIMARY KEY (`user_id`,`role_id`),
-  ADD KEY `fr_role_id` (`role_id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fr_role` (`role_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -411,7 +438,7 @@ ALTER TABLE `user_roles`
 -- AUTO_INCREMENT for table `brand`
 --
 ALTER TABLE `brand`
-  MODIFY `brand_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `brand_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `category`
@@ -426,10 +453,16 @@ ALTER TABLE `item`
   MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
+-- AUTO_INCREMENT for table `modules`
+--
+ALTER TABLE `modules`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
 -- AUTO_INCREMENT for table `permissions`
 --
 ALTER TABLE `permissions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `product`
@@ -450,56 +483,33 @@ ALTER TABLE `status`
   MODIFY `status_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
--- AUTO_INCREMENT for table `tax`
---
-ALTER TABLE `tax`
-  MODIFY `tax_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
-
---
--- AUTO_INCREMENT for table `unit`
---
-ALTER TABLE `unit`
-  MODIFY `unit_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
-
---
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Constraints for dumped tables
 --
 
 --
--- Constraints for table `item`
+-- Constraints for table `permissions`
 --
-ALTER TABLE `item`
-  ADD CONSTRAINT `fr_prod_sku` FOREIGN KEY (`product_sku`) REFERENCES `product` (`product_sku`) ON DELETE NO ACTION ON UPDATE CASCADE;
-
---
--- Constraints for table `product`
---
-ALTER TABLE `product`
-  ADD CONSTRAINT `fr_brand_id` FOREIGN KEY (`brand_id`) REFERENCES `brand` (`brand_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fr_category_id` FOREIGN KEY (`category_id`) REFERENCES `category` (`category_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fr_status_id` FOREIGN KEY (`status_id`) REFERENCES `status` (`status_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fr_tax_id` FOREIGN KEY (`tax_id`) REFERENCES `tax` (`tax_id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fr_unit_id` FOREIGN KEY (`unit_id`) REFERENCES `unit` (`unit_id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+ALTER TABLE `permissions`
+  ADD CONSTRAINT `fr_moduleid` FOREIGN KEY (`module_id`) REFERENCES `modules` (`id`);
 
 --
 -- Constraints for table `role_permissions`
 --
 ALTER TABLE `role_permissions`
-  ADD CONSTRAINT `fr_permission` FOREIGN KEY (`permission_id`) REFERENCES `permissions` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fr_role` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+  ADD CONSTRAINT `fr_permission` FOREIGN KEY (`permission_id`) REFERENCES `permissions` (`id`),
+  ADD CONSTRAINT `fr_role_id` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`);
 
 --
--- Constraints for table `user_roles`
+-- Constraints for table `users`
 --
-ALTER TABLE `user_roles`
-  ADD CONSTRAINT `fr_role_id` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fr_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+ALTER TABLE `users`
+  ADD CONSTRAINT `fr_role` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

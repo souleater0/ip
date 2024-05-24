@@ -59,6 +59,7 @@ $route = $_GET['route'] ?? 'home';
         <!-- Sidebar navigation-->
         <nav class="sidebar-nav scroll-sidebar" data-simplebar="">
           <ul id="sidebarnav">
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'Manage Dashboard')){?>
             <li class="nav-small-cap">
               <iconify-icon icon="solar:menu-dots-linear" class="nav-small-cap-icon fs-4"></iconify-icon>
               <span class="hide-menu">Home</span>
@@ -69,6 +70,7 @@ $route = $_GET['route'] ?? 'home';
                 <span class="hide-menu">Dashboard</span>
               </a>
             </li>
+            <?php } ?>
             <li>
               <span class="sidebar-divider lg"></span>
             </li>
