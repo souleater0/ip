@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 24, 2024 at 02:16 PM
+-- Generation Time: May 27, 2024 at 03:30 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -146,29 +146,52 @@ CREATE TABLE `permissions` (
 --
 
 INSERT INTO `permissions` (`id`, `permission_name`, `description`, `module_id`) VALUES
-(1, 'Manage Dashboard', 'Permission to manage dashboard', 1),
-(2, 'Manage Product', NULL, 2),
-(3, 'View Product', NULL, 2),
-(4, 'Create Product', NULL, 2),
-(5, 'Update Product', NULL, 2),
-(6, 'Delete Product', NULL, 2),
-(7, 'Manage Category', NULL, 3),
-(8, 'Create Category', NULL, 3),
-(9, 'Update Category', NULL, 3),
-(10, 'Delete Category', NULL, 3),
-(11, 'Manage Brand', NULL, 4),
-(12, 'Create Brand', NULL, 4),
-(13, 'Update Brand', NULL, 4),
-(14, 'Delete Brand', NULL, 4),
-(15, 'Manage Unit', NULL, 5),
-(16, 'Create Unit', NULL, 5),
-(17, 'Update Unit', NULL, 5),
-(18, 'Delete Unit', NULL, 5),
-(19, 'Manage Tax', NULL, 6),
-(20, 'Create Tax', NULL, 6),
-(21, 'Update Tax', NULL, 6),
-(22, 'Delete Tax', NULL, 6),
-(23, 'Manage Stock In', NULL, 7);
+(1, 'Manage Dashboard', 'Manage', 1),
+(2, 'Manage Product', 'Manage', 2),
+(3, 'View Product', 'View', 2),
+(4, 'Create Product', 'Create', 2),
+(5, 'Update Product', 'Update', 2),
+(6, 'Delete Product', 'Delete', 2),
+(7, 'Manage Category', 'Manage', 3),
+(8, 'Create Category', 'Create', 3),
+(9, 'Update Category', 'Update', 3),
+(10, 'Delete Category', 'Delete', 3),
+(11, 'Manage Brand', 'Manage', 4),
+(12, 'Create Brand', 'Create', 4),
+(13, 'Update Brand', 'Update', 4),
+(14, 'Delete Brand', 'Delete', 4),
+(15, 'Manage Unit', 'Manage', 5),
+(16, 'Create Unit', 'Create', 5),
+(17, 'Update Unit', 'Update', 5),
+(18, 'Delete Unit', 'Delete', 5),
+(19, 'Manage Tax', 'Manage', 6),
+(20, 'Create Tax', 'Create', 6),
+(21, 'Update Tax', 'Update', 6),
+(22, 'Delete Tax', 'Delete', 6),
+(23, 'Manage Stock In', 'Manage', 7),
+(25, 'Create Stock In', 'Create', 7),
+(26, 'Update Stock In', 'Update', 7),
+(27, 'Delete Stock In', 'Delete', 7),
+(28, 'Manage Stock Out', 'Manage', 8),
+(29, 'Create Stock Out', 'Create', 8),
+(30, 'Update Stock Out', 'Update', 8),
+(31, 'Delete Stock Out', 'Delete', 8),
+(32, 'Manage Pending Inventory', 'Manage', 9),
+(33, 'Create Pending Inventory', 'Create', 9),
+(34, 'Update Pending Inventory', 'Update', 9),
+(35, 'Delete Pending Inventory', 'Delete', 9),
+(36, 'Manage Costing', 'Manage', 10),
+(37, 'Create Costing', 'Create', 10),
+(38, 'Update Costing', 'Update', 10),
+(39, 'Delete Costing', 'Delete', 10),
+(40, 'Manage User', 'Manage', 11),
+(41, 'Create User', 'Create', 11),
+(42, 'Update User', 'Update', 11),
+(43, 'Delete User', 'Delete', 11),
+(44, 'Manage Role', 'Manage', 12),
+(45, 'Create Role', 'Create', 12),
+(46, 'Update Role', 'Update', 12),
+(47, 'Delete Role', 'Delete', 12);
 
 -- --------------------------------------------------------
 
@@ -462,7 +485,7 @@ ALTER TABLE `modules`
 -- AUTO_INCREMENT for table `permissions`
 --
 ALTER TABLE `permissions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
 -- AUTO_INCREMENT for table `product`

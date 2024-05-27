@@ -1,6 +1,6 @@
 <?php 
 $modules = getModules($pdo);
-$permissions = getModulePermissions($pdom ,$moduleId);
+//$permissions = getModulePermissions($pdom ,$moduleId);
 // function getModulePermissions($permissions, $moduleId) {
 //   return array_filter($permissions, function($permission) use ($moduleId) {
 //       return $permission['module_id'] == $moduleId;
@@ -48,7 +48,7 @@ $permissions = getModulePermissions($pdom ,$moduleId);
           <table class="table">
             <thead>
               <tr>
-                <th><input type="checkbox" class="align-middle checkbox_middle form-check-input" name="checkall" id="checkall"></th>
+              <th><input type="checkbox" class="align-middle checkbox_middle form-check-input" id="checkall_global" onclick="checkAllGlobal(this)"></th>
                 <th>Module</th>
                 <th>Permissions</th>
               </tr>
@@ -80,15 +80,18 @@ $permissions = getModulePermissions($pdom ,$moduleId);
               </tr>-->
               <?php foreach($modules as $module):?>
                 <tr>
-                  <td><input type="checkbox" class="align-middle checkbox_middle form-check-input" name="checkall" id="checkall"></td>
+                  <td><input type="checkbox" class="align-middle checkbox_middle form-check-input" name="checkall" id="checkall" ></td>
                   <td class="text-black"><?= htmlspecialchars($module['module_name']); ?></td>
                   <td>
-                    <div class="row">
-                    <?php foreach ($permissions as $permission): ?>
-
-                            <div class="col-md-4">
-                                <input class="form-check-input isscheck isscheck_User" id="<?= $permission['id']; ?>" name="permissions[]" type="checkbox" value="<?= $permission['id']; ?>">
-                                <label for="<?= $permission['id']; ?>" class="form-label font-weight-500"><?= htmlspecialchars($permission['permission_name']); ?></label>
+                  <div class="row">
+                        <?php
+                        // Fetch permissions for the current module from your database
+                        $permissions = getModulePermissions($pdo, $module['id']);
+                        ?>
+                        <?php foreach ($permissions as $permission): ?>
+                            <div class="col-md-3">
+                                <input class="form-check-input isscheck isscheck_User" id="permission<?= $permission['id']; ?>" name="permissions[]" type="checkbox" value="<?= $permission['id']; ?>">
+                                <label for="permission<?= $permission['id']; ?>" class="form-label font-weight-500"><?= htmlspecialchars($permission['description']); ?></label>
                             </div>
                         <?php endforeach; ?>
                     </div>
@@ -140,6 +143,14 @@ $(document).ready( function () {
                 alert('Failed to retrieve brands.');
             }
         });
+    }
+    function checkAll(source, containerId) {
+            const checkboxes = document.querySelectorAll(`#${containerId} input[type="checkbox"]`);
+            checkboxes.forEach(checkbox => checkbox.checked = source.checked);
+    }
+    function checkAllGlobal(source) {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => checkbox.checked = source.checked);
     }
 });
 </script>
