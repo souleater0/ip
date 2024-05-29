@@ -117,7 +117,7 @@ $route = $_GET['route'] ?? 'home';
               <iconify-icon icon="solar:menu-dots-linear" class="nav-small-cap-icon fs-4"></iconify-icon>
               <span class="hide-menu text-uppercase">stock management</span>
             </li>
-            <div class="collapse <?php echo ($route == 'stock-in'|| $route == 'costing' || $route == 'pending-inventory') ? 'show' : ''; ?>" id="collapseStock">
+            <div class="collapse <?php echo ($route == 'stock-in' || $route == 'stock-out'|| $route == 'costing' || $route == 'pending-inventory') ? 'show' : ''; ?>" id="collapseStock">
             <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=stock-in" aria-expanded="false">
                 <iconify-icon icon="ph:stack-plus"></iconify-icon>
@@ -125,7 +125,7 @@ $route = $_GET['route'] ?? 'home';
               </a>
             </li>
             <li class="sidebar-item">
-              <a class="sidebar-link" href="./ui-alerts.html" aria-expanded="false">
+              <a class="sidebar-link" href="index.php?route=stock-out" aria-expanded="false">
                 <iconify-icon icon="ph:stack-minus"></iconify-icon>
                 <span class="hide-menu">Stock Out</span>
               </a>

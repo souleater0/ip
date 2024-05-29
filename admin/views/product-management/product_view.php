@@ -129,8 +129,8 @@ $items = getItembyID($product_id, $pdo);
                         
                             <?php foreach($items as $item):?>
                             <tr>
-                            <td><?php echo $item['item_sku'];?></td>
-                            <td class="text-start"><span><?php echo "<img src='data:image/png;base64," . base64_encode(generateBarcode(!empty($item['item_barcode']) ? $item['item_barcode'] : 'none')) . "' width='180'>";?></span></td>
+                            <td><span><?php echo "<img src='data:image/png;base64," . base64_encode(generateBarcode(!empty($item['item_sku']) ? $item['item_sku'] : 'none')) . "' width='180'>";?></span><br><span><?php echo !empty($item['item_sku']) ? $item['item_sku'] : 'none';?></span></td>
+                            <td class="text-start"><span><?php echo "<img src='data:image/png;base64," . base64_encode(generateBarcode(!empty($item['item_barcode']) ? $item['item_barcode'] : 'none')) . "' width='180'>";?></span><br><span><?php echo !empty($item['item_barcode']) ? $item['item_barcode'] : 'none';?></span></td>
                             <td class="text-center"><span class="btn btn-secondary btn-sm"><?php echo $item['item_qty'];?></span></td>
                             <td><?php echo $item['item_expiry'];?></td>
                             </tr>
