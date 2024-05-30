@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 29, 2024 at 02:52 PM
+-- Generation Time: May 30, 2024 at 03:15 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -94,7 +94,7 @@ CREATE TABLE `item` (
 --
 
 INSERT INTO `item` (`item_id`, `item_sku`, `item_barcode`, `item_qty`, `item_expiry`, `product_sku`, `created_at`) VALUES
-(1, 'ITM00001', 'IGWDZX', 5, '2024-05-30', 'SRP00001', '2024-05-10 08:26:11'),
+(1, 'ITM00001', 'IGWDZX', 5, '2024-05-29', 'SRP00001', '2024-05-10 08:26:11'),
 (2, 'ITM00002', 'IGWDZY', 5, '2024-05-30', 'SRP00001', '2024-05-10 08:26:54'),
 (3, 'ITM00003', 'IGWDZD', 9, '2024-05-31', 'SRP00002', '2024-05-10 11:51:46');
 
@@ -127,6 +127,30 @@ INSERT INTO `modules` (`id`, `module_name`, `description`) VALUES
 (10, 'Costing Management', NULL),
 (11, 'User Management', NULL),
 (12, 'Role Management', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `pending_item`
+--
+
+CREATE TABLE `pending_item` (
+  `id` int(11) NOT NULL,
+  `series_number` varchar(255) DEFAULT NULL,
+  `item_sku` varchar(255) DEFAULT NULL,
+  `item_barcode` varchar(255) DEFAULT NULL,
+  `item_qty` int(11) DEFAULT NULL,
+  `item_expiry` date DEFAULT NULL,
+  `product_sku` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `pending_item`
+--
+
+INSERT INTO `pending_item` (`id`, `series_number`, `item_sku`, `item_barcode`, `item_qty`, `item_expiry`, `product_sku`, `created_at`) VALUES
+(1, 'STK00001', 'ITM00004', 'IGWDZe', 5, '2024-05-30', 'SRP00002', '2024-05-30 11:06:42');
 
 -- --------------------------------------------------------
 
@@ -292,6 +316,26 @@ INSERT INTO `status` (`status_id`, `status_name`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `stockin_history`
+--
+
+CREATE TABLE `stockin_history` (
+  `id` int(11) NOT NULL,
+  `series_number` varchar(255) DEFAULT NULL,
+  `date` timestamp NULL DEFAULT current_timestamp(),
+  `isAdded` tinyint(4) DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `stockin_history`
+--
+
+INSERT INTO `stockin_history` (`id`, `series_number`, `date`, `isAdded`) VALUES
+(1, 'STK00001', '2024-05-30 10:38:00', 0);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `tax`
 --
 
@@ -396,6 +440,13 @@ ALTER TABLE `modules`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `pending_item`
+--
+ALTER TABLE `pending_item`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fr_series_no` (`series_number`);
+
+--
 -- Indexes for table `permissions`
 --
 ALTER TABLE `permissions`
@@ -433,6 +484,13 @@ ALTER TABLE `role_permissions`
 --
 ALTER TABLE `status`
   ADD PRIMARY KEY (`status_id`);
+
+--
+-- Indexes for table `stockin_history`
+--
+ALTER TABLE `stockin_history`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `series_number` (`series_number`);
 
 --
 -- Indexes for table `tax`
@@ -482,6 +540,12 @@ ALTER TABLE `modules`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
+-- AUTO_INCREMENT for table `pending_item`
+--
+ALTER TABLE `pending_item`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `permissions`
 --
 ALTER TABLE `permissions`
@@ -506,6 +570,12 @@ ALTER TABLE `status`
   MODIFY `status_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
+-- AUTO_INCREMENT for table `stockin_history`
+--
+ALTER TABLE `stockin_history`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
@@ -514,6 +584,12 @@ ALTER TABLE `users`
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `pending_item`
+--
+ALTER TABLE `pending_item`
+  ADD CONSTRAINT `fr_series_no` FOREIGN KEY (`series_number`) REFERENCES `stockin_history` (`series_number`);
 
 --
 -- Constraints for table `permissions`

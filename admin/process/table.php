@@ -124,7 +124,14 @@
                     $sql = 'SELECT * FROM roles
                     ORDER BY role_name ASC';
                     break;
-                
+            case 'stock-history':
+                $sql = 'SELECT
+                a.id,
+                a.series_number,
+                a.date,
+                a.isAdded
+                FROM stockin_history a';
+                break;
             default:
             // If an invalid or unsupported table type is provided, return an error
             echo json_encode(['error' => 'Unsupported table type']);

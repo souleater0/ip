@@ -29,7 +29,7 @@ switch ($route){
         require 'admin/views/stock-management/stockin.php';
         break;
     case "stock-out":
-        require 'admin/views/stock-management/stockout.php';
+        require 'admin/views/stock-management/picklist.php';
         break;
     case "pending-inventory":
         require 'admin/views/stock-management/pending_inventory.php';
