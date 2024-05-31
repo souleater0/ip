@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 30, 2024 at 03:15 PM
+-- Generation Time: May 31, 2024 at 01:37 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -96,7 +96,10 @@ CREATE TABLE `item` (
 INSERT INTO `item` (`item_id`, `item_sku`, `item_barcode`, `item_qty`, `item_expiry`, `product_sku`, `created_at`) VALUES
 (1, 'ITM00001', 'IGWDZX', 5, '2024-05-29', 'SRP00001', '2024-05-10 08:26:11'),
 (2, 'ITM00002', 'IGWDZY', 5, '2024-05-30', 'SRP00001', '2024-05-10 08:26:54'),
-(3, 'ITM00003', 'IGWDZD', 9, '2024-05-31', 'SRP00002', '2024-05-10 11:51:46');
+(3, 'ITM00003', 'IGWDZD', 9, '2024-05-31', 'SRP00002', '2024-05-10 11:51:46'),
+(6, 'ITM00004', 'AWDSCXZW', 5, '2025-06-21', 'SRP00001', '2024-05-31 05:09:11'),
+(7, 'ITM00005', 'AWDSCXZY', 2, '2025-06-14', 'SRP00001', '2024-05-31 05:09:11'),
+(8, 'ITM00006', 'ACAWDXADWA', 3, '2026-09-19', 'SRP00002', '2024-05-31 05:09:11');
 
 -- --------------------------------------------------------
 
@@ -150,7 +153,14 @@ CREATE TABLE `pending_item` (
 --
 
 INSERT INTO `pending_item` (`id`, `series_number`, `item_sku`, `item_barcode`, `item_qty`, `item_expiry`, `product_sku`, `created_at`) VALUES
-(1, 'STK00001', 'ITM00004', 'IGWDZe', 5, '2024-05-30', 'SRP00002', '2024-05-30 11:06:42');
+(1, 'STK_IN00001', NULL, 'AWDSCXZW', 5, '2025-06-21', 'SRP00001', '2024-05-31 05:09:11'),
+(2, 'STK_IN00001', NULL, 'AWDSCXZY', 2, '2025-06-14', 'SRP00001', '2024-05-31 05:09:11'),
+(3, 'STK_IN00001', NULL, 'ACAWDXADWA', 3, '2026-09-19', 'SRP00002', '2024-05-31 05:09:11'),
+(4, 'STK_IN00002', NULL, 'AWDASCAD', 5, '2025-06-21', 'SRP00001', '2024-05-31 05:10:33'),
+(5, 'STK_IN00002', NULL, 'AWJDHJADF', 3, '2025-08-09', 'SRP00001', '2024-05-31 05:10:33'),
+(6, 'STK_IN00002', NULL, 'HJGHAWDHK', 2, '2024-07-18', 'SRP00002', '2024-05-31 05:10:33'),
+(7, 'STK_IN00003', NULL, 'CAWDJGHD', 5, '2026-08-16', 'F00001', '2024-05-31 05:12:00'),
+(8, 'STK_IN00003', NULL, 'NCHDWHW', 3, '2024-07-11', 'F00001', '2024-05-31 05:12:00');
 
 -- --------------------------------------------------------
 
@@ -331,7 +341,9 @@ CREATE TABLE `stockin_history` (
 --
 
 INSERT INTO `stockin_history` (`id`, `series_number`, `date`, `isAdded`) VALUES
-(1, 'STK00001', '2024-05-30 10:38:00', 0);
+(1, 'STK_IN00001', '2024-05-31 11:09:11', 1),
+(2, 'STK_IN00002', '2024-05-31 11:10:33', 0),
+(3, 'STK_IN00003', '2024-05-31 11:12:00', 0);
 
 -- --------------------------------------------------------
 
@@ -531,7 +543,7 @@ ALTER TABLE `category`
 -- AUTO_INCREMENT for table `item`
 --
 ALTER TABLE `item`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `modules`
@@ -543,7 +555,7 @@ ALTER TABLE `modules`
 -- AUTO_INCREMENT for table `pending_item`
 --
 ALTER TABLE `pending_item`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `permissions`
@@ -589,7 +601,7 @@ ALTER TABLE `users`
 -- Constraints for table `pending_item`
 --
 ALTER TABLE `pending_item`
-  ADD CONSTRAINT `fr_series_no` FOREIGN KEY (`series_number`) REFERENCES `stockin_history` (`series_number`);
+  ADD CONSTRAINT `fr_series_no` FOREIGN KEY (`series_number`) REFERENCES `stockin_history` (`series_number`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `permissions`
