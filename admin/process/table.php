@@ -128,9 +128,32 @@
                 $sql = 'SELECT
                 a.id,
                 a.series_number,
-                a.date,
+                DATE_FORMAT(a.date, "%M %d, %Y %h:%i %p") as date,
                 a.isAdded
                 FROM stockin_history a';
+                break;
+            case 'item-details':
+                if (isset($_GET['series_number'])) {
+                    $seriesNumber = $_GET['series_number'];
+                    $sql = 'SELECT
+                                b.product_name,
+                                a.item_qty AS quantity,
+                                a.item_barcode,
+                                a.item_expiry
+                            FROM pending_item a
+                            INNER JOIN product b ON b.product_sku = a.product_sku
+                            WHERE a.series_number = :series_number';
+                    
+                    // Prepare and execute the statement
+                    $stmt = $pdo->prepare($sql);
+                    $stmt->execute(['series_number' => $seriesNumber]);
+                    $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    echo json_encode(['data' => $data]);
+                    exit;
+                } else {
+                    echo json_encode(['error' => 'Series number not specified']);
+                    exit;
+                }
                 break;
             default:
             // If an invalid or unsupported table type is provided, return an error

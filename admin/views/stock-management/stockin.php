@@ -1,9 +1,22 @@
 <?php
 $products = getProduct($pdo);
+$last_series_number = getStockInNumber($pdo);
 ?>
 
 <div class="body-wrapper-inner">
   <div class="container-fluid">
+    <div class="card shadow-sm w-50">
+          <div class="card-header bg-transparent border-bottom">
+            <div class="row align-items-center">
+              <div class="col">
+                <h5 class="mt-1 mb-0">Stock In Number</h5>
+              </div>
+              <div class="col">
+                <input type="text" class="form-control bg-secondary-subtle" id="stockInNumber" value="<?php echo $last_series_number;?>" readonly>
+              </div>
+            </div>
+          </div>
+        </div>
   <div id="productCards">
       <div class="card shadow-sm product-card">
         <div class="card-header bg-transparent border-bottom">
@@ -140,19 +153,26 @@ $products = getProduct($pdo);
 
         $('#saveDataBtn').click(function() {
         // Collect data from appended product cards
-          var productsData = [];
+          var productsData = {
+              "stockin_number": $("#stockInNumber").val(),
+              "items": []
+          };
+
           $('.product-card').each(function() {
-              var productData = {};
-              productData.product_sku = $(this).find('select').val();
-              productData.items = [];
+              var productData = {
+                  "product_sku": $(this).find('select').val(),
+                  "items": []
+              };
               $(this).find('.appended-item').each(function() {
-                  var itemData = {};
-                  itemData.barcode = $(this).find('input[name="barcode[]"]').val();
-                  itemData.qty = $(this).find('input[name="qty[]"]').val();
-                  itemData.expiry = $(this).find('input[name="expiry[]"]').val();
+                  var itemData = {
+                      "series_number": $("#stockInNumber").val(), // Assign series_number to each item
+                      "barcode": $(this).find('input[name="barcode[]"]').val(),
+                      "qty": $(this).find('input[name="qty[]"]').val(),
+                      "expiry": $(this).find('input[name="expiry[]"]').val()
+                  };
                   productData.items.push(itemData);
               });
-              productsData.push(productData);
+              productsData.items.push(productData);
           });
           console.log(productsData);
           $.ajax({
@@ -164,9 +184,10 @@ $products = getProduct($pdo);
             dataType: "json",
             success: function(response) {
                 if(response.success==true){
-                    LoadTable();
-                    $('#brandModal').modal('hide');
                     toastr.success(response.message);
+                    setTimeout(function() {
+                        location.reload();
+                    }, 3000);
                 }else{
                     toastr.error(response.message);
                 }

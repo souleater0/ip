@@ -12,6 +12,11 @@ $route = $_GET['route'] ?? 'home';
   <link rel="shortcut icon" type="image/png" href="assets/images/logos/favicon.png" />
   <link rel="stylesheet" href="assets/css/styles.min.css" />
   <link rel="stylesheet" href="assets/css/table.css">
+  <style>
+    .nav-small-cap{
+      cursor: pointer;
+    }
+  </style>
   <script src="assets/libs/jquery/dist/jquery.min.js"></script>
   <script src="assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
   <script src="assets/js/sidebarmenu.js"></script>

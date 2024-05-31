@@ -484,4 +484,29 @@ require_once 'function.php';
         echo json_encode($response);
         exit();
     }
+    if(!empty($_POST['action']) && $_POST['action'] == 'addtoInventory') {
+        if(empty($_POST['series_number'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Could not retrieve Series Number!'
+            );
+        }else{
+            $series_number = $_POST['series_number'];
+            if(addtoInventory($pdo, $series_number)){
+                $response = array(
+                    'success' => true,
+                    'message' => $series_number.' has been successfully added.'
+                );
+            }else{
+                $response = array(
+                    'success' => false,
+                    'message' => 'Failed to add to inventory!'
+                );
+            }
+        }
+        // Send response
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
 ?>
