@@ -712,77 +712,161 @@
             return array(); // Return an empty array if an error occurs
         }
     }
+
+    function getCurrentInventoryCount($pdo, $product_sku) {
+        $stmt = $pdo->prepare("SELECT SUM(item_qty) as total_qty FROM item WHERE product_sku = :product_sku");
+        $stmt->execute([':product_sku' => $product_sku]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result ? (int)$result['total_qty'] : 0;
+    }
+    
     function stockIN($pdo, $postData) {
         try {
-            // Decode JSON data from AJAX POST
             if (is_array($postData)) {
-                // Convert array to JSON-encoded string
                 $postData = json_encode($postData);
             }
     
-            // Decode JSON data
             $data = json_decode($postData, true);
     
-            // Check if decoding was successful
             if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
-                return false; // Return false if JSON data is invalid
+                return [
+                    'success' => false,
+                    'message' => 'Invalid JSON data!'
+                ];
             }
     
-            // Function to generate the next SKU
-            // function getNextSku($pdo, $prefix) {
-            //     // Fetch the latest SKU for the prefix
-            //     $stmt = $pdo->prepare("SELECT item_sku FROM item WHERE item_sku LIKE ? ORDER BY item_sku DESC LIMIT 1");
-            //     $stmt->execute([$prefix . '%']);
+            // Begin the transaction
+            $pdo->beginTransaction();
     
-            //     // If a SKU exists for the prefix, increment the last SKU number
-            //     if ($stmt->rowCount() > 0) {
-            //         $last_sku = $stmt->fetchColumn();
-            //         $last_number = intval(substr($last_sku, strlen($prefix)));
-            //         return $prefix . sprintf('%05d', ++$last_number);
-            //     } else {
-            //         // If no SKU exists for the prefix, start from 1
-            //         return $prefix . '00001';
-            //     }
-            // }
-    
-            // Prepare the insert statement for stockin_history table
             $series_number = $data['stockin_number'];
             $stmt_stockin = $pdo->prepare("INSERT INTO stockin_history (series_number) VALUES (:series_number)");
             $insert_stockin_history = $stmt_stockin->execute([':series_number' => $series_number]);
-            
-            //check if stockin history has failed
-            if(!$insert_stockin_history){
-                return false;
+    
+            if (!$insert_stockin_history) {
+                $pdo->rollBack();
+                return [
+                    'success' => false,
+                    'message' => 'Failed to insert into stockin_history!'
+                ];
             }
-
-            // Prepare the insert statement for pending_item table
+    
             $stmt = $pdo->prepare("INSERT INTO pending_item (series_number, item_barcode, item_qty, item_expiry, product_sku, created_at) VALUES (:series_number, :item_barcode, :item_qty, :item_expiry, :product_sku, :created_at)");
-
-            // Iterate over each product
+    
             foreach ($data['items'] as $product) {
                 $product_sku = $product['product_sku'];
-
-                // Iterate over each item in the product
+    
+                // Fetch product limits
+                $stmt_product = $pdo->prepare("SELECT product_min, product_max FROM product WHERE product_sku = :product_sku");
+                $stmt_product->execute([':product_sku' => $product_sku]);
+                $product_limits = $stmt_product->fetch(PDO::FETCH_ASSOC);
+    
+                if (!$product_limits) {
+                    $pdo->rollBack();
+                    return [
+                        'success' => false,
+                        'message' => "Product with SKU $product_sku not found."
+                    ];
+                }
+    
+                $product_max = (int)$product_limits['product_max'];
+                $current_count = getCurrentInventoryCount($pdo, $product_sku);
+    
                 foreach ($product['items'] as $item) {
-                    // Execute the insert statement for pending_item
+                    // Calculate the new total count if the item is added
+                    $new_total_count = $current_count + $item['qty'];
+    
+                    // Validate the item's quantity against the max limit
+                    if ($new_total_count > $product_max) {
+                        $pdo->rollBack();
+                        return [
+                            'success' => false,
+                            'message' => "Adding item with barcode {$item['barcode']} exceeds the allowed maximum of $product_max for product SKU $product_sku."
+                        ];
+                    }
+    
+                    // Update the current count for the next iteration
+                    $current_count = $new_total_count;
+    
+                    // Insert the item into the pending_item table
                     $stmt->execute([
-                        ':series_number' => $series_number, // Use the same series number for all items
+                        ':series_number' => $series_number,
                         ':item_barcode' => $item['barcode'],
                         ':item_qty' => $item['qty'],
                         ':item_expiry' => $item['expiry'],
                         ':product_sku' => $product_sku,
-                        ':created_at' => date('Y-m-d H:i:s') // Add current datetime
+                        ':created_at' => date('Y-m-d H:i:s')
                     ]);
                 }
             }
     
-            // Return true if the operation was successful
-            return true;
+            // Commit the transaction
+            $pdo->commit();
+    
+            return ['success' => true, 'message' => 'Stock has been recorded.'];
         } catch (PDOException $e) {
-            // Log or handle the database connection error
-            return false; // Return false in case of error
+            // Rollback the transaction in case of an error
+            $pdo->rollBack();
+            return ['success' => false, 'message' => 'Failed to add stocks.'];
         }
     }
+    
+    
+
+
+    // function stockIN($pdo, $postData) {
+    //     try {
+    //         // Decode JSON data from AJAX POST
+    //         if (is_array($postData)) {
+    //             // Convert array to JSON-encoded string
+    //             $postData = json_encode($postData);
+    //         }
+    
+    //         // Decode JSON data
+    //         $data = json_decode($postData, true);
+    
+    //         // Check if decoding was successful
+    //         if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
+    //             return false; // Return false if JSON data is invalid
+    //         }
+    
+    //         // Prepare the insert statement for stockin_history table
+    //         $series_number = $data['stockin_number'];
+    //         $stmt_stockin = $pdo->prepare("INSERT INTO stockin_history (series_number) VALUES (:series_number)");
+    //         $insert_stockin_history = $stmt_stockin->execute([':series_number' => $series_number]);
+            
+    //         //check if stockin history has failed
+    //         if(!$insert_stockin_history){
+    //             return false;
+    //         }
+
+    //         // Prepare the insert statement for pending_item table
+    //         $stmt = $pdo->prepare("INSERT INTO pending_item (series_number, item_barcode, item_qty, item_expiry, product_sku, created_at) VALUES (:series_number, :item_barcode, :item_qty, :item_expiry, :product_sku, :created_at)");
+
+    //         // Iterate over each product
+    //         foreach ($data['items'] as $product) {
+    //             $product_sku = $product['product_sku'];
+
+    //             // Iterate over each item in the product
+    //             foreach ($product['items'] as $item) {
+    //                 // Execute the insert statement for pending_item
+    //                 $stmt->execute([
+    //                     ':series_number' => $series_number, // Use the same series number for all items
+    //                     ':item_barcode' => $item['barcode'],
+    //                     ':item_qty' => $item['qty'],
+    //                     ':item_expiry' => $item['expiry'],
+    //                     ':product_sku' => $product_sku,
+    //                     ':created_at' => date('Y-m-d H:i:s') // Add current datetime
+    //                 ]);
+    //             }
+    //         }
+    
+    //         // Return true if the operation was successful
+    //         return true;
+    //     } catch (PDOException $e) {
+    //         // Log or handle the database connection error
+    //         return false; // Return false in case of error
+    //     }
+    // }
     function updateCost($pdo){
         try{
             $selling_price = $_POST['selling_price'];
@@ -806,84 +890,181 @@
         }
     }
     function addtoInventory($pdo, $series_number){
-        try{
+        try {
             $query_pendingItem = "SELECT * FROM pending_item WHERE series_number = :series_number";
             $stmt_pendingItem = $pdo->prepare($query_pendingItem);
             $stmt_pendingItem->bindParam(':series_number', $series_number);
             $check_pendingItem = $stmt_pendingItem->execute();
-
-            if(!$check_pendingItem){
+    
+            if (!$check_pendingItem) {
                 return false;
             }
+    
             function getNextSku($pdo, $prefix) {
-                // Fetch the latest SKU for the prefix
                 $stmt = $pdo->prepare("SELECT item_sku FROM item WHERE item_sku LIKE ? ORDER BY item_sku DESC LIMIT 1");
                 $stmt->execute([$prefix . '%']);
-    
-                // If a SKU exists for the prefix, increment the last SKU number
+        
                 if ($stmt->rowCount() > 0) {
                     $last_sku = $stmt->fetchColumn();
                     $last_number = intval(substr($last_sku, strlen($prefix)));
                     return $prefix . sprintf('%05d', ++$last_number);
                 } else {
-                    // If no SKU exists for the prefix, start from 1
                     return $prefix . '00001';
                 }
             }
-            //fetch the rows from pending_item
+    
             $pendingItems = $stmt_pendingItem->fetchAll(PDO::FETCH_ASSOC);
-
+    
             if ($pendingItems) {
-                //Prepare SQL query to insert rows into the item table
                 $insertQuery = "INSERT INTO item (item_sku, item_barcode, item_qty, item_expiry, product_sku, created_at) 
                                 VALUES (:item_sku, :item_barcode, :item_qty, :item_expiry, :product_sku, :created_at)";
                 $stmtInsert = $pdo->prepare($insertQuery);
-
+    
                 // Start the transaction
                 $pdo->beginTransaction();
                 $allSuccessful = true;
-                // Loop through the fetched rows and insert them into the item table
+    
                 foreach ($pendingItems as $pendingItem) {
-                    // Get the next SKU
+                    $product_sku = $pendingItem['product_sku'];
+                    
+                    // Fetch product limits
+                    $stmt_product = $pdo->prepare("SELECT product_min, product_max FROM product WHERE product_sku = :product_sku");
+                    $stmt_product->execute([':product_sku' => $product_sku]);
+                    $product_limits = $stmt_product->fetch(PDO::FETCH_ASSOC);
+    
+                    if (!$product_limits) {
+                        $pdo->rollBack();
+                        return [
+                            'success' => false,
+                            'message' => "Product with SKU $product_sku not found."
+                        ];
+                    }
+    
+                    $product_max = (int)$product_limits['product_max'];
+                    $current_count = getCurrentInventoryCount($pdo, $product_sku);
+    
+                    $new_total_count = $current_count + $pendingItem['item_qty'];
+    
+                    if ($new_total_count > $product_max) {
+                        $pdo->rollBack();
+                        return [
+                            'success' => false,
+                            'message' => "Adding item with barcode {$pendingItem['item_barcode']} exceeds the allowed maximum of $product_max for product SKU $product_sku."
+                        ];
+                    }
+    
+                    $current_count = $new_total_count;
                     $prefix = 'ITM';
                     $item_sku = getNextSku($pdo, $prefix);
-
-                    // Bind parameters and execute the insertion query
+    
                     $stmtInsert->bindParam(':item_sku', $item_sku);
                     $stmtInsert->bindParam(':item_barcode', $pendingItem['item_barcode']);
                     $stmtInsert->bindParam(':item_qty', $pendingItem['item_qty']);
                     $stmtInsert->bindParam(':item_expiry', $pendingItem['item_expiry']);
                     $stmtInsert->bindParam(':product_sku', $pendingItem['product_sku']);
                     $stmtInsert->bindParam(':created_at', $pendingItem['created_at']);
-
-                    // Execute the statement and check if it was successful
+    
                     if (!$stmtInsert->execute()) {
                         $allSuccessful = false;
                         break;
                     }
                 }
+    
                 if ($allSuccessful) {
-                    // Commit the transaction if all inserts were successful
                     $pdo->commit();
                     $updateStockStatus = $pdo->prepare("UPDATE stockin_history SET isAdded = :isAdded WHERE series_number = :series_number");
-
-                    // Execute the update query
-                    $updateStockStatus->execute([
-                        ':isAdded' => 1, 
-                        ':series_number' => $series_number
-                    ]);
+                    $updateStockStatus->execute([':isAdded' => 1, ':series_number' => $series_number]);
                     return true;
                 } else {
-                    // Rollback the transaction if any insert failed
                     $pdo->rollBack();
                     return false;
                 }
             } else {
-                return false; // Return false if no rows found for the given series_number
+                return false;
             }
         } catch (PDOException $e) {
-            // Log or handle the database connection error
-            return false; // Return false in case of error
+            return false;
         }
     }
+    // function addtoInventory($pdo, $series_number){
+    //     try{
+    //         $query_pendingItem = "SELECT * FROM pending_item WHERE series_number = :series_number";
+    //         $stmt_pendingItem = $pdo->prepare($query_pendingItem);
+    //         $stmt_pendingItem->bindParam(':series_number', $series_number);
+    //         $check_pendingItem = $stmt_pendingItem->execute();
+
+    //         if(!$check_pendingItem){
+    //             return false;
+    //         }
+    //         function getNextSku($pdo, $prefix) {
+    //             // Fetch the latest SKU for the prefix
+    //             $stmt = $pdo->prepare("SELECT item_sku FROM item WHERE item_sku LIKE ? ORDER BY item_sku DESC LIMIT 1");
+    //             $stmt->execute([$prefix . '%']);
+    
+    //             // If a SKU exists for the prefix, increment the last SKU number
+    //             if ($stmt->rowCount() > 0) {
+    //                 $last_sku = $stmt->fetchColumn();
+    //                 $last_number = intval(substr($last_sku, strlen($prefix)));
+    //                 return $prefix . sprintf('%05d', ++$last_number);
+    //             } else {
+    //                 // If no SKU exists for the prefix, start from 1
+    //                 return $prefix . '00001';
+    //             }
+    //         }
+    //         //fetch the rows from pending_item
+    //         $pendingItems = $stmt_pendingItem->fetchAll(PDO::FETCH_ASSOC);
+
+    //         if ($pendingItems) {
+    //             //Prepare SQL query to insert rows into the item table
+    //             $insertQuery = "INSERT INTO item (item_sku, item_barcode, item_qty, item_expiry, product_sku, created_at) 
+    //                             VALUES (:item_sku, :item_barcode, :item_qty, :item_expiry, :product_sku, :created_at)";
+    //             $stmtInsert = $pdo->prepare($insertQuery);
+
+    //             // Start the transaction
+    //             $pdo->beginTransaction();
+    //             $allSuccessful = true;
+    //             // Loop through the fetched rows and insert them into the item table
+    //             foreach ($pendingItems as $pendingItem) {
+    //                 // Get the next SKU
+    //                 $prefix = 'ITM';
+    //                 $item_sku = getNextSku($pdo, $prefix);
+
+    //                 // Bind parameters and execute the insertion query
+    //                 $stmtInsert->bindParam(':item_sku', $item_sku);
+    //                 $stmtInsert->bindParam(':item_barcode', $pendingItem['item_barcode']);
+    //                 $stmtInsert->bindParam(':item_qty', $pendingItem['item_qty']);
+    //                 $stmtInsert->bindParam(':item_expiry', $pendingItem['item_expiry']);
+    //                 $stmtInsert->bindParam(':product_sku', $pendingItem['product_sku']);
+    //                 $stmtInsert->bindParam(':created_at', $pendingItem['created_at']);
+
+    //                 // Execute the statement and check if it was successful
+    //                 if (!$stmtInsert->execute()) {
+    //                     $allSuccessful = false;
+    //                     break;
+    //                 }
+    //             }
+    //             if ($allSuccessful) {
+    //                 // Commit the transaction if all inserts were successful
+    //                 $pdo->commit();
+    //                 $updateStockStatus = $pdo->prepare("UPDATE stockin_history SET isAdded = :isAdded WHERE series_number = :series_number");
+
+    //                 // Execute the update query
+    //                 $updateStockStatus->execute([
+    //                     ':isAdded' => 1, 
+    //                     ':series_number' => $series_number
+    //                 ]);
+    //                 return true;
+    //             } else {
+    //                 // Rollback the transaction if any insert failed
+    //                 $pdo->rollBack();
+    //                 return false;
+    //             }
+    //         } else {
+    //             return false; // Return false if no rows found for the given series_number
+    //         }
+    //     } catch (PDOException $e) {
+    //         // Log or handle the database connection error
+    //         return false; // Return false in case of error
+    //     }
+    // }
 ?>

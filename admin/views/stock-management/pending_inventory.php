@@ -51,6 +51,9 @@ $(document).ready( function () {
       responsive: true,
       select: true,
       autoWidth: false,
+      order: [
+        [2, "desc"]
+      ],
       ajax:{
         url: 'admin/process/table.php?table_type=stock-history',
         dataSrc: 'data'

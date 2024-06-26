@@ -190,7 +190,7 @@ $items = getItembyID($product_id, $pdo);
     //         targets: 0
     //     }
     // ],
-    order: [[1, 'asc']],
+    order: [[3, 'asc']],
     paging: true,
     scrollCollapse: true,
     scrollX: true,
