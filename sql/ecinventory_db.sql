@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 31, 2024 at 01:37 PM
+-- Generation Time: Jun 26, 2024 at 02:48 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.1.25
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -94,12 +94,11 @@ CREATE TABLE `item` (
 --
 
 INSERT INTO `item` (`item_id`, `item_sku`, `item_barcode`, `item_qty`, `item_expiry`, `product_sku`, `created_at`) VALUES
-(1, 'ITM00001', 'IGWDZX', 5, '2024-05-29', 'SRP00001', '2024-05-10 08:26:11'),
-(2, 'ITM00002', 'IGWDZY', 5, '2024-05-30', 'SRP00001', '2024-05-10 08:26:54'),
-(3, 'ITM00003', 'IGWDZD', 9, '2024-05-31', 'SRP00002', '2024-05-10 11:51:46'),
-(6, 'ITM00004', 'AWDSCXZW', 5, '2025-06-21', 'SRP00001', '2024-05-31 05:09:11'),
-(7, 'ITM00005', 'AWDSCXZY', 2, '2025-06-14', 'SRP00001', '2024-05-31 05:09:11'),
-(8, 'ITM00006', 'ACAWDXADWA', 3, '2026-09-19', 'SRP00002', '2024-05-31 05:09:11');
+(1, 'ITM00001', 'MLWITK', 5, '2026-05-05', 'F00001', '2024-06-26 04:04:45'),
+(2, 'ITM00002', 'MLWITL', 20, '2026-02-05', 'F00001', '2024-06-26 04:10:06'),
+(3, 'ITM00003', 'NCHDWHDG', 10, '2027-01-08', 'SRP00001', '2024-06-26 04:40:54'),
+(4, 'ITM00004', 'NCHDWHDF', 5, '2028-05-05', 'SRP00001', '2024-06-26 04:41:53'),
+(5, 'ITM00005', 'NCHDWHDC', 5, '2027-05-05', 'SRP00001', '2024-06-26 04:41:53');
 
 -- --------------------------------------------------------
 
@@ -153,14 +152,29 @@ CREATE TABLE `pending_item` (
 --
 
 INSERT INTO `pending_item` (`id`, `series_number`, `item_sku`, `item_barcode`, `item_qty`, `item_expiry`, `product_sku`, `created_at`) VALUES
-(1, 'STK_IN00001', NULL, 'AWDSCXZW', 5, '2025-06-21', 'SRP00001', '2024-05-31 05:09:11'),
-(2, 'STK_IN00001', NULL, 'AWDSCXZY', 2, '2025-06-14', 'SRP00001', '2024-05-31 05:09:11'),
-(3, 'STK_IN00001', NULL, 'ACAWDXADWA', 3, '2026-09-19', 'SRP00002', '2024-05-31 05:09:11'),
-(4, 'STK_IN00002', NULL, 'AWDASCAD', 5, '2025-06-21', 'SRP00001', '2024-05-31 05:10:33'),
-(5, 'STK_IN00002', NULL, 'AWJDHJADF', 3, '2025-08-09', 'SRP00001', '2024-05-31 05:10:33'),
-(6, 'STK_IN00002', NULL, 'HJGHAWDHK', 2, '2024-07-18', 'SRP00002', '2024-05-31 05:10:33'),
-(7, 'STK_IN00003', NULL, 'CAWDJGHD', 5, '2026-08-16', 'F00001', '2024-05-31 05:12:00'),
-(8, 'STK_IN00003', NULL, 'NCHDWHW', 3, '2024-07-11', 'F00001', '2024-05-31 05:12:00');
+(1, 'STK_IN00001', NULL, 'MLWITK', 5, '2026-05-05', 'F00001', '2024-06-26 04:04:45'),
+(2, 'STK_IN00002', NULL, 'MLWITL', 20, '2026-02-05', 'F00001', '2024-06-26 04:10:06'),
+(3, 'STK_IN00003', NULL, 'MLWITC', 20, '2027-05-20', 'F00001', '2024-06-26 04:10:23'),
+(4, 'STK_IN00004', NULL, 'NCHDWHDG', 10, '2027-01-08', 'SRP00001', '2024-06-26 04:40:54'),
+(5, 'STK_IN00005', NULL, 'NCHDWHDF', 5, '2028-05-05', 'SRP00001', '2024-06-26 04:41:53'),
+(6, 'STK_IN00005', NULL, 'NCHDWHDC', 5, '2027-05-05', 'SRP00001', '2024-06-26 04:41:53');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `pending_stock_out`
+--
+
+CREATE TABLE `pending_stock_out` (
+  `id` int(11) NOT NULL,
+  `series_number` varchar(255) DEFAULT NULL,
+  `item_sku` varchar(255) DEFAULT NULL,
+  `item_barcode` varchar(255) DEFAULT NULL,
+  `item_qty` int(11) DEFAULT NULL,
+  `item_expiry` date DEFAULT NULL,
+  `product_sku` varchar(255) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -258,7 +272,7 @@ CREATE TABLE `product` (
 INSERT INTO `product` (`product_id`, `product_name`, `product_description`, `brand_id`, `category_id`, `status_id`, `product_sku`, `product_pp`, `product_sp`, `product_min`, `product_max`, `unit_id`, `tax_id`, `created_at`, `updated_at`) VALUES
 (1, 'Red Mongo 340g', 'Red Mongo 340g 12oz', 2, 5, NULL, 'SRP00001', 102, 102, 10, 20, 1, 1, '2024-05-10 07:47:44', '2024-05-21 08:15:35'),
 (2, 'Green Kaong 340g', 'Green Kaong 340g 12oz', 2, 5, NULL, 'SRP00002', 102, 110, 10, 20, 1, 1, '2024-05-10 11:52:30', '2024-05-15 11:02:13'),
-(3, 'Milo 45', 'milo pawdir', 1, 5, NULL, 'F00001', 15, NULL, 20, 30, 1, 1, '2024-05-14 06:50:52', '2024-05-21 07:32:51'),
+(3, 'Milo 45', 'milo pawdir', 1, 4, NULL, 'F00001', 15, NULL, 20, 30, 1, 1, '2024-05-14 06:50:52', '2024-06-26 11:47:53'),
 (4, 'Ding Dong', 'Mix Nuts 100g', 8, 5, NULL, 'PNS00001', 72, 78, 20, 30, 1, 1, '2024-05-15 07:09:05', '2024-05-21 08:29:46');
 
 -- --------------------------------------------------------
@@ -341,9 +355,24 @@ CREATE TABLE `stockin_history` (
 --
 
 INSERT INTO `stockin_history` (`id`, `series_number`, `date`, `isAdded`) VALUES
-(1, 'STK_IN00001', '2024-05-31 11:09:11', 1),
-(2, 'STK_IN00002', '2024-05-31 11:10:33', 0),
-(3, 'STK_IN00003', '2024-05-31 11:12:00', 0);
+(1, 'STK_IN00001', '2024-06-26 10:04:45', 1),
+(3, 'STK_IN00002', '2024-06-26 10:10:06', 1),
+(4, 'STK_IN00003', '2024-06-26 10:10:23', 0),
+(5, 'STK_IN00004', '2024-06-26 10:40:54', 1),
+(6, 'STK_IN00005', '2024-06-26 10:41:53', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `stockout_history`
+--
+
+CREATE TABLE `stockout_history` (
+  `id` int(11) NOT NULL,
+  `series_number` varchar(255) DEFAULT NULL,
+  `date` timestamp NULL DEFAULT current_timestamp(),
+  `isAdded` tinyint(4) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -459,6 +488,12 @@ ALTER TABLE `pending_item`
   ADD KEY `fr_series_no` (`series_number`);
 
 --
+-- Indexes for table `pending_stock_out`
+--
+ALTER TABLE `pending_stock_out`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `permissions`
 --
 ALTER TABLE `permissions`
@@ -505,6 +540,12 @@ ALTER TABLE `stockin_history`
   ADD KEY `series_number` (`series_number`);
 
 --
+-- Indexes for table `stockout_history`
+--
+ALTER TABLE `stockout_history`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `tax`
 --
 ALTER TABLE `tax`
@@ -543,7 +584,7 @@ ALTER TABLE `category`
 -- AUTO_INCREMENT for table `item`
 --
 ALTER TABLE `item`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `modules`
@@ -555,7 +596,13 @@ ALTER TABLE `modules`
 -- AUTO_INCREMENT for table `pending_item`
 --
 ALTER TABLE `pending_item`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `pending_stock_out`
+--
+ALTER TABLE `pending_stock_out`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `permissions`
@@ -585,7 +632,13 @@ ALTER TABLE `status`
 -- AUTO_INCREMENT for table `stockin_history`
 --
 ALTER TABLE `stockin_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+
+--
+-- AUTO_INCREMENT for table `stockout_history`
+--
+ALTER TABLE `stockout_history`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `users`
