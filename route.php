@@ -31,8 +31,11 @@ switch ($route){
     case "stock-out":
         require 'admin/views/stock-management/picklist.php';
         break;
-    case "pending-inventory":
-        require 'admin/views/stock-management/pending_inventory.php';
+    case "pending-stockin":
+        require 'admin/views/stock-management/pending_stockin.php';
+        break;
+    case "pending-stockout":
+        require 'admin/views/stock-management/pending_stockout.php';
         break;
     case "costing":
         require 'admin/views/stock-management/costing.php';
@@ -42,6 +45,9 @@ switch ($route){
         break;
     case "role-management":
         require 'admin/views/user-management/role.php';
+        break;
+    case "settings":
+        require 'admin/views/user-configuration/settings.php';
         break;
     default:
         require 'admin/views/dashboard/dashboard.php';

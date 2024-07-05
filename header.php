@@ -122,7 +122,7 @@ $route = $_GET['route'] ?? 'home';
               <iconify-icon icon="solar:menu-dots-linear" class="nav-small-cap-icon fs-4"></iconify-icon>
               <span class="hide-menu text-uppercase">stock management</span>
             </li>
-            <div class="collapse <?php echo ($route == 'stock-in' || $route == 'stock-out'|| $route == 'costing' || $route == 'pending-inventory') ? 'show' : ''; ?>" id="collapseStock">
+            <div class="collapse <?php echo ($route == 'stock-in' || $route == 'stock-out'|| $route == 'costing' || $route == 'pending-stockin' || $route == 'pending-stockout') ? 'show' : ''; ?>" id="collapseStock">
             <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=stock-in" aria-expanded="false">
                 <iconify-icon icon="ph:stack-plus"></iconify-icon>
@@ -136,9 +136,15 @@ $route = $_GET['route'] ?? 'home';
               </a>
             </li>
             <li class="sidebar-item">
-              <a class="sidebar-link" href="index.php?route=pending-inventory" aria-expanded="false">
+              <a class="sidebar-link" href="index.php?route=pending-stockin" aria-expanded="false">
                 <iconify-icon icon="mdi:receipt-text-pending"></iconify-icon>
-                <span class="hide-menu">Pending Inventory</span>
+                <span class="hide-menu">Pending Stock In</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a class="sidebar-link" href="index.php?route=pending-stockout" aria-expanded="false">
+                <iconify-icon icon="mdi:receipt-text-pending"></iconify-icon>
+                <span class="hide-menu">Pending Stock Out</span>
               </a>
             </li>
             <li class="sidebar-item">
@@ -207,7 +213,7 @@ $route = $_GET['route'] ?? 'home';
                       <i class="ti ti-user fs-6"></i>
                       <p class="mb-0 fs-3">My Profile</p>
                     </a>
-                    <a href="javascript:void(0)" class="d-flex align-items-center gap-2 dropdown-item">
+                    <a href="index.php?route=settings" class="d-flex align-items-center gap-2 dropdown-item">
                       <i class="ti ti-mail fs-6"></i>
                       <p class="mb-0 fs-3">Settings</p>
                     </a>

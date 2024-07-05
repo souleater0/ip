@@ -4,7 +4,7 @@
                 <div class="card-header bg-transparent border-bottom">
                   <div class="row">
                     <div class="col">
-                    <h5 class="mt-1 mb-0">Pending Inventory</h5>
+                    <h5 class="mt-1 mb-0">Pending Stock In History</h5>
                     </div>
                   </div>
                 </div>
