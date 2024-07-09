@@ -69,35 +69,8 @@
                 <div class="card-body p-4">
                   <h5 class="card-title fw-semibold mb-4">Expiring Soon</h5>
                   <div class="table-responsive" data-simplebar>
-                    <table class="table text-nowrap align-middle table-custom mb-0">
-                      <thead>
-                        <tr>
-                          <th scope="col" class="text-dark fw-normal ps-0">Product Name
-                          </th>
-                          <th scope="col" class="text-dark fw-normal">SKU
-                          </th>
-                          <th scope="col" class="text-dark fw-normal">Expiry Date</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td class="ps-0">
-                            <div class="d-flex align-items-center gap-6">
-                              <div>
-                                <h6 class="mb-0">Milo</h6>
-                                <span>Nestle</span>
-                              </div>
-                            </div>
-                          </td>
-                          <td>
-                            ITEM00001
-                          </td>
-                          <td>
-                            2024-04-04
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                  <table id="productExpiringTable" class="table table-hover table-cs-color">
+                  </table>
                   </div>
                 </div>
               </div>
@@ -225,6 +198,69 @@
     </div>
 </div>
 <script>
+  $(document).ready( function () {
+    var table = $('#productExpiringTable').DataTable({
+        columnDefs: [
+            {
+                orderable: false,
+                render: DataTable.render.select(),
+                targets: 0
+            }
+        ],
+        order: [[2, 'asc']],
+        paging: true,
+        scrollCollapse: true,
+        scrollX: true,
+        scrollY: 300,
+        responsive: true,
+        autoWidth: false,
+        ajax:{
+          url: 'admin/process/table.php?table_type=expiring_soon',
+          dataSrc: 'data'
+        },
+        columns:[
+          {data: 'item_id', visible: false},
+          {data: 'product_id', visible: false},
+          {data: 'item_sku', title: 'SKU'},
+          {data: 'product_name', title: 'Product Name'},
+          {data: 'item_expiry', title: 'Expiry Date', className: 'text-center'},
+          {data: 'expiry_notice', title: 'Expiry Notice', className: 'text-center'},
+          {data: 'days_to_expiry', title: 'Remaining Days', className: 'text-center'},
+          { 
+                "data": "item_qty",
+                "render": function(data, type, row, meta) {
+                    return '<span class="badge bg-secondary">' + data + '</span>';
+                },
+                "title": "QTY",
+                "className": "text-center"
+          },
+          { 
+            "data": null, 
+            "title": "Action", 
+            "render": function(data, type, row) {
+                return '<a class="btn btn-info btn-sm" href="index.php?route=view-product&product=' + row.product_id + '"><i class="fa-solid fa-eye"></i></a>';
+            } 
+          }
+        ]
+    });
+    function getExpiringSoon(){
+      $.ajax({
+            url: 'admin/process/table.php?table_type=expiring_soon',
+            dataType: 'json',
+            success: function(data) {
+              table.clear().rows.add(data.data).draw(false); // Update data without redrawing
+            
+              // Reload the DataTable after a delay (e.g., 1 second) to reflect any changes in the table structure or formatting
+              setTimeout(function() {
+                  table.ajax.reload(null, false); // Reload the DataTable without resetting current page
+              }, 1000); // Adjust delay as needed
+            },
+            error: function () {
+                alert('Failed to retrieve categories.');
+            }
+        });
+    }
+  });
         var colors = ['#008FFB', '#00E396', '#FEB019', '#FF4560', '#775DD0', '#00D9E9', '#FF66C3', '#FFD466'];
         var options = {
           series: [{

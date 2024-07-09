@@ -120,6 +120,12 @@ require_once 'function.php';
                 'success' => false,
                 'message' => 'Please select units!'
             );
+        }
+        else if(empty($_POST['exp_notice'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter expiry notice!'
+            );
         }else{
             if(addProduct($pdo)){
                 $response = array(
@@ -178,6 +184,12 @@ require_once 'function.php';
             $response = array(
                 'success' => false,
                 'message' => 'Please select units!'
+            );
+        }
+        else if(empty($_POST['exp_notice'])){
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter expiry notice!'
             );
         }else{
             if(updateProduct($pdo)){

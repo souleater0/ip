@@ -55,7 +55,7 @@ $(document).ready( function () {
         [2, "desc"]
       ],
       ajax:{
-        url: 'admin/process/table.php?table_type=stock-history',
+        url: 'admin/process/table.php?table_type=pending-stockout',
         dataSrc: 'data'
       },
       columns:[
@@ -96,7 +96,7 @@ $(document).ready( function () {
   });
   function LoadTable(){
       $.ajax({
-          url: 'admin/process/table.php?table_type=stock-history',
+          url: 'admin/process/table.php?table_type=pending-stockout',
           dataType: 'json',
           success: function(data) {
             table.clear().rows.add(data.data).draw(false); // Update data without redrawing

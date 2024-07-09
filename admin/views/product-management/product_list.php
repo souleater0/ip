@@ -100,6 +100,10 @@
               <?php endforeach;?>
             </select>
           </div>
+          <div class="col-lg-6">
+            <label for="exp_notice" class="form-label">Expiry Notice (Days)</label>
+            <input type="text" class="form-control" id="exp_notice" name="exp_notice" placeholder="Ex. 1" pattern="[0-9]*">
+          </div>
         </div>
       </div>
       <div class="modal-footer">
@@ -114,7 +118,7 @@
 <!-- END -->
 <script>
 $(document).ready( function () {
-  $('#purchase_price, #min_qty,#max_qty ').on('input', function(){
+  $('#purchase_price, #min_qty,#max_qty,#exp_notice ').on('input', function(){
       $(this).val($(this).val().replace(/\D/g,''));
   });
 
@@ -224,6 +228,7 @@ $(document).ready( function () {
           },
           {data: 'unit_id', visible: false},
           {data: 'unit', title: 'Unit'},
+          {data: 'expiry_notice', visible: false},
           { 
             "data": null, 
             "title": "Action", 
@@ -264,6 +269,7 @@ $(document).ready( function () {
       $('#tax_id').selectpicker('refresh');
       $('#min_qty').val('');
       $('#max_qty').val('');
+      $('#exp_notice').val('');
       $('#unit_id').val('');
       $('#unit_id').selectpicker('refresh');
       $('#addProduct').show();
@@ -323,6 +329,7 @@ $(document).ready( function () {
       $('#tax_id').selectpicker('refresh');
       $('#min_qty').val(data.product_min);
       $('#max_qty').val(data.product_max);
+      $('#exp_notice').val(data.expiry_notice);
       $('#unit_id').val(data.unit_id);
       $('#unit_id').selectpicker('refresh');
 

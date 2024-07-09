@@ -614,6 +614,7 @@
             $min_qty = $_POST['min_qty'];
             $max_qty = $_POST['max_qty'];
             
+            
             //check product if exist
             $stmt_check = $pdo->prepare("SELECT COUNT(*) FROM product WHERE product_name = :product_name");
             $stmt_check->bindParam(':product_name', $product_name);
@@ -631,8 +632,9 @@
             $category_id = !empty($_POST['category_id']) ? $_POST['category_id'] : null;
             $unit_id = !empty($_POST['unit_id']) ? $_POST['unit_id'] : null;
             $tax_id = !empty($_POST['tax_id']) ? $_POST['tax_id'] : null;
+            $expiry_notice = !empty($_POST['exp_notice']) ? $_POST['exp_notice'] : 30;
 
-            $stmt = $pdo ->prepare("INSERT INTO product (product_name,product_description,brand_id,category_id,product_sku,product_pp,product_min,product_max,unit_id,tax_id) VALUES (:product_name, :product_description, :brand_id, :category_id, :product_sku, :product_pp, :product_min, :product_max, :unit_id, :tax_id)");
+            $stmt = $pdo ->prepare("INSERT INTO product (product_name,product_description,brand_id,category_id,product_sku,product_pp,product_min,product_max,unit_id,tax_id,expiry_notice) VALUES (:product_name, :product_description, :brand_id, :category_id, :product_sku, :product_pp, :product_min, :product_max, :unit_id, :tax_id,:expiry_notice)");
 
             $stmt->bindParam(':product_name', $product_name);
             $stmt->bindParam(':product_description', $product_desc);
@@ -644,6 +646,8 @@
             $stmt->bindParam(':product_max', $max_qty, PDO::PARAM_INT);
             $stmt->bindParam(':unit_id', $unit_id, PDO::PARAM_INT);
             $stmt->bindParam(':tax_id', $tax_id, PDO::PARAM_INT);
+            $stmt->bindParam(':expiry_notice', $expiry_notice, PDO::PARAM_INT);
+            
             if ($stmt->execute()) {
                 // Product added successfully
                 return true;
@@ -684,8 +688,9 @@
             $category_id = !empty($_POST['category_id']) ? $_POST['category_id'] : null;
             $unit_id = !empty($_POST['unit_id']) ? $_POST['unit_id'] : null;
             $tax_id = !empty($_POST['tax_id']) ? $_POST['tax_id'] : null;
+            $expiry_notice = !empty($_POST['exp_notice']) ? $_POST['exp_notice'] : 30;
 
-            $stmt = $pdo ->prepare("UPDATE product SET product_name = :product_name,product_description =:product_description ,brand_id =:brand_id ,category_id =:category_id ,product_sku =:product_sku ,product_pp =:product_pp ,product_min =:product_min ,product_max = :product_max ,unit_id = :unit_id ,tax_id = :tax_id WHERE product_id = :product_id");
+            $stmt = $pdo ->prepare("UPDATE product SET product_name = :product_name,product_description =:product_description ,brand_id =:brand_id ,category_id =:category_id ,product_sku =:product_sku ,product_pp =:product_pp ,product_min =:product_min ,product_max = :product_max ,unit_id = :unit_id ,tax_id = :tax_id, expiry_notice = :expiry_notice WHERE product_id = :product_id");
             
             $stmt->bindParam(':product_id', $update_ID, PDO::PARAM_INT);
             $stmt->bindParam(':product_name', $product_name);
@@ -698,6 +703,8 @@
             $stmt->bindParam(':product_max', $max_qty, PDO::PARAM_INT);
             $stmt->bindParam(':unit_id', $unit_id, PDO::PARAM_INT);
             $stmt->bindParam(':tax_id', $tax_id, PDO::PARAM_INT);
+            $stmt->bindParam(':expiry_notice', $expiry_notice, PDO::PARAM_INT);
+
             if ($stmt->execute()) {
                 // Product updated successfully
                 return true;

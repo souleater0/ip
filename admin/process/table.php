@@ -33,6 +33,7 @@
                 a.product_min,
                 a.product_max,
                 a.tax_id,
+                a.expiry_notice,
                 a.unit_id,
                 COALESCE(SUM(g.item_qty), 0) AS stocks,
                 e.short_name AS unit
@@ -124,7 +125,7 @@
                     $sql = 'SELECT * FROM roles
                     ORDER BY role_name ASC';
                     break;
-            case 'stock-history':
+            case 'pending-stockin':
                 $sql = 'SELECT
                 a.id,
                 a.series_number,
@@ -154,6 +155,58 @@
                     echo json_encode(['error' => 'Series number not specified']);
                     exit;
                 }
+                break;
+            case 'pending-stockout':
+                $sql = 'SELECT
+                a.id,
+                a.series_number,
+                DATE_FORMAT(a.date, "%M %d, %Y %h:%i %p") as date,
+                a.isAdded
+                FROM stockout_history a';
+                break;
+            case 'item-details':
+                if (isset($_GET['series_number'])) {
+                    $seriesNumber = $_GET['series_number'];
+                    $sql = 'SELECT
+                                b.product_name,
+                                a.item_qty AS quantity,
+                                a.item_barcode,
+                                a.item_expiry
+                            FROM pending_item a
+                            INNER JOIN product b ON b.product_sku = a.product_sku
+                            WHERE a.series_number = :series_number';
+                    
+                    // Prepare and execute the statement
+                    $stmt = $pdo->prepare($sql);
+                    $stmt->execute(['series_number' => $seriesNumber]);
+                    $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    echo json_encode(['data' => $data]);
+                    exit;
+                } else {
+                    echo json_encode(['error' => 'Series number not specified']);
+                    exit;
+                }
+                break;
+            case 'expiring_soon':
+                $sql = 'SELECT
+                    p.product_id,
+                    i.item_id,
+                    i.item_sku,
+                    i.item_barcode,
+                    i.item_qty,
+                    i.item_expiry,
+                    p.product_name,
+                    p.expiry_notice,
+                    DATEDIFF(i.item_expiry, NOW()) + 1 AS days_to_expiry
+                FROM 
+                    item i
+                JOIN 
+                    product p ON i.product_sku = p.product_sku
+                WHERE 
+                    DATEDIFF(i.item_expiry, NOW()) + 1 <= p.expiry_notice
+                    AND i.item_expiry IS NOT NULL
+                ORDER BY 
+                    i.item_expiry ASC';
                 break;
             default:
             // If an invalid or unsupported table type is provided, return an error

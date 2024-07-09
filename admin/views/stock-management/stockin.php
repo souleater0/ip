@@ -69,7 +69,7 @@ $(document).ready(function() {
     // Function to update selected products
     function updateSelectedProducts() {
         var selectedProductSKUs = [];
-
+        console.log( selectedProductSKUs);
         // Gather all selected product SKUs
         $('.product-card').each(function() {
             var selectedSKU = $(this).find('.selectpicker').val();
@@ -108,8 +108,6 @@ $(document).ready(function() {
         var product_sku = $(this).val();
         $(this).closest('.product-card').find('input[name="product_name[]"]').val(product_sku);
 
-        // Update disabled options in select pickers
-        updateSelectedProducts();
     });
 
     // Add item button click event
