@@ -817,7 +817,6 @@
         }
     }
     
-    
 
 
     // function stockIN($pdo, $postData) {
@@ -993,85 +992,70 @@
             return false;
         }
     }
-    // function addtoInventory($pdo, $series_number){
-    //     try{
-    //         $query_pendingItem = "SELECT * FROM pending_item WHERE series_number = :series_number";
-    //         $stmt_pendingItem = $pdo->prepare($query_pendingItem);
-    //         $stmt_pendingItem->bindParam(':series_number', $series_number);
-    //         $check_pendingItem = $stmt_pendingItem->execute();
-
-    //         if(!$check_pendingItem){
-    //             return false;
-    //         }
-    //         function getNextSku($pdo, $prefix) {
-    //             // Fetch the latest SKU for the prefix
-    //             $stmt = $pdo->prepare("SELECT item_sku FROM item WHERE item_sku LIKE ? ORDER BY item_sku DESC LIMIT 1");
-    //             $stmt->execute([$prefix . '%']);
+    function getSuggestedbySystem($pdo, $picklist){
+        // Placeholder for suggested items
+        $suggestedItems = [];
     
-    //             // If a SKU exists for the prefix, increment the last SKU number
-    //             if ($stmt->rowCount() > 0) {
-    //                 $last_sku = $stmt->fetchColumn();
-    //                 $last_number = intval(substr($last_sku, strlen($prefix)));
-    //                 return $prefix . sprintf('%05d', ++$last_number);
-    //             } else {
-    //                 // If no SKU exists for the prefix, start from 1
-    //                 return $prefix . '00001';
-    //             }
-    //         }
-    //         //fetch the rows from pending_item
-    //         $pendingItems = $stmt_pendingItem->fetchAll(PDO::FETCH_ASSOC);
-
-    //         if ($pendingItems) {
-    //             //Prepare SQL query to insert rows into the item table
-    //             $insertQuery = "INSERT INTO item (item_sku, item_barcode, item_qty, item_expiry, product_sku, created_at) 
-    //                             VALUES (:item_sku, :item_barcode, :item_qty, :item_expiry, :product_sku, :created_at)";
-    //             $stmtInsert = $pdo->prepare($insertQuery);
-
-    //             // Start the transaction
-    //             $pdo->beginTransaction();
-    //             $allSuccessful = true;
-    //             // Loop through the fetched rows and insert them into the item table
-    //             foreach ($pendingItems as $pendingItem) {
-    //                 // Get the next SKU
-    //                 $prefix = 'ITM';
-    //                 $item_sku = getNextSku($pdo, $prefix);
-
-    //                 // Bind parameters and execute the insertion query
-    //                 $stmtInsert->bindParam(':item_sku', $item_sku);
-    //                 $stmtInsert->bindParam(':item_barcode', $pendingItem['item_barcode']);
-    //                 $stmtInsert->bindParam(':item_qty', $pendingItem['item_qty']);
-    //                 $stmtInsert->bindParam(':item_expiry', $pendingItem['item_expiry']);
-    //                 $stmtInsert->bindParam(':product_sku', $pendingItem['product_sku']);
-    //                 $stmtInsert->bindParam(':created_at', $pendingItem['created_at']);
-
-    //                 // Execute the statement and check if it was successful
-    //                 if (!$stmtInsert->execute()) {
-    //                     $allSuccessful = false;
-    //                     break;
-    //                 }
-    //             }
-    //             if ($allSuccessful) {
-    //                 // Commit the transaction if all inserts were successful
-    //                 $pdo->commit();
-    //                 $updateStockStatus = $pdo->prepare("UPDATE stockin_history SET isAdded = :isAdded WHERE series_number = :series_number");
-
-    //                 // Execute the update query
-    //                 $updateStockStatus->execute([
-    //                     ':isAdded' => 1, 
-    //                     ':series_number' => $series_number
-    //                 ]);
-    //                 return true;
-    //             } else {
-    //                 // Rollback the transaction if any insert failed
-    //                 $pdo->rollBack();
-    //                 return false;
-    //             }
-    //         } else {
-    //             return false; // Return false if no rows found for the given series_number
-    //         }
-    //     } catch (PDOException $e) {
-    //         // Log or handle the database connection error
-    //         return false; // Return false in case of error
-    //     }
-    // }
+        // Prepare placeholders for picklist product SKUs and quantities
+        $picklistProductSKUs = [];
+        $picklistQuantities = [];
+        foreach ($picklist as $item) {
+            $picklistProductSKUs[] = $item['product_sku'];
+            $picklistQuantities[$item['product_sku']] = $item['product_qty'];
+        }
+    
+        // Construct SQL query to fetch suggested items
+        $sql = "SELECT
+                p.product_sku,
+                i.item_sku,
+                i.item_barcode,
+                p.product_name,
+                i.item_qty,
+                i.item_expiry,
+                DATEDIFF(i.item_expiry, NOW()) + 1 AS days_to_expiry
+            FROM
+                item i
+            JOIN
+                product p ON i.product_sku = p.product_sku
+            WHERE
+                p.product_sku IN ('" . implode("','", $picklistProductSKUs) . "') 
+                AND i.item_expiry IS NOT NULL
+            ORDER BY
+                i.item_expiry ASC;
+        ";
+    
+        // Prepare statement
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute();
+    
+        // Fetch suggested items
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $product_sku = $row['product_sku'];
+    
+            // Calculate suggested quantity based on picklist and available quantity
+            if (isset($picklistQuantities[$product_sku])) {
+                $picklist_qty = $picklistQuantities[$product_sku];
+                $available_qty = $row['item_qty'];
+    
+                // Determine suggested quantity
+                $suggested_qty = min($picklist_qty, $available_qty);
+    
+                // Prepare suggested item
+                $suggestedItems[] = [
+                    'product_name' => $row['product_name'],
+                    'product_sku' => $row['item_sku'],
+                    'barcode' => $row['item_barcode'],
+                    'expiry' => $row['item_expiry'],
+                    'qty' => $suggested_qty
+                ];
+    
+                // Adjust picklist quantity based on what's suggested
+                $picklistQuantities[$product_sku] -= $suggested_qty;
+            }
+            // echo "Fetched row: " . print_r($row, true) . "<br>";
+        }
+        echo "<br><br><br>Suggested Items: " . print_r($suggestedItems, true) . "<br>";
+        // Return array of suggested items
+        return $suggestedItems;
+    }
 ?>

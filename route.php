@@ -31,6 +31,9 @@ switch ($route){
     case "stock-out":
         require 'admin/views/stock-management/picklist.php';
         break;
+    case "validate-stockout":
+        require 'admin/views/stock-management/validate_stockout.php';
+        break;
     case "pending-stockin":
         require 'admin/views/stock-management/pending_stockin.php';
         break;

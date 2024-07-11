@@ -1,10 +1,11 @@
+// picklist.php
 <?php
 $products = getProduct($pdo);
 ?>
 
 <div class="body-wrapper-inner">
   <div class="container-fluid">
-      <div class="card shadow-sm product-card">
+      <div class="card shadow-sm">
         <div class="card-header bg-transparent border-bottom">
           <div class="row">
             <div class="col">
@@ -158,6 +159,23 @@ $products = getProduct($pdo);
                 productsData.push(productData);
             });
             console.log(productsData);
+
+            $.ajax({
+            url: "admin/process/admin_action.php",
+            method: "POST",
+            data: {
+                data: JSON.stringify(productsData),
+                action: "sendpickList"
+            },
+            dataType: "json",
+            success: function(response) {
+                if (response.success == true) {
+                  window.location.href = 'index.php?route=validate-stockout';
+                } else {
+                    toastr.error(response.message);
+                }
+            }
+          });
         });
     });
 </script>

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 26, 2024 at 02:48 PM
+-- Generation Time: Jul 11, 2024 at 03:30 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.1.25
 
@@ -94,11 +94,11 @@ CREATE TABLE `item` (
 --
 
 INSERT INTO `item` (`item_id`, `item_sku`, `item_barcode`, `item_qty`, `item_expiry`, `product_sku`, `created_at`) VALUES
-(1, 'ITM00001', 'MLWITK', 5, '2026-05-05', 'F00001', '2024-06-26 04:04:45'),
-(2, 'ITM00002', 'MLWITL', 20, '2026-02-05', 'F00001', '2024-06-26 04:10:06'),
-(3, 'ITM00003', 'NCHDWHDG', 10, '2027-01-08', 'SRP00001', '2024-06-26 04:40:54'),
-(4, 'ITM00004', 'NCHDWHDF', 5, '2028-05-05', 'SRP00001', '2024-06-26 04:41:53'),
-(5, 'ITM00005', 'NCHDWHDC', 5, '2027-05-05', 'SRP00001', '2024-06-26 04:41:53');
+(1, 'ITM00001', 'MLWITK', 5, '2024-07-15', 'F00001', '2024-06-26 04:04:45'),
+(2, 'ITM00002', 'MLWITL', 20, '2024-07-16', 'F00001', '2024-06-26 04:10:06'),
+(3, 'ITM00003', 'NCHDWHDG', 10, '2024-07-17', 'SRP00001', '2024-06-26 04:40:54'),
+(4, 'ITM00004', 'NCHDWHDF', 5, '2024-07-18', 'SRP00001', '2024-06-26 04:41:53'),
+(5, 'ITM00005', 'NCHDWHDC', 5, '2024-07-19', 'SRP00001', '2024-06-26 04:41:53');
 
 -- --------------------------------------------------------
 
@@ -261,6 +261,7 @@ CREATE TABLE `product` (
   `product_max` int(11) DEFAULT NULL,
   `unit_id` int(11) DEFAULT NULL,
   `tax_id` int(11) DEFAULT NULL,
+  `expiry_notice` int(11) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -269,11 +270,11 @@ CREATE TABLE `product` (
 -- Dumping data for table `product`
 --
 
-INSERT INTO `product` (`product_id`, `product_name`, `product_description`, `brand_id`, `category_id`, `status_id`, `product_sku`, `product_pp`, `product_sp`, `product_min`, `product_max`, `unit_id`, `tax_id`, `created_at`, `updated_at`) VALUES
-(1, 'Red Mongo 340g', 'Red Mongo 340g 12oz', 2, 5, NULL, 'SRP00001', 102, 102, 10, 20, 1, 1, '2024-05-10 07:47:44', '2024-05-21 08:15:35'),
-(2, 'Green Kaong 340g', 'Green Kaong 340g 12oz', 2, 5, NULL, 'SRP00002', 102, 110, 10, 20, 1, 1, '2024-05-10 11:52:30', '2024-05-15 11:02:13'),
-(3, 'Milo 45', 'milo pawdir', 1, 4, NULL, 'F00001', 15, NULL, 20, 30, 1, 1, '2024-05-14 06:50:52', '2024-06-26 11:47:53'),
-(4, 'Ding Dong', 'Mix Nuts 100g', 8, 5, NULL, 'PNS00001', 72, 78, 20, 30, 1, 1, '2024-05-15 07:09:05', '2024-05-21 08:29:46');
+INSERT INTO `product` (`product_id`, `product_name`, `product_description`, `brand_id`, `category_id`, `status_id`, `product_sku`, `product_pp`, `product_sp`, `product_min`, `product_max`, `unit_id`, `tax_id`, `expiry_notice`, `created_at`, `updated_at`) VALUES
+(1, 'Red Mongo 340g', 'Red Mongo 340g 12oz', 2, 4, NULL, 'SRP00001', 102, 102, 10, 20, 1, 1, 10, '2024-05-10 07:47:44', '2024-07-09 04:21:07'),
+(2, 'Green Kaong 340g', 'Green Kaong 340g 12oz', 2, 5, NULL, 'SRP00002', 102, 110, 10, 20, 1, 1, 10, '2024-05-10 11:52:30', '2024-07-09 04:21:07'),
+(3, 'Milo 45', 'milo pawdir', 1, 4, NULL, 'F00001', 15, NULL, 20, 30, 1, 1, 10, '2024-05-14 06:50:52', '2024-07-09 04:21:07'),
+(4, 'Ding Dong', 'Mix Nuts 100g', 8, 5, NULL, 'PNS00001', 72, 78, 20, 30, 1, 1, 10, '2024-05-15 07:09:05', '2024-07-09 04:21:07');
 
 -- --------------------------------------------------------
 

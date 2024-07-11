@@ -367,16 +367,17 @@ require_once 'function.php';
         exit();
     }
     if(!empty($_POST['action']) && $_POST['action'] == 'getSKUID') {
-    // Get the category_id from the AJAX request
-    $category_id = $_POST['category_id'];
+        // Get the category_id from the AJAX request
+        $category_id = $_POST['category_id'];
 
-    // Call the getSKUID function with the provided category_id
-    $sku = getSKUID($pdo, $category_id);
+        // Call the getSKUID function with the provided category_id
+        $sku = getSKUID($pdo, $category_id);
 
-    // Return the generated SKU
-    echo $sku;
-    exit;
+        // Return the generated SKU
+        echo $sku;
+        exit;
     }
+
     if (!empty($_POST['action']) && $_POST['action'] == 'stockInItems') {
         if (!isset($_POST['data']) || empty($_POST['data'])) {
             $response = array(
@@ -403,7 +404,35 @@ require_once 'function.php';
         exit();
     }
     
-
+    if (!empty($_POST['action']) && $_POST['action'] == 'sendpickList') {
+        if (!isset($_POST['data']) || empty($_POST['data'])) {
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter valid data!'
+            );
+        } else {
+            $data = json_decode($_POST['data'], true);
+    
+            if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
+                $response = array(
+                    'success' => false,
+                    'message' => 'Invalid JSON data!'
+                );
+            } else {
+                // Store the data in the session
+                $_SESSION['picklist'] = $data;
+                $response = array(
+                    'success' => true,
+                    'message' => 'Proceeding Stockout.'
+                );
+            }
+        }
+    
+        // Send response
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
     // if(!empty($_POST['action']) && $_POST['action'] == 'stockInItems') {
     //     if (!isset($_POST['data']) || empty($_POST['data'])) { // Check if data is not set or empty
     //         $response = array(
