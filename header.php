@@ -122,7 +122,7 @@ $route = $_GET['route'] ?? 'home';
               <iconify-icon icon="solar:menu-dots-linear" class="nav-small-cap-icon fs-4"></iconify-icon>
               <span class="hide-menu text-uppercase">stock management</span>
             </li>
-            <div class="collapse <?php echo ($route == 'stock-in' || $route == 'stock-out'|| $route == 'costing' || $route == 'pending-stockin' || $route == 'pending-stockout') ? 'show' : ''; ?>" id="collapseStock">
+            <div class="collapse <?php echo ($route == 'stock-in' || $route == 'stock-out' || $route == 'pending-stockin' || $route == 'pending-stockout' || $route == 'validate-stockout' || $route == 'costing' || $route == 'waste') ? 'show' : ''; ?>" id="collapseStock">
             <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=stock-in" aria-expanded="false">
                 <iconify-icon icon="ph:stack-plus"></iconify-icon>
@@ -130,7 +130,7 @@ $route = $_GET['route'] ?? 'home';
               </a>
             </li>
             <li class="sidebar-item">
-              <a class="sidebar-link" href="index.php?route=stock-out" aria-expanded="false">
+              <a class="sidebar-link <?php echo ($route == 'validate-stockout') ? 'active' : ''; ?>" href="index.php?route=stock-out" aria-expanded="false">
                 <iconify-icon icon="ph:stack-minus"></iconify-icon>
                 <span class="hide-menu">Stock Out</span>
               </a>
@@ -143,14 +143,20 @@ $route = $_GET['route'] ?? 'home';
             </li>
             <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=pending-stockout" aria-expanded="false">
-                <iconify-icon icon="mdi:receipt-text-pending"></iconify-icon>
-                <span class="hide-menu">Pending Stock Out</span>
+                <iconify-icon icon="healthicons:stock-out" width="24" height="24"></iconify-icon>
+                <span class="hide-menu">Stock Out History</span>
               </a>
             </li>
             <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=costing" aria-expanded="false">
                 <iconify-icon icon="fluent:money-calculator-24-regular"></iconify-icon>
                 <span class="hide-menu">Costing</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a class="sidebar-link" href="index.php?route=waste" aria-expanded="false">
+                <iconify-icon icon="hugeicons:waste-restore" width="24" height="24"></iconify-icon>
+                <span class="hide-menu">Waste</span>
               </a>
             </li>
             </div>

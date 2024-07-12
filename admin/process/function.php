@@ -479,7 +479,34 @@
             return null; // Return null if an error occurs
         }
     }
+    function getStockOutNumber($pdo) {
+        try {
+            $query = "SELECT series_number FROM stockout_history ORDER BY series_number DESC LIMIT 1";
+            $stmt = $pdo->prepare($query);
+            $stmt->execute();
+            
+            // Check if there are any rows
+            if ($stmt->rowCount() > 0) {
+                $last_series_number = $stmt->fetchColumn();
+                
+                // Extract numeric part from series number (assuming format is "STK_IN00001")
+                $numeric_part = intval(substr($last_series_number, 7)) + 1;
+                
+                // Format new series number with leading zeros
+                $new_series_number = 'STK_OUT' . str_pad($numeric_part, 5, '0', STR_PAD_LEFT);
+            } else {
+                // If no rows, start with the first series number
+                $new_series_number = 'STK_OUT00001';
+            }
     
+            return $new_series_number;
+    
+        } catch(PDOException $e) {
+            // Handle database connection error
+            echo "Error: " . $e->getMessage();
+            return null; // Return null if an error occurs
+        }
+    }
     
     function getUnits($pdo){
         try {
@@ -525,6 +552,66 @@
             return array(); // Return an empty array if an error occurs
         }
     }
+    function getCount_TotalItems($pdo) {
+        try {
+            $query = "SELECT SUM(item_qty) AS total_items FROM item";
+            $stmt = $pdo->prepare($query);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result['total_items'];
+        } catch (PDOException $e) {
+            // Handle database connection error
+            echo "Error: " . $e->getMessage();
+            return 0; // Return 0 if an error occurs
+        }
+    }
+    function getCount_OutofStock($pdo){
+        try {
+            $query = "SELECT COUNT(*) AS count
+            FROM 
+                product p
+            LEFT JOIN 
+                item i ON p.product_sku = i.product_sku
+            GROUP BY 
+                p.product_id
+            HAVING COALESCE(SUM(i.item_qty), 0) = 0";
+            $stmt = $pdo->prepare($query);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result['count'];
+        }catch(PDOException $e){
+            // Handle database connection error
+            echo "Error: " . $e->getMessage();
+            return array(); // Return an empty array if an error occurs
+        }
+    }
+    function getCount_LowofStock($pdo) {
+        try {
+            $query = "SELECT COUNT(*) AS count
+                      FROM (
+                          SELECT 
+                              p.product_id
+                          FROM 
+                              product p
+                          LEFT JOIN 
+                              item i ON p.product_sku = i.product_sku
+                          GROUP BY 
+                              p.product_id, p.product_min
+                          HAVING 
+                              COALESCE(SUM(i.item_qty), 0) < p.product_min
+                              AND COALESCE(SUM(i.item_qty), 0) > 0
+                      ) AS subquery";
+            $stmt = $pdo->prepare($query);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result['count'];
+        } catch (PDOException $e) {
+            // Handle database connection error
+            echo "Error: " . $e->getMessage();
+            return 0; // Return 0 if an error occurs
+        }
+    }
+
     function getProduct($pdo){
         try {
             $query = "SELECT * FROM product";
@@ -579,6 +666,82 @@
             $stmt ->execute();
             $product = $stmt -> fetch(PDO::FETCH_ASSOC);
             return $product;
+        }catch(PDOException $e){
+            // Handle database connection error
+            echo "Error: " . $e->getMessage();
+            return array(); // Return an empty array if an error occurs
+        }
+    }
+    function getLowofStock($pdo){
+        try {
+            $query = "SELECT 
+                p.product_id, 
+                p.product_name, 
+                p.product_description, 
+                p.product_sku, 
+                p.product_min, 
+                c.category_name,
+                pc.category_name AS parent_category_name,
+                COALESCE(SUM(i.item_qty), 0) AS total_stock_qty
+            FROM 
+                product p
+            LEFT JOIN 
+                item i ON p.product_sku = i.product_sku
+            LEFT JOIN
+                category c ON p.category_id = c.category_id
+            LEFT JOIN
+                category pc ON c.parent_category_id = pc.category_id
+            GROUP BY 
+                p.product_id, 
+                p.product_name, 
+                p.product_description, 
+                p.product_sku, 
+                p.product_min, 
+                c.category_name,
+                pc.category_name
+            HAVING 
+                total_stock_qty < p.product_min AND total_stock_qty > 0";
+            $stmt = $pdo->prepare($query);
+            $stmt ->execute();
+            $lowStock = $stmt ->fetchAll(PDO::FETCH_ASSOC);
+            return $lowStock;
+        }catch(PDOException $e){
+            // Handle database connection error
+            echo "Error: " . $e->getMessage();
+            return array(); // Return an empty array if an error occurs
+        }
+    }
+    function getOutofStock($pdo){
+        try {
+            $query = "SELECT 
+                p.product_id, 
+                p.product_sku, 
+                p.product_name, 
+                p.product_description, 
+                c.category_name,
+                pc.category_name AS parent_category_name,
+                COALESCE(SUM(i.item_qty), 0) AS qty
+            FROM 
+                product p
+            LEFT JOIN 
+                item i ON p.product_sku = i.product_sku
+            LEFT JOIN
+                category c ON p.category_id = c.category_id
+            LEFT JOIN
+                category pc ON c.parent_category_id = pc.category_id
+            GROUP BY 
+                p.product_id, 
+                p.product_name, 
+                p.product_description, 
+                p.product_sku, 
+                p.product_min, 
+                c.category_name,
+                pc.category_name
+            HAVING qty = 0";
+            $stmt = $pdo->prepare($query);
+            $stmt ->execute();
+            $outOfStock = $stmt ->fetchAll(PDO::FETCH_ASSOC);
+            return $outOfStock;
         }catch(PDOException $e){
             // Handle database connection error
             echo "Error: " . $e->getMessage();
@@ -816,63 +979,142 @@
             return ['success' => false, 'message' => 'Failed to add stocks.'];
         }
     }
+    function stockOut($pdo, $postData) {
+        try {
+            // Step 1: Handle input
+            if (is_array($postData)) {
+                $postData = json_encode($postData);
+            }
     
-
-
-    // function stockIN($pdo, $postData) {
+            // Step 2: Decode JSON
+            $data = json_decode($postData, true);
+            if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
+                return ['success' => false, 'message' => 'Invalid JSON data!'];
+            }
+    
+            // Step 3: Begin transaction
+            $pdo->beginTransaction();
+    
+            // Step 4: Insert into stockout_history
+            $stockoutNumber = $data['stockout_number'];
+            $stmt_stockout = $pdo->prepare("INSERT INTO stockout_history (series_number, date, isAdded) VALUES (:series_number, NOW(), 1)");
+            if (!$stmt_stockout->execute([':series_number' => $stockoutNumber])) {
+                $pdo->rollBack();
+                return ['success' => false, 'message' => 'Failed to insert into stockout_history!'];
+            }
+    
+            // Step 5: Prepare pending_stock_out insert
+            $stmt_pending = $pdo->prepare("INSERT INTO pending_stock_out (series_number, item_barcode, item_qty, item_expiry, product_sku, created_at) VALUES (:series_number, :item_barcode, :item_qty, :item_expiry, :product_sku, NOW())");
+    
+            // Step 6: Loop through items
+            foreach ($data['items'] as $item) {
+                $productSku = $item['product_sku'];
+                $itemBarcode = $item['barcode'];
+                $itemQty = $item['qty'];
+                $itemExpiry = $item['expiry'];
+    
+                // Insert the item into pending_stock_out table
+                $stmt_pending->execute([
+                    ':series_number' => $stockoutNumber,
+                    ':item_barcode' => $itemBarcode,
+                    ':item_qty' => $itemQty,
+                    ':item_expiry' => $itemExpiry,
+                    ':product_sku' => $productSku
+                ]);
+    
+                // Decrement the item in the item table
+                $stmt_decrement = $pdo->prepare("UPDATE item SET item_qty = item_qty - :item_qty WHERE item_barcode = :item_barcode");
+                $stmt_decrement->execute([
+                    ':item_qty' => $itemQty,
+                    ':item_barcode' => $itemBarcode
+                ]);
+    
+                // Check if the item quantity is now zero and delete it if so
+                $stmt_check = $pdo->prepare("SELECT item_qty FROM item WHERE item_barcode = :item_barcode");
+                $stmt_check->execute([':item_barcode' => $itemBarcode]);
+                $currentQty = $stmt_check->fetchColumn();
+    
+                // If quantity is zero, delete the item
+                if ($currentQty === '0' || $currentQty === 0) {
+                    $stmt_delete = $pdo->prepare("DELETE FROM item WHERE item_barcode = :item_barcode");
+                    $stmt_delete->execute([':item_barcode' => $itemBarcode]);
+                }
+            }
+    
+            // Step 7: Commit transaction
+            $pdo->commit();
+            unset($_SESSION['picklist']);
+            return ['success' => true, 'message' => 'Stock-out recorded successfully.'];
+        } catch (PDOException $e) {
+            // Rollback in case of error
+            $pdo->rollBack();
+            return ['success' => false, 'message' => 'Failed to process stock-out: ' . $e->getMessage()];
+        }
+    }
+    
+    
+    // function stockOut($pdo, $postData) {
     //     try {
-    //         // Decode JSON data from AJAX POST
+    //         // Step 1: Handle input
     //         if (is_array($postData)) {
-    //             // Convert array to JSON-encoded string
     //             $postData = json_encode($postData);
     //         }
     
-    //         // Decode JSON data
+    //         // Step 2: Decode JSON
     //         $data = json_decode($postData, true);
-    
-    //         // Check if decoding was successful
     //         if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
-    //             return false; // Return false if JSON data is invalid
+    //             return ['success' => false, 'message' => 'Invalid JSON data!'];
     //         }
     
-    //         // Prepare the insert statement for stockin_history table
-    //         $series_number = $data['stockin_number'];
-    //         $stmt_stockin = $pdo->prepare("INSERT INTO stockin_history (series_number) VALUES (:series_number)");
-    //         $insert_stockin_history = $stmt_stockin->execute([':series_number' => $series_number]);
-            
-    //         //check if stockin history has failed
-    //         if(!$insert_stockin_history){
-    //             return false;
-    //         }
-
-    //         // Prepare the insert statement for pending_item table
-    //         $stmt = $pdo->prepare("INSERT INTO pending_item (series_number, item_barcode, item_qty, item_expiry, product_sku, created_at) VALUES (:series_number, :item_barcode, :item_qty, :item_expiry, :product_sku, :created_at)");
-
-    //         // Iterate over each product
-    //         foreach ($data['items'] as $product) {
-    //             $product_sku = $product['product_sku'];
-
-    //             // Iterate over each item in the product
-    //             foreach ($product['items'] as $item) {
-    //                 // Execute the insert statement for pending_item
-    //                 $stmt->execute([
-    //                     ':series_number' => $series_number, // Use the same series number for all items
-    //                     ':item_barcode' => $item['barcode'],
-    //                     ':item_qty' => $item['qty'],
-    //                     ':item_expiry' => $item['expiry'],
-    //                     ':product_sku' => $product_sku,
-    //                     ':created_at' => date('Y-m-d H:i:s') // Add current datetime
-    //                 ]);
-    //             }
+    //         // Step 3: Begin transaction
+    //         $pdo->beginTransaction();
+    
+    //         // Step 4: Insert into stockout_history
+    //         $stockoutNumber = $data['stockout_number'];
+    //         $stmt_stockout = $pdo->prepare("INSERT INTO stockout_history (series_number, date, isAdded) VALUES (:series_number, NOW(), 1)");
+    //         if (!$stmt_stockout->execute([':series_number' => $stockoutNumber])) {
+    //             $pdo->rollBack();
+    //             return ['success' => false, 'message' => 'Failed to insert into stockout_history!'];
     //         }
     
-    //         // Return true if the operation was successful
-    //         return true;
+    //         // Step 5: Prepare pending_stock_out insert
+    //         $stmt_pending = $pdo->prepare("INSERT INTO pending_stock_out (series_number, item_barcode, item_qty, item_expiry, product_sku, created_at) VALUES (:series_number, :item_barcode, :item_qty, :item_expiry, :product_sku, NOW())");
+    
+    //         // Step 6: Loop through items
+    //         foreach ($data['items'] as $item) {
+    //             $productSku = $item['product_sku'];
+    //             $itemBarcode = $item['barcode'];
+    //             $itemQty = $item['qty'];
+    //             $itemExpiry = $item['expiry'];
+
+    //             // Insert the item into pending_stock_out table
+    //             $stmt_pending->execute([
+    //                 ':series_number' => $stockoutNumber,
+    //                 ':item_barcode' => $itemBarcode,
+    //                 ':item_qty' => $itemQty,
+    //                 ':item_expiry' => $itemExpiry,
+    //                 ':product_sku' => $productSku
+    //             ]);
+
+    //             //Decrement the item in the item table
+    //             $stmt_decrement = $pdo->prepare("UPDATE item SET item_qty = item_qty - :item_qty WHERE item_barcode = :item_barcode");
+    //             $stmt_decrement->execute([
+    //                 ':item_qty' => $itemQty,
+    //                 ':item_barcode' => $itemBarcode
+    //             ]);
+    //         }
+    
+    //         // Step 7: Commit transaction
+    //         $pdo->commit();
+    //         unset($_SESSION['picklist']);
+    //         return ['success' => true, 'message' => 'Stock-out recorded successfully.'];
     //     } catch (PDOException $e) {
-    //         // Log or handle the database connection error
-    //         return false; // Return false in case of error
+    //         // Rollback in case of error
+    //         $pdo->rollBack();
+    //         return ['success' => false, 'message' => 'Failed to process stock-out: ' . $e->getMessage()];
     //     }
     // }
+
     function updateCost($pdo){
         try{
             $selling_price = $_POST['selling_price'];
@@ -1033,7 +1275,7 @@
             $product_sku = $row['product_sku'];
     
             // Calculate suggested quantity based on picklist and available quantity
-            if (isset($picklistQuantities[$product_sku])) {
+            if (isset($picklistQuantities[$product_sku]) && $picklistQuantities[$product_sku] > 0) {
                 $picklist_qty = $picklistQuantities[$product_sku];
                 $available_qty = $row['item_qty'];
     
@@ -1043,7 +1285,7 @@
                 // Prepare suggested item
                 $suggestedItems[] = [
                     'product_name' => $row['product_name'],
-                    'product_sku' => $row['item_sku'],
+                    'product_sku' => $row['product_sku'],
                     'barcode' => $row['item_barcode'],
                     'expiry' => $row['item_expiry'],
                     'qty' => $suggested_qty
@@ -1052,10 +1294,10 @@
                 // Adjust picklist quantity based on what's suggested
                 $picklistQuantities[$product_sku] -= $suggested_qty;
             }
-            // echo "Fetched row: " . print_r($row, true) . "<br>";
         }
-        echo "<br><br><br>Suggested Items: " . print_r($suggestedItems, true) . "<br>";
+    
         // Return array of suggested items
         return $suggestedItems;
     }
+    
 ?>

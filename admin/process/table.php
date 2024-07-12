@@ -156,6 +156,29 @@
                     exit;
                 }
                 break;
+            case 'item-details-stockout':
+                if (isset($_GET['series_number'])) {
+                    $seriesNumber = $_GET['series_number'];
+                    $sql = 'SELECT
+                                b.product_name,
+                                a.item_qty AS quantity,
+                                a.item_barcode,
+                                a.item_expiry
+                            FROM pending_stock_out a
+                            INNER JOIN product b ON b.product_sku = a.product_sku
+                            WHERE a.series_number = :series_number';
+                    
+                    // Prepare and execute the statement
+                    $stmt = $pdo->prepare($sql);
+                    $stmt->execute(['series_number' => $seriesNumber]);
+                    $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    echo json_encode(['data' => $data]);
+                    exit;
+                } else {
+                    echo json_encode(['error' => 'Series number not specified']);
+                    exit;
+                }
+                break;
             case 'pending-stockout':
                 $sql = 'SELECT
                 a.id,

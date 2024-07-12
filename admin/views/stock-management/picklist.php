@@ -4,6 +4,22 @@ $products = getProduct($pdo);
 ?>
 
 <div class="body-wrapper-inner">
+<div class="container-fluid" style="max-width: 100% !important;">
+    <div class="col-lg-6">
+        <div class="d-flex">
+            <div class="d-flex justify-content-center align-items-center">
+                <a href="index.php?route=stock-out" class="text-uppercase text-primary fw-bold" aria-current="page">Pick List</a>
+            </div>
+            <div class="d-flex justify-content-center align-items-center px-2">
+                /
+            </div>
+            <div class="d-flex justify-content-center align-items-center">
+                <a href="index.php?route=validate-stockout" class="text-uppercase">Stock Out</a>
+            </div>
+        </div>
+    </div>
+</div>
+
   <div class="container-fluid">
       <div class="card shadow-sm">
         <div class="card-header bg-transparent border-bottom">

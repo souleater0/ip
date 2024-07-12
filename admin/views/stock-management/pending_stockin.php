@@ -52,7 +52,7 @@ $(document).ready( function () {
       select: true,
       autoWidth: false,
       order: [
-        [2, "desc"]
+        [1, "desc"]
       ],
       ajax:{
         url: 'admin/process/table.php?table_type=pending-stockin',

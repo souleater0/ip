@@ -1,3 +1,10 @@
+<?php
+ $totalItem_Count = getCount_TotalItems($pdo);
+ $outstock_Count = getCount_OutofStock($pdo);
+ $lowstock_Count = getCount_LowofStock($pdo);
+ $outOfStockList = getOutofStock($pdo);
+ $lowStockList = getLowofStock($pdo);
+?>
 <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'Manage Dashboard')){?>
 <div class="body-wrapper-inner">
     <div class="container-fluid">
@@ -15,7 +22,7 @@
                       </div>
                       <div class="row">
                         <div class="col-12">
-                          <h4>225</h4>
+                          <h4><?php echo $totalItem_Count; ?></h4>
                         </div>
                       </div>
                     </div>
@@ -35,7 +42,7 @@
                       </div>
                       <div class="row">
                         <div class="col-12">
-                          <h4>5</h4>
+                          <h4><?php echo $lowstock_Count; ?></h4>
                         </div>
                       </div>
                     </div>
@@ -55,7 +62,7 @@
                       </div>
                       <div class="row">
                         <div class="col-12">
-                          <h4>10</h4>
+                          <h4><?php echo $outstock_Count; ?></h4>
                         </div>
                       </div>
                     </div>
@@ -77,10 +84,10 @@
             </div>
             <div class="col-lg-6 d-flex align-items-stretch">
               <div class="card w-100">
-                <div class="card-body p-4">
-                  <h5 class="card-title fw-semibold mb-4">Low on Stocks</h5>
+              <div class="card-body p-4">
+                  <h5 class="card-title fw-semibold mb-4">Low of Stock</h5>
                   <div class="table-responsive" data-simplebar>
-                    <table class="table text-nowrap align-middle table-custom mb-0">
+                    <table class="table text-nowrap align-middle table-custom mb-0" id="lowstockTable" class="display" style="width:100%">
                       <thead>
                         <tr>
                           <th scope="col" class="text-dark fw-normal ps-0">Product Name
@@ -90,22 +97,21 @@
                         </tr>
                       </thead>
                       <tbody>
-                        <tr>
-                          <td class="ps-0">
-                            <div class="d-flex align-items-center gap-6">
-                              <div>
-                                <h6 class="mb-0">Dutch Mill</h6>
-                                <span>Yoghurt Drink</span>
-                              </div>
-                            </div>
-                          </td>
-                          <td>
-                            <span class="badge text-white" style="background-color: #FFBE08;">Low Stocks</span>
-                          </td>
-                          <td>
-                            <span class="text-dark">5</span>
-                          </td>
-                        </tr>
+                        <?php foreach ($lowStockList as $row): ?>
+                          
+                            <tr onclick="location.href='index.php?route=view-product&amp;product=<?php echo $row['product_id']?>'" style="cursor: pointer;">
+                                <td>
+                                <div class="d-flex align-items-center gap-6">
+                                  <div>
+                                    <h6 class="mb-0 text-primary"><?php echo htmlspecialchars($row['product_name']); ?></h6>
+                                    <span><?php echo htmlspecialchars($row['parent_category_name']).' / '. htmlspecialchars($row['category_name'])?></span>
+                                  </div>
+                                </div>
+                                </td>
+                                <td><span class="badge text-white" style="background-color: #FFAF61;">Low Stock</span></td>
+                                <td><?php echo htmlspecialchars($row['product_sku']); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
                       </tbody>
                     </table>
                   </div>
@@ -117,7 +123,7 @@
                 <div class="card-body p-4">
                   <h5 class="card-title fw-semibold mb-4">Out of Stock</h5>
                   <div class="table-responsive" data-simplebar>
-                    <table class="table text-nowrap align-middle table-custom mb-0">
+                    <table class="table text-nowrap align-middle table-custom mb-0" id="outstockTable" class="display" style="width:100%">
                       <thead>
                         <tr>
                           <th scope="col" class="text-dark fw-normal ps-0">Product Name
@@ -127,22 +133,20 @@
                         </tr>
                       </thead>
                       <tbody>
-                        <tr>
-                          <td class="ps-0">
-                            <div class="d-flex align-items-center gap-6">
-                              <div>
-                                <h6 class="mb-0">Milo</h6>
-                                <span>Nestle</span>
-                              </div>
-                            </div>
-                          </td>
-                          <td>
-                            <span class="badge text-white" style="background-color: #FF0808;">Out of Stock</span>
-                          </td>
-                          <td>
-                            <span class="text-dark">0</span>
-                          </td>
-                        </tr>
+                        <?php foreach ($outOfStockList as $row): ?>
+                            <tr onclick="location.href='index.php?route=view-product&amp;product=<?php echo $row['product_id']?>'" style="cursor: pointer;">
+                                <td>
+                                <div class="d-flex align-items-center gap-6">
+                                  <div>
+                                    <h6 class="mb-0 text-primary"><?php echo htmlspecialchars($row['product_name']); ?></h6>
+                                    <span><?php echo htmlspecialchars($row['parent_category_name']).' / '. htmlspecialchars($row['category_name'])?></span>
+                                  </div>
+                                </div>
+                                </td>
+                                <td><span class="badge text-white" style="background-color: #EC7063;">Out of Stock</span></td>
+                                <td><?php echo htmlspecialchars($row['product_sku']); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
                       </tbody>
                     </table>
                   </div>
@@ -243,6 +247,52 @@
           }
         ]
     });
+    $('#lowstockTable').DataTable({
+        order: [[1, 'asc']],
+        paging: true,
+        scrollCollapse: true,
+        scrollX: true,
+        scrollY: 300,
+        responsive: true,
+        autoWidth: false,
+        columnDefs: [
+            {
+                targets: 0, // First column
+                className: 'text-dark text-start' // Add your class name here
+            },
+            {
+                targets: 1, // Second column
+                className: 'text-dark text-start' // Add another class name if needed
+            },
+            {
+                targets: 2, // Second column
+                className: 'text-dark text-start' // Add another class name if needed
+            },
+        ]
+    });
+    $('#outstockTable').DataTable({
+        order: [[1, 'asc']],
+        paging: true,
+        scrollCollapse: true,
+        scrollX: true,
+        scrollY: 300,
+        responsive: true,
+        autoWidth: false,
+        columnDefs: [
+            {
+                targets: 0, // First column
+                className: 'text-dark text-start' // Add your class name here
+            },
+            {
+                targets: 1, // Second column
+                className: 'text-dark text-start' // Add another class name if needed
+            },
+            {
+                targets: 2, // Second column
+                className: 'text-dark text-start' // Add another class name if needed
+            },
+        ]
+    });
     function getExpiringSoon(){
       $.ajax({
             url: 'admin/process/table.php?table_type=expiring_soon',
@@ -260,6 +310,7 @@
             }
         });
     }
+    getExpiringSoon();
   });
         var colors = ['#008FFB', '#00E396', '#FEB019', '#FF4560', '#775DD0', '#00D9E9', '#FF66C3', '#FFD466'];
         var options = {

@@ -1,18 +1,18 @@
 <div class="body-wrapper-inner">
-        <div class="container-fluid">
-              <div class="card shadow-sm">
-                <div class="card-header bg-transparent border-bottom">
-                  <div class="row">
-                    <div class="col">
-                    <h5 class="mt-1 mb-0">Pending Stock Out History</h5>
-                    </div>
-                  </div>
+    <div class="container-fluid">
+          <div class="card shadow-sm">
+            <div class="card-header bg-transparent border-bottom">
+              <div class="row">
+                <div class="col">
+                <h5 class="mt-1 mb-0">Stock Out History</h5>
                 </div>
-                <div class="card-body">
-                <table id="pendingProductTable" class="table table-hover table-cs-color">
-                </table>
-                </div>
-        </div>
+              </div>
+            </div>
+            <div class="card-body">
+            <table id="pendingProductTable" class="table table-hover table-cs-color">
+            </table>
+            </div>
+    </div>
   </div>
 </div>
 <div class="modal fade modal-lg" id="pendingModal" tabindex="-1" aria-labelledby="pendingModal" aria-hidden="true">
@@ -22,10 +22,10 @@
       <div class="modal-header">
       <div class="row align-items-center">
               <div class="col">
-                <h5 class="mt-1 mb-0">Stock In Number</h5>
+                <h5 class="mt-1 mb-0">Stock Out Number</h5>
               </div>
               <div class="col">
-                <input type="text" class="form-control bg-secondary-subtle" id="stockInNumber" value="" readonly>
+                <input type="text" class="form-control bg-secondary-subtle" id="stockOutNumber" value="" readonly>
               </div>
             </div>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -36,8 +36,8 @@
       </div>
       <div class="modal-footer">
         <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> -->
-        <button type="button" class="btn btn-primary" id="addInventory" update-id="">ADD TO INVENTORY</button>
-        <button type="button" class="btn bg-secondary-subtle" id="stInventory" disabled>Already Added</button>
+        <button type="button" class="btn btn-primary" id="addInventory" update-id="">STOCK OUT TO INVENTORY</button>
+        <button type="button" class="btn bg-secondary-subtle" id="stInventory" disabled>Already Stocked Out</button>
       </div>
       </form>
     </div>
@@ -52,7 +52,7 @@ $(document).ready( function () {
       select: true,
       autoWidth: false,
       order: [
-        [2, "desc"]
+        [1, "desc"]
       ],
       ajax:{
         url: 'admin/process/table.php?table_type=pending-stockout',
@@ -73,7 +73,7 @@ $(document).ready( function () {
                             statusColor = "#FFAF61"; // Orange
                             break;
                         case 1:
-                            statusText = "Already Added";
+                            statusText = "Released from Inventory";
                             statusColor = "#58D68D"; // Green
                             break;
                         default:
@@ -121,7 +121,7 @@ $(document).ready( function () {
         $("#addInventory").show();
         $("#stInventory").hide();
       }
-      $("#stockInNumber").val(data.series_number);
+      $("#stockOutNumber").val(data.series_number);
       $("#addInventory").attr("update-id", data.series_number);
       var itemDetailsTable = $('#itemDetailsTable').DataTable({
             destroy: true,
@@ -131,7 +131,7 @@ $(document).ready( function () {
               [3, "asc"]
             ],
             ajax: {
-                url: 'admin/process/table.php?table_type=item-details&series_number=' + data.series_number,
+                url: 'admin/process/table.php?table_type=item-details-stockout&series_number=' + data.series_number,
                 dataSrc: 'data'
             },
             columns: [

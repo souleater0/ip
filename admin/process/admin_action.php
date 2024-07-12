@@ -433,6 +433,33 @@ require_once 'function.php';
         echo json_encode($response);
         exit();
     }
+
+    if (isset($_POST['action']) && $_POST['action'] === 'stockOutItems') {
+        if (!isset($_POST['data']) || empty($_POST['data'])) {
+            $response = [
+                'success' => false,
+                'message' => 'Please enter valid data!'
+            ];
+        } else {
+            $data = $_POST['data'];
+
+            if (empty($data) || json_last_error() !== JSON_ERROR_NONE) {
+                $response = [
+                    'success' => false,
+                    'message' => 'Invalid JSON data!'
+                ];
+            } else {
+                // Call stockOut function with decoded data
+                $response = stockOut($pdo, $data);
+            }
+        }
+
+        // Send response
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
+
     // if(!empty($_POST['action']) && $_POST['action'] == 'stockInItems') {
     //     if (!isset($_POST['data']) || empty($_POST['data'])) { // Check if data is not set or empty
     //         $response = array(
