@@ -9,9 +9,14 @@
         </div>
       </div>
       <div class="card-body">
-        <table id="wasteTable" class="table table-hover table-cs-color">
-        </table>
+        <div class="table-responsive" data-simplebar>
+          <table id="wasteTable" class="table table-hover table-cs-color">
+          </table>
+        </div>
       </div>
     </div>
   </div>
 </div>
+<script>
+  
+</script>

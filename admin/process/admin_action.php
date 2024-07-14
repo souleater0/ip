@@ -551,6 +551,37 @@ require_once 'function.php';
         echo json_encode($response);
         exit();
     }
+    if (!empty($_POST['action']) && $_POST['action'] == 'updateUser') {
+        if (empty($_POST['user_display'])) {
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter a display name!'
+            );
+        } else if (empty($_POST['username'])) {
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter a username!'
+            );
+        } else {
+            $result = updateUser($pdo);
+            if ($result['success']) {
+                $response = array(
+                    'success' => true,
+                    'message' => $result['message']
+                );
+            } else {
+                $response = array(
+                    'success' => false,
+                    'message' => $result['message']
+                );
+            }
+        }
+        // Send response
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
+    
     if(!empty($_POST['action']) && $_POST['action'] == 'updateUserPassword') {
         if(empty($_POST['password'])){
             $response = array(

@@ -102,6 +102,54 @@
             return array(); // Return an empty array if an error occurs
         }
     }
+    function updateUser($pdo) {
+        try {
+            $pdo->beginTransaction();
+    
+            $update_ID = $_POST['update_id'];
+            $user_display = $_POST['user_display'];
+            $username = $_POST['username'];
+            $user_role = $_POST['user_role'];
+            $loginEnabled = !empty($_POST['loginEnabled']) ? '1' : '0';
+    
+            // Check if users with the same username or display name already exist (excluding the current user)
+            $stmt_check = $pdo->prepare("SELECT COUNT(*) FROM users WHERE (username = :username OR display_name = :display_name) AND id != :id");
+            $stmt_check->bindParam(':username', $username);
+            $stmt_check->bindParam(':display_name', $user_display);
+            $stmt_check->bindParam(':id', $update_ID, PDO::PARAM_INT);
+            $stmt_check->execute();
+            $count = $stmt_check->fetchColumn();
+    
+            if ($count > 0) {
+                // User with the same username or display name already exists, return false
+                $pdo->rollBack();
+                return array('success' => false, 'message' => 'Username or display name already exists.');
+            }
+    
+            // Update user details without password
+            $stmt = $pdo->prepare("UPDATE users SET username = :username, display_name = :display_name, role_id = :role_id, isEnabled = :isEnabled WHERE id = :id");
+            $stmt->bindParam(':username', $username);
+            $stmt->bindParam(':display_name', $user_display);
+            $stmt->bindParam(':role_id', $user_role, PDO::PARAM_INT);
+            $stmt->bindParam(':isEnabled', $loginEnabled, PDO::PARAM_INT);
+            $stmt->bindParam(':id', $update_ID, PDO::PARAM_INT);
+    
+            if ($stmt->execute()) {
+                // User updated successfully
+                $pdo->commit();
+                return array('success' => true, 'message' => 'User updated successfully.');
+            } else {
+                // Error occurred
+                $pdo->rollBack();
+                return array('success' => false, 'message' => 'Error updating user.');
+            }
+        } catch(PDOException $e) {
+            // Handle database connection error
+            $pdo->rollBack();
+            return array('success' => false, 'message' => 'Database error: ' . $e->getMessage());
+        }
+    }
+    
     function updateUserPassword($pdo){
         try {
             $update_ID = $_POST['update_id'];

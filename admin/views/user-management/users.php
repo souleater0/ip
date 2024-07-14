@@ -123,6 +123,23 @@ $(document).ready(function() {
         {"data": null, title: 'Action', "defaultContent": "<button class='btn btn-primary btn-sm btn-edit'><i class='fa-regular fa-pen-to-square'></i></button>&nbsp;<button class='btn btn-secondary btn-sm btn-pass'><i class='fa-solid fa-key'></i></button>&nbsp;<button class='btn btn-danger btn-sm'><i class='fa-solid fa-trash'></i></button>"}
       ]
   });
+  function LoadTable(){
+        $.ajax({
+            url: 'admin/process/table.php?table_type=users',
+            dataType: 'json',
+            success: function(data) {
+              table.clear().rows.add(data.data).draw(false); // Update data without redrawing
+            
+              // Reload the DataTable after a delay (e.g., 1 second) to reflect any changes in the table structure or formatting
+              setTimeout(function() {
+                  table.ajax.reload(null, false); // Reload the DataTable without resetting current page
+              }, 1000); // Adjust delay as needed
+            },
+            error: function () {
+                alert('Failed to retrieve categories.');
+            }
+        });
+  }
   $('#addUserBTN').click(function(){
       $('#user_display').val('');
       $('#username').val('');
@@ -143,7 +160,7 @@ $(document).ready(function() {
         dataType: "json",
         success: function(response) {
             if(response.success==true){
-                //LoadTable();
+                LoadTable();
                 $('#userModal').modal('hide');
                 toastr.success(response.message);
             }else{
@@ -208,6 +225,35 @@ $(document).ready(function() {
       icon.removeClass("fa-eye-slash").addClass("fa-eye");
     }
   });
+
+  //update User
+  $('#updateUser').click(function(){
+    var update_id = $(this).attr("update-id");
+    var formData = $('#userForm').serializeArray();
+    formData.push({ name: 'update_id', value: update_id });
+    formData.push({ name: 'action', value: 'updateUser' });
+
+    $.ajax({
+        url: "admin/process/admin_action.php",
+        method: "POST",
+        data: $.param(formData),
+        dataType: "json",
+        success: function(response) {
+            if(response.success){
+                LoadTable()
+                $('#userModal').modal('hide');
+                toastr.success(response.message);
+            } else {
+                toastr.error(response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            toastr.error('An error occurred: ' + error);
+        }
+    });
+});
+
+
   //submit password
   $('#updatePassword').click(function(){
     var password = $("#user_password").val();
@@ -228,7 +274,7 @@ $(document).ready(function() {
           dataType: "json",
           success: function(response) {
               if(response.success==true){
-                  //LoadTable();
+                  LoadTable();
                   $('#passModal').modal('hide');
                   toastr.success(response.message);
               }else{

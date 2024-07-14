@@ -225,11 +225,22 @@
         columns:[
           {data: 'item_id', visible: false},
           {data: 'product_id', visible: false},
-          {data: 'item_sku', title: 'SKU'},
+          {data: 'item_barcode', title: 'Barcode'},
           {data: 'product_name', title: 'Product Name'},
           {data: 'item_expiry', title: 'Expiry Date', className: 'text-center'},
           {data: 'expiry_notice', title: 'Expiry Notice', className: 'text-center'},
-          {data: 'days_to_expiry', title: 'Remaining Days', className: 'text-center'},
+          { 
+                "data": "days_to_expiry",
+                "render": function(data, type, row, meta) {
+                  if (data === 0) {
+                      return '<span class="badge bg-danger">Expired</span>';
+                  } else {
+                      return '<span class="badge bg-secondary">' + data + '</span>';
+                  }
+                },
+                "title": "Remaining Days",
+                "className": "text-center"
+          },
           { 
                 "data": "item_qty",
                 "render": function(data, type, row, meta) {
@@ -248,6 +259,7 @@
         ]
     });
     $('#lowstockTable').DataTable({
+      
         order: [[1, 'asc']],
         paging: true,
         scrollCollapse: true,
