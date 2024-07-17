@@ -115,7 +115,7 @@ $items = getItembyID($product_id, $pdo);
                 <h5 class="mt-1 mb-0">Item List</h5>
             </div>
             <div class="card-body">
-            <table id="myTable" class="table table-hover table-cs-color">
+            <table id="viewProductTable" class="table table-hover table-cs-color">
                     <thead>
                         <tr>
                             
@@ -123,6 +123,8 @@ $items = getItembyID($product_id, $pdo);
                             <th class="text-start">Product Barcode</th>
                             <th class="text-center">Qty</th>
                             <th>Expiry Date</th>
+                            <th class="text-center">Remaining Days</th>
+                            <th class="text-center">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -133,6 +135,17 @@ $items = getItembyID($product_id, $pdo);
                             <td class="text-start"><span><?php echo "<img src='data:image/png;base64," . base64_encode(generateBarcode(!empty($item['item_barcode']) ? $item['item_barcode'] : 'none')) . "' width='180'>";?></span><br><span><?php echo !empty($item['item_barcode']) ? $item['item_barcode'] : 'none';?></span></td>
                             <td class="text-center"><span class="btn btn-secondary btn-sm"><?php echo $item['item_qty'];?></span></td>
                             <td><?php echo $item['item_expiry'];?></td>
+                            <td class="text-center">
+                                <?php 
+                                    $days_to_expiry = (int)$item['days_to_expiry'];
+                                    if ($days_to_expiry <= 0) {
+                                        echo '<span class="badge bg-danger">Expired</span>';
+                                    } else {
+                                        echo '<span class="badge bg-secondary">' . $days_to_expiry . '</span>';
+                                    }
+                                ?>
+                            </td>
+                            <td class="text-center"><button class="btn btn-danger btn-sm btn-waste" data-sku="<?php echo !empty($product['product_sku']) ? $product['product_sku'] : 'none' ?>" data-item-barcode="<?php echo !empty($item['item_barcode']) ? $item['item_barcode'] : 'none';?>" data-item-qty="<?php echo $item['item_qty']; ?>">Move to Waste</button></td>
                             </tr>
                             <?php endforeach;?>
                         
@@ -143,36 +156,31 @@ $items = getItembyID($product_id, $pdo);
   </div>
 </div>
 <!-- Modal -->
-<div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
+<div class="modal fade" id="wasteModal" tabindex="-1" aria-labelledby="wasteModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-    <form id="categoryForm">
+    <form id="wasteForm">
       <div class="modal-header">
-        <h1 class="modal-title fs-5" id="categoryModalLabel">Category</h1>
+        <h1 class="modal-title fs-5" id="wasteModalLabel">Waste Product</h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body border">
         <div class="row gy-2">
           <div class="col-lg-12">
-          <label for="mainCategory" class="form-label">Category Name</label>
-          <input type="text" class="form-control" id="mainCategory" name="category_name" placeholder="Ex. Food">
+            <label for="product_desc" class="form-label">Reason</label>
+            <input type="hidden" class="form-control" id="product_sku" name="product_sku">
+            <input type="hidden" class="form-control" id="product_barcode" name="product_barcode">
+            <textarea type="text" class="form-control" id="product_desc" name="product_desc" placeholder="Ex. Food"></textarea>
           </div>
-          <div class="col-lg-12">
-            <label for="subCategory" class="form-label">Parent Category</label>
-            <select class="selectpicker form-control" id="subCategory" name="p_category_id" data-live-search="true">
-            <option value="">None</option>
-              <?php foreach ($categorys as $category):?>
-                <option value="<?php echo $category['category_id'];?>"><?php echo $category['category_name'];?></option>
-              <?php endforeach;?>
-            </select>
+          <div class="col-lg-6">
+            <label for="min_qty" class="form-label">Quantity</label>
+            <input type="number" class="form-control" id="qty" name="qty" value="1" min="1" placeholder="Ex. 20" pattern="[0-9]*">
           </div>
-          
         </div>
       </div>
       <div class="modal-footer">
         <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> -->
-        <button type="button" class="btn btn-primary" id="updateCategory" update-id="">UPDATE</button>
-        <button type="button" class="btn btn-primary" id="addCategory">ADD</button>
+        <button type="button" class="btn btn-primary" id="moveWaste" update-id="">Move to Waste</button>
       </div>
       </form>
     </div>
@@ -180,16 +188,9 @@ $items = getItembyID($product_id, $pdo);
 </div>
 <!-- END -->
 <script>
-  $(document).ready( function () {
-    // let table = new DataTable('#myTable');
-    $('#myTable').DataTable( {
-    //   columnDefs: [
-    //     {
-    //         orderable: false,
-    //         render: DataTable.render.select(),
-    //         targets: 0
-    //     }
-    // ],
+$(document).ready( function () {
+    // let table = new DataTable('#viewProductTable');
+    $('#viewProductTable').DataTable( {
     order: [[3, 'asc']],
     paging: true,
     scrollCollapse: true,
@@ -202,7 +203,28 @@ $items = getItembyID($product_id, $pdo);
     responsive: true,
     autoWidth: false,
     footer: false
-  });
-  });
+    });
+    $('#qty').on('input', function(){
+        let value = $(this).val().replace(/\D/g, ''); // Remove non-digit characters
+        let maxQty = $(this).attr('max'); // Get the max attribute value
+        value = Math.max(1, Math.min(maxQty, value)); // Ensure the value is between 1 and maxQty
+        $(this).val(value);
+    });
+    $('#moveWaste').click(function(){
+        var formData = $('#wasteForm').serialize();
+        console.log(formData);
+    });
+    
+    $('#viewProductTable').on('click', 'button.btn-waste', function () {
+        var itemQty = $(this).data('item-qty');
+        var product_sku = $(this).data('sku');
+        var product_barcode = $(this).data('item-barcode');
+        $('#product_sku').val(product_sku);
+        $('#product_barcode').val(product_barcode);
+        console.log(itemQty);
+        $('#qty').attr('max', itemQty);
+        $('#wasteModal').modal('show');
+    });
+});
 </script>
 

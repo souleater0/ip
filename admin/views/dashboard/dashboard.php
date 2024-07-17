@@ -232,7 +232,7 @@
           { 
                 "data": "days_to_expiry",
                 "render": function(data, type, row, meta) {
-                  if (data === 0) {
+                  if (data <= 0) {
                       return '<span class="badge bg-danger">Expired</span>';
                   } else {
                       return '<span class="badge bg-secondary">' + data + '</span>';

@@ -796,16 +796,26 @@
             return array(); // Return an empty array if an error occurs
         }
     }
-    function getItembyID($product_id,$pdo){
+    function getItembyID($product_id, $pdo){
         try {
             $query = "SELECT 
-            a.item_sku,
-            a.item_barcode,
-            a.item_qty,
-            a.item_expiry
-            FROM item a
-            INNER JOIN product b ON b.product_sku = a.product_sku
-            WHERE b.product_id = :product_id";
+                a.item_sku,
+                a.item_barcode,
+                a.item_qty,
+                a.item_expiry,
+                b.product_id,
+                b.product_name,
+                b.expiry_notice,
+                DATEDIFF(a.item_expiry, NOW()) + 1 AS days_to_expiry
+            FROM 
+                item a
+            INNER JOIN 
+                product b ON b.product_sku = a.product_sku
+            WHERE 
+                b.product_id = :product_id
+                AND a.item_expiry IS NOT NULL
+            ORDER BY 
+                a.item_expiry ASC";
             $stmt = $pdo->prepare($query);
             $stmt->bindParam(':product_id', $product_id, PDO::PARAM_INT);
             $stmt ->execute();
