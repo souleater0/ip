@@ -610,6 +610,31 @@ require_once 'function.php';
         echo json_encode($response);
         exit();
     }
+    if (!empty($_POST['action']) && $_POST['action'] == 'moveWaste') {
+        if (empty($_POST['product_desc'])) {
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter a reason!'
+            );
+        } else {
+            $result = movetoWaste($pdo);
+            if ($result['success']) {
+                $response = array(
+                    'success' => true,
+                    'message' => $result['message']
+                );
+            } else {
+                $response = array(
+                    'success' => false,
+                    'message' => $result['message']
+                );
+            }
+        }
+        // Send response
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
     if (!empty($_POST['action']) && $_POST['action'] == 'addtoInventory') {
         if (empty($_POST['series_number'])) {
             $response = array(

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 14, 2024 at 03:08 PM
+-- Generation Time: Jul 18, 2024 at 03:18 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.1.25
 
@@ -96,7 +96,6 @@ CREATE TABLE `item` (
 INSERT INTO `item` (`item_id`, `item_sku`, `item_barcode`, `item_qty`, `item_expiry`, `product_sku`, `created_at`) VALUES
 (1, 'ITM00001', 'MLWITK', 2, '2024-07-14', 'F00001', '2024-06-26 04:04:45'),
 (2, 'ITM00002', 'MLWITL', 20, '2024-07-16', 'F00001', '2024-06-26 04:10:06'),
-(3, 'ITM00003', 'NCHDWHDG', 5, '2024-07-17', 'SRP00001', '2024-06-26 04:40:54'),
 (4, 'ITM00004', 'NCHDWHDF', 5, '2024-07-18', 'SRP00001', '2024-06-26 04:41:53'),
 (5, 'ITM00005', 'NCHDWHDC', 5, '2024-07-19', 'SRP00001', '2024-06-26 04:41:53'),
 (8, 'ITM00006', 'DINGD0001', 5, '2024-07-31', 'PNS00001', '2024-07-12 04:19:26');
@@ -458,6 +457,32 @@ INSERT INTO `users` (`id`, `username`, `password`, `display_name`, `role_id`, `i
 (1, 'admin', '$2y$10$Yvn5wPKG1D1ovcMe5wM2lemqHaX40cKBJ7ybknP0rtYFkVSYt0MmK', 'Jerome De Lara', 1, 1, '2024-05-08 12:30:37', '2024-05-24 03:49:31'),
 (3, 'jhondell', '$2y$10$JRSUatHPUFuxnBTk2t1PzeHke3itwMQXgGiKJrvWT.55bKynetknq', 'Jhondell', 3, 1, '2024-05-22 07:11:58', '2024-07-15 07:54:34');
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `waste`
+--
+
+CREATE TABLE `waste` (
+  `waste_id` int(11) NOT NULL,
+  `product_sku` varchar(255) DEFAULT NULL,
+  `product_name` varchar(255) DEFAULT NULL,
+  `category_name` varchar(255) DEFAULT NULL,
+  `item_barcode` varchar(255) DEFAULT NULL,
+  `item_qty` int(11) DEFAULT NULL,
+  `item_expiry` date DEFAULT NULL,
+  `waste_reason` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `waste`
+--
+
+INSERT INTO `waste` (`waste_id`, `product_sku`, `product_name`, `category_name`, `item_barcode`, `item_qty`, `item_expiry`, `waste_reason`, `created_at`) VALUES
+(1, 'SRP00001', 'Red Mongo 340g', 'Fruit Preserves', 'NCHDWHDG', 2, '2024-07-17', 'Expired', '2024-07-18 04:42:54'),
+(2, 'SRP00001', 'Red Mongo 340g', 'Fruit Preserves', 'NCHDWHDG', 3, '2024-07-17', 'Reject and Expired', '2024-07-18 05:04:23');
+
 --
 -- Indexes for dumped tables
 --
@@ -572,6 +597,12 @@ ALTER TABLE `users`
   ADD KEY `fr_role` (`role_id`);
 
 --
+-- Indexes for table `waste`
+--
+ALTER TABLE `waste`
+  ADD PRIMARY KEY (`waste_id`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -652,6 +683,12 @@ ALTER TABLE `stockout_history`
 --
 ALTER TABLE `users`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `waste`
+--
+ALTER TABLE `waste`
+  MODIFY `waste_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Constraints for dumped tables

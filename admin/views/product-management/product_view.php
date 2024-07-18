@@ -211,8 +211,26 @@ $(document).ready( function () {
         $(this).val(value);
     });
     $('#moveWaste').click(function(){
-        var formData = $('#wasteForm').serialize();
-        console.log(formData);
+        var formData = $('#wasteForm').serializeArray();
+        formData.push({ name: 'action', value: 'moveWaste'});
+        //console.log(formData);
+        $.ajax({
+            url: "admin/process/admin_action.php",
+            method: "POST",
+            data: $.param(formData),
+            dataType: "json",
+            success: function(response) {
+                if(response.success) {
+                    alert(response.message);
+                    // You can also clear the form or take other actions here
+                } else {
+                    alert(response.message);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error('AJAX error: ', textStatus, errorThrown);
+            }
+        });
     });
     
     $('#viewProductTable').on('click', 'button.btn-waste', function () {

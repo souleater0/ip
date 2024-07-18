@@ -232,6 +232,10 @@
                     i.item_expiry ASC';
                 break;
             default:
+            case 'waste':
+                $sql ='SELECT * FROM waste
+                ORDER BY created_at ASC';
+                break;
             // If an invalid or unsupported table type is provided, return an error
             echo json_encode(['error' => 'Unsupported table type']);
             exit;

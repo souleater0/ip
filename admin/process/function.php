@@ -1357,5 +1357,81 @@
         // Return array of suggested items
         return $suggestedItems;
     }
+    function movetoWaste($pdo) {
+        try {
+            $pdo->beginTransaction();
+    
+            $product_sku = $_POST['product_sku'];
+            $product_barcode = $_POST['product_barcode'];
+            $product_desc = $_POST['product_desc'];
+            $qty = intval($_POST['qty']);
+            $created_at = date('Y-m-d H:i:s');
+    
+            // Retrieve necessary information
+            $sql = "
+                SELECT
+                    p.product_sku,
+                    p.product_name,
+                    c.category_name,
+                    i.item_barcode,
+                    i.item_qty,
+                    i.item_expiry
+                FROM
+                    item i
+                JOIN
+                    product p ON i.product_sku = p.product_sku
+                JOIN
+                    category c ON p.category_id = c.category_id
+                WHERE
+                    i.item_barcode = :item_barcode AND p.product_sku = :product_sku;
+            ";
+    
+            $stmt = $pdo->prepare($sql);
+            $stmt->bindParam(':item_barcode', $product_barcode);
+            $stmt->bindParam(':product_sku', $product_sku);
+            $stmt->execute();
+            $item = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+            if ($item) {
+                // Decrement or remove items from the item table
+                $remaining_qty = $item['item_qty'] - $qty;
+                if ($remaining_qty <= 0) {
+                    $stmt_delete = $pdo->prepare("DELETE FROM item WHERE item_barcode = :item_barcode");
+                    $stmt_delete->bindParam(':item_barcode', $product_barcode);
+                    $stmt_delete->execute();
+                } else {
+                    $stmt_update = $pdo->prepare("UPDATE item SET item_qty = :item_qty WHERE item_barcode = :item_barcode");
+                    $stmt_update->bindParam(':item_qty', $remaining_qty, PDO::PARAM_INT);
+                    $stmt_update->bindParam(':item_barcode', $product_barcode);
+                    $stmt_update->execute();
+                }
+    
+                // Insert a new waste entry
+                $stmt_insert_waste = $pdo->prepare("
+                    INSERT INTO waste (product_sku, product_name, category_name, item_barcode, item_qty, item_expiry, waste_reason, created_at)
+                    VALUES (:product_sku, :product_name, :category_name, :item_barcode, :item_qty, :item_expiry, :waste_reason, :created_at)
+                ");
+                $stmt_insert_waste->bindParam(':product_sku', $item['product_sku']);
+                $stmt_insert_waste->bindParam(':product_name', $item['product_name']);
+                $stmt_insert_waste->bindParam(':category_name', $item['category_name']);
+                $stmt_insert_waste->bindParam(':item_barcode', $item['item_barcode']);
+                $stmt_insert_waste->bindParam(':item_qty', $qty, PDO::PARAM_INT);
+                $stmt_insert_waste->bindParam(':item_expiry', $item['item_expiry']);
+                $stmt_insert_waste->bindParam(':waste_reason', $product_desc);
+                $stmt_insert_waste->bindParam(':created_at', $created_at);
+                $stmt_insert_waste->execute();
+    
+                $pdo->commit();
+                return array('success' => true, 'message' => 'Item moved to waste successfully.');
+            } else {
+                $pdo->rollBack();
+                return array('success' => false, 'message' => 'Item not found.');
+            }
+        } catch (PDOException $e) {
+            // Handle database connection error
+            $pdo->rollBack();
+            return array('success' => false, 'message' => 'Database error: ' . $e->getMessage());
+        }
+    }
     
 ?>
