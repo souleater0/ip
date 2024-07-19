@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 18, 2024 at 03:18 PM
+-- Generation Time: Jul 19, 2024 at 02:35 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.1.25
 
@@ -94,8 +94,7 @@ CREATE TABLE `item` (
 --
 
 INSERT INTO `item` (`item_id`, `item_sku`, `item_barcode`, `item_qty`, `item_expiry`, `product_sku`, `created_at`) VALUES
-(1, 'ITM00001', 'MLWITK', 2, '2024-07-14', 'F00001', '2024-06-26 04:04:45'),
-(2, 'ITM00002', 'MLWITL', 20, '2024-07-16', 'F00001', '2024-06-26 04:10:06'),
+(2, 'ITM00002', 'MLWITL', 18, '2024-07-16', 'F00001', '2024-06-26 04:10:06'),
 (4, 'ITM00004', 'NCHDWHDF', 5, '2024-07-18', 'SRP00001', '2024-06-26 04:41:53'),
 (5, 'ITM00005', 'NCHDWHDC', 5, '2024-07-19', 'SRP00001', '2024-06-26 04:41:53'),
 (8, 'ITM00006', 'DINGD0001', 5, '2024-07-31', 'PNS00001', '2024-07-12 04:19:26');
@@ -274,7 +273,7 @@ CREATE TABLE `product` (
 --
 
 INSERT INTO `product` (`product_id`, `product_name`, `product_description`, `brand_id`, `category_id`, `status_id`, `product_sku`, `product_pp`, `product_sp`, `product_min`, `product_max`, `unit_id`, `tax_id`, `expiry_notice`, `created_at`, `updated_at`) VALUES
-(1, 'Red Mongo 340g', 'Red Mongo 340g 12oz', 2, 4, NULL, 'SRP00001', 102, 102, 10, 20, 1, 1, 10, '2024-05-10 07:47:44', '2024-07-09 04:21:07'),
+(1, 'Red Mongo 340g', 'Red Mongo 340g 12oz', 2, 4, NULL, 'SRP00001', 102, 112, 10, 20, 1, 1, 10, '2024-05-10 07:47:44', '2024-07-19 11:57:34'),
 (2, 'Green Kaong 340g', 'Green Kaong 340g 12oz', 2, 5, NULL, 'SRP00002', 102, 110, 10, 20, 1, 1, 10, '2024-05-10 11:52:30', '2024-07-09 04:21:07'),
 (3, 'Milo 45', 'milo pawdir', 1, 4, NULL, 'F00001', 15, NULL, 20, 30, 1, 1, 10, '2024-05-14 06:50:52', '2024-07-09 04:21:07'),
 (4, 'Ding Dong', 'Mix Nuts 100g', 8, 5, NULL, 'PNS00001', 72, 78, 20, 30, 1, 1, 10, '2024-05-15 07:09:05', '2024-07-09 04:21:07');
@@ -383,6 +382,27 @@ CREATE TABLE `stockout_history` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `system_option`
+--
+
+CREATE TABLE `system_option` (
+  `id` int(11) NOT NULL,
+  `option_name` varchar(255) DEFAULT NULL,
+  `option_value` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `system_option`
+--
+
+INSERT INTO `system_option` (`id`, `option_name`, `option_value`, `created_at`, `updated_at`) VALUES
+(1, 'void_card', 'X7PL2C9K4QW8R5T1VJ6Z', '2024-07-19 04:29:28', NULL);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `tax`
 --
 
@@ -467,6 +487,7 @@ CREATE TABLE `waste` (
   `waste_id` int(11) NOT NULL,
   `product_sku` varchar(255) DEFAULT NULL,
   `product_name` varchar(255) DEFAULT NULL,
+  `product_pp` int(11) DEFAULT NULL,
   `category_name` varchar(255) DEFAULT NULL,
   `item_barcode` varchar(255) DEFAULT NULL,
   `item_qty` int(11) DEFAULT NULL,
@@ -479,9 +500,9 @@ CREATE TABLE `waste` (
 -- Dumping data for table `waste`
 --
 
-INSERT INTO `waste` (`waste_id`, `product_sku`, `product_name`, `category_name`, `item_barcode`, `item_qty`, `item_expiry`, `waste_reason`, `created_at`) VALUES
-(1, 'SRP00001', 'Red Mongo 340g', 'Fruit Preserves', 'NCHDWHDG', 2, '2024-07-17', 'Expired', '2024-07-18 04:42:54'),
-(2, 'SRP00001', 'Red Mongo 340g', 'Fruit Preserves', 'NCHDWHDG', 3, '2024-07-17', 'Reject and Expired', '2024-07-18 05:04:23');
+INSERT INTO `waste` (`waste_id`, `product_sku`, `product_name`, `product_pp`, `category_name`, `item_barcode`, `item_qty`, `item_expiry`, `waste_reason`, `created_at`) VALUES
+(1, 'F00001', 'Milo 45', 15, 'Fruit Preserves', 'MLWITK', 2, '2024-07-14', 'expired', '2024-07-18 22:36:18'),
+(2, 'F00001', 'Milo 45', 15, 'Fruit Preserves', 'MLWITL', 2, '2024-07-16', 'Rejected', '2024-07-18 22:37:28');
 
 --
 -- Indexes for dumped tables
@@ -575,6 +596,12 @@ ALTER TABLE `stockin_history`
 -- Indexes for table `stockout_history`
 --
 ALTER TABLE `stockout_history`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `system_option`
+--
+ALTER TABLE `system_option`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -677,6 +704,12 @@ ALTER TABLE `stockin_history`
 --
 ALTER TABLE `stockout_history`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `system_option`
+--
+ALTER TABLE `system_option`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `users`
