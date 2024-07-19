@@ -26,7 +26,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body border">
-        <form id="wasteForm">
+        <form id="wasteForm">  
           <div class="mb-3">
             <label for="waste_reason" class="form-label">Waste Reason</label>
             <textarea class="form-control" id="waste_reason" name="waste_reason" readonly></textarea>
@@ -48,10 +48,6 @@ $(document).ready( function () {
         scrollCollapse: true,
         scrollX: true,
         scrollY: 300,
-        select: {
-            style: 'multi',
-            selector: 'td:first-child'
-        },
         responsive: true,
         autoWidth: false,
         ajax:{
@@ -60,8 +56,9 @@ $(document).ready( function () {
         },
         columns:[
           {data: 'waste_id', visible: false},
-          {data: 'product_sku', title: 'Product SKU'},
+          {data: 'product_sku', title: 'Product SKU', className: 'text-start'},
           {data: 'product_name', title: 'Product Name'},
+          {data: 'product_pp', title: 'Product Price', className: 'text-center'},
           {data: 'category_name', title: 'Category Name'},
           {data: 'item_barcode', title: 'Item Barcode'},
           {data: 'item_qty', title: 'QTY',className: 'text-center'},

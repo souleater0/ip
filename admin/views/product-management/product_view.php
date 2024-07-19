@@ -84,10 +84,16 @@ $items = getItembyID($product_id, $pdo);
                             <div class="mt-3">
                                     <div class="row align-items-stretch gy-5">
                                         <div class="col-lg col-md-6 col-6">
-                                            <span class="text-dark fw-semibold ">Stock: </span><br><span class="text-dark"><?php echo !empty($product['stocks']) ? $product['stocks'] : 'none' ?></span>
-                                        </div>   
+                                            <span class="text-dark fw-semibold ">Current Stock: </span><br><span class="text-dark"><?php echo !empty($product['stocks']) ? $product['stocks'] : 'none' ?></span>
+                                        </div>
                                         <div class="col-lg col-md-6 col-6">
                                             <span class="text-dark fw-semibold ">Unit: </span><br><span class="text-dark"><?php echo !empty($product['unit']) ? $product['unit'] : 'none' ?></span>
+                                        </div>
+                                        <div class="col-lg col-md-6 col-6">
+                                            <span class="text-dark fw-semibold ">Minimum Qty: </span><br><span class="text-dark"><?php echo !empty($product['product_min']) ? $product['product_min'] : 'none' ?></span>
+                                        </div>
+                                        <div class="col-lg col-md-6 col-6">
+                                            <span class="text-dark fw-semibold ">Maximum Qty: </span><br><span class="text-dark"><?php echo !empty($product['product_max']) ? $product['product_max'] : 'none' ?></span>
                                         </div>
                                         <div class="col-lg col-md-6 col-6">
                                         <span class="text-dark fw-semibold ">Status: </span><br><span class="text-dark">
@@ -167,6 +173,10 @@ $items = getItembyID($product_id, $pdo);
       <div class="modal-body border">
         <div class="row gy-2">
           <div class="col-lg-12">
+            <label for="void_card" class="form-label">Scan Waste Card</label>
+            <input type="text" class="form-control" id="void_card" name="void_card" placeholder="Scan Barcode Here.." autocomplete="off">
+          </div>  
+          <div class="col-lg-12">
             <label for="product_desc" class="form-label">Reason</label>
             <input type="hidden" class="form-control" id="product_sku" name="product_sku">
             <input type="hidden" class="form-control" id="product_barcode" name="product_barcode">
@@ -221,10 +231,11 @@ $(document).ready( function () {
             dataType: "json",
             success: function(response) {
                 if(response.success) {
-                    alert(response.message);
+                    $('#wasteModal').modal('hide');
+                    toastr.success(response.message);
                     // You can also clear the form or take other actions here
                 } else {
-                    alert(response.message);
+                    toastr.error(response.message);
                 }
             },
             error: function(jqXHR, textStatus, errorThrown) {
@@ -239,7 +250,7 @@ $(document).ready( function () {
         var product_barcode = $(this).data('item-barcode');
         $('#product_sku').val(product_sku);
         $('#product_barcode').val(product_barcode);
-        console.log(itemQty);
+        // console.log(itemQty);
         $('#qty').attr('max', itemQty);
         $('#wasteModal').modal('show');
     });

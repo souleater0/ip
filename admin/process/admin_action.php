@@ -611,7 +611,13 @@ require_once 'function.php';
         exit();
     }
     if (!empty($_POST['action']) && $_POST['action'] == 'moveWaste') {
-        if (empty($_POST['product_desc'])) {
+        if (empty($_POST['void_card'])) {
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter a waste card!'
+            );
+        }
+        else if (empty($_POST['product_desc'])) {
             $response = array(
                 'success' => false,
                 'message' => 'Please enter a reason!'

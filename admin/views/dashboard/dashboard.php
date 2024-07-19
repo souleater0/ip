@@ -6,7 +6,7 @@
  $lowStockList = getLowofStock($pdo);
 ?>
 <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'Manage Dashboard')){?>
-<div class="body-wrapper-inner">
+<div class="body-wrapper-inner"> 
     <div class="container-fluid">
         <div class="row">
             <div class="col-lg-4">
@@ -211,7 +211,7 @@
                 targets: 0
             }
         ],
-        order: [[2, 'asc']],
+        order: [[3, 'asc']],
         paging: true,
         scrollCollapse: true,
         scrollX: true,
@@ -229,7 +229,7 @@
           {data: 'product_name', title: 'Product Name'},
           {data: 'item_expiry', title: 'Expiry Date', className: 'text-center'},
           {data: 'expiry_notice', title: 'Expiry Notice', className: 'text-center'},
-          { 
+          {
                 "data": "days_to_expiry",
                 "render": function(data, type, row, meta) {
                   if (data <= 0) {
@@ -260,7 +260,7 @@
     });
     $('#lowstockTable').DataTable({
       
-        order: [[1, 'asc']],
+        order: [[2, 'asc']],
         paging: true,
         scrollCollapse: true,
         scrollX: true,

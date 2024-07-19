@@ -138,7 +138,7 @@ $route = $_GET['route'] ?? 'home';
             <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=pending-stockin" aria-expanded="false">
                 <iconify-icon icon="mdi:receipt-text-pending"></iconify-icon>
-                <span class="hide-menu">Pending Stock In</span>
+                <span class="hide-menu">Stock In History</span>
               </a>
             </li>
             <li class="sidebar-item">
