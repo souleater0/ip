@@ -53,51 +53,29 @@ $modules = getModules($pdo);
                 <th>Permissions</th>
               </tr>
             </thead>
-            <tbody class="">
-              <!-- <tr>
-                <td><input type="checkbox" class="align-middle checkbox_middle form-check-input" name="checkall" id="checkall"></td>
-                <td class="text-black">Product Management</td>
-                <td>
-                  <div class="row">
-                    <div class="col-md-3">
-                      <input class="form-check-input isscheck isscheck_User" id="permission1"  name="permissions[]" type="checkbox" value="1">
-                      <label for="permission1" class="form-label font-weight-500">Manage</label>
-                    </div>
-                    <div class="col-md-3">
-                      <input class="form-check-input isscheck isscheck_User" id="permission2" checked="checked" name="permissions[]" type="checkbox" value="1">
-                      <label for="permission1" class="form-label font-weight-500">Create</label>
-                    </div>
-                    <div class="col-md-3">
-                      <input class="form-check-input isscheck isscheck_User" id="permission3" name="permissions[]" type="checkbox" value="1">
-                      <label for="permission1" class="form-label font-weight-500">Edit</label>
-                    </div>
-                    <div class="col-md-3">
-                      <input class="form-check-input isscheck isscheck_User" id="permission4" checked="checked" name="permissions[]" type="checkbox" value="1">
-                      <label for="permission1" class="form-label font-weight-500">Delete</label>
-                    </div>
+            <tbody>
+            <?php foreach($modules as $module):?>
+        <tr>
+          <td><input type="checkbox" class="form-check-input module-checkbox" data-module-id="<?= $module['id']; ?>"></td>
+          <td class="text-dark fw-semibold"><?= htmlspecialchars($module['module_name']); ?></td>
+          <td>
+            <div class="row permissions-container" data-module-id="<?= $module['id']; ?>">
+              <?php
+              // Fetch permissions for the current module from your database
+              $permissions = getModulePermissions($pdo, $module['id']);
+              ?>
+              <?php foreach ($permissions as $permission): ?>
+                  <div class="col-md-3">
+                      <div class="form-check form-check-inline">
+                          <input class="form-check-input permission-checkbox" id="permission<?= $permission['id']; ?>" name="permissions[]" type="checkbox" value="<?= $permission['id']; ?>" data-module-id="<?= $module['id']; ?>">
+                          <label for="permission<?= $permission['id']; ?>" class="form-check-label text-dark fw-semibold user-select-none cursor-pointer"><?= htmlspecialchars($permission['description']); ?></label>
+                      </div>
                   </div>
-                </td> 
-              </tr>-->
-              <?php foreach($modules as $module):?>
-                <tr>
-                  <td><input type="checkbox" class="align-middle checkbox_middle form-check-input" name="checkall" id="checkall" ></td>
-                  <td class="text-black"><?= htmlspecialchars($module['module_name']); ?></td>
-                  <td>
-                  <div class="row">
-                        <?php
-                        // Fetch permissions for the current module from your database
-                        $permissions = getModulePermissions($pdo, $module['id']);
-                        ?>
-                        <?php foreach ($permissions as $permission): ?>
-                            <div class="col-md-3">
-                                <input class="form-check-input isscheck isscheck_User" id="permission<?= $permission['id']; ?>" name="permissions[]" type="checkbox" value="<?= $permission['id']; ?>">
-                                <label for="permission<?= $permission['id']; ?>" class="form-label font-weight-500"><?= htmlspecialchars($permission['description']); ?></label>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                  </td>
-                </tr>
               <?php endforeach; ?>
+            </div>
+          </td>
+        </tr>
+      <?php endforeach; ?>
             </tbody>
           </table>
           </div>
@@ -144,13 +122,41 @@ $(document).ready( function () {
             }
         });
     }
-    function checkAll(source, containerId) {
-            const checkboxes = document.querySelectorAll(`#${containerId} input[type="checkbox"]`);
-            checkboxes.forEach(checkbox => checkbox.checked = source.checked);
-    }
+    // Handle checking/unchecking all permissions when a module checkbox is clicked
+    $('.module-checkbox').on('change', function() {
+        var moduleId = $(this).data('module-id');
+        var isChecked = $(this).is(':checked');
+        
+        // Check/uncheck all permissions associated with the module
+        $(`.permissions-container[data-module-id="${moduleId}"] .permission-checkbox`).prop('checked', isChecked);
+    });
+
+    // Handle checking/unchecking all checkboxes globally
     function checkAllGlobal(source) {
-            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-            checkboxes.forEach(checkbox => checkbox.checked = source.checked);
+        var isChecked = $(source).is(':checked');
+        $('input[type="checkbox"]').prop('checked', isChecked);
     }
+    
+    $('#checkall_global').on('change', function() {
+        checkAllGlobal(this);
+    });
+
+    // Function to check/uncheck module checkboxes based on permissions
+    function updateModuleCheckbox(moduleId) {
+        var allPermissionsChecked = $(`.permissions-container[data-module-id="${moduleId}"] .permission-checkbox`).length === $(`.permissions-container[data-module-id="${moduleId}"] .permission-checkbox:checked`).length;
+        $(`.module-checkbox[data-module-id="${moduleId}"]`).prop('checked', allPermissionsChecked);
+    }
+
+    // Event handler for when any permission checkbox is changed
+    $(document).on('change', '.permission-checkbox', function() {
+        var moduleId = $(this).data('module-id');
+        updateModuleCheckbox(moduleId);
+    });
+
+    // Initial check to ensure modules reflect the state of permissions on page load
+    $('.module-checkbox').each(function() {
+        var moduleId = $(this).data('module-id');
+        updateModuleCheckbox(moduleId);
+    });
 });
 </script>
