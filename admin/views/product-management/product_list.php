@@ -4,6 +4,7 @@
   $units = getUnits($pdo);
   $taxs = getTaxs($pdo);
 ?>
+<?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_product')){?>
 <div class="body-wrapper-inner">
         <div class="container-fluid" style="max-width: 100% !important;">
               <div class="card shadow-sm">
@@ -12,9 +13,11 @@
                     <div class="col">
                     <h5 class="mt-1 mb-0">Manage Product</h5>
                     </div>
+                  <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'create_product')){?>
                   <div class="col">
                   <button class="btn btn-primary btn-sm float-end" id="addProductBTN" data-bs-toggle="modal" data-bs-target="#productModal"><i class="fa-solid fa-plus"></i>Add Product</button>
                   </div>
+                  <?php } ?>
                   </div>
                 </div>
                 <div class="card-body">
@@ -239,14 +242,17 @@ $(document).ready( function () {
           },
           {data: 'unit_id', visible: false},
           {data: 'unit', title: 'Unit'},
-          {data: 'expiry_notice', visible: false},
-          { 
+          {data: 'expiry_notice', visible: false}
+          <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'show_product') || userHasPermission($pdo, $_SESSION["user_id"], 'update_product') || userHasPermission($pdo, $_SESSION["user_id"], 'delete_product')){?>
+          ,{ 
             "data": null, 
-            "title": "Action", 
+            "title": "Action",
+            "className" : "text-center",
             "render": function(data, type, row) {
-                return '<a class="btn btn-info btn-sm" href="index.php?route=view-product&product=' + row.product_id + '"><i class="fa-solid fa-eye"></i></a>&nbsp;<button class="btn btn-primary btn-sm btn-edit"><i class="fa-regular fa-pen-to-square"></i></button>&nbsp;<button class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button>';
+                return '<?php if(userHasPermission($pdo, $_SESSION["user_id"], 'show_product')){?><a class="btn btn-info btn-sm" href="index.php?route=view-product&product=' + row.product_id + '"><i class="fa-solid fa-eye"></i></a>&nbsp;<?php } ?><?php if(userHasPermission($pdo, $_SESSION["user_id"], 'update_product')){?><button class="btn btn-primary btn-sm btn-edit"><i class="fa-regular fa-pen-to-square"></i></button>&nbsp;<?php } ?><?php if(userHasPermission($pdo, $_SESSION["user_id"], 'delete_product')){?><button class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button><?php } ?>';
             } 
           }
+          <?php } ?>
         ]
     });
     function LoadTable(){
@@ -352,4 +358,19 @@ $(document).ready( function () {
     });
   });
 </script>
-
+<?php }else{
+  echo '
+  <div class="d-flex justify-content-center align-items-center vh-100">
+  <div class="container">
+      <div class="row">
+          <div class="col text-center">
+              <iconify-icon icon="maki:caution" width="50" height="50"></iconify-icon>
+              <h2 class="fw-bolder">User does not have permission!</h2>
+              <p>We are sorry, your account does not have permission to access this page.</p>
+          </div>
+      </div>
+  </div>
+</div>
+  ';
+}
+?>

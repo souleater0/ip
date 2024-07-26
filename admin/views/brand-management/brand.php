@@ -1,3 +1,4 @@
+<?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_brand')){?>
 <div class="body-wrapper-inner">
   <div class="container-fluid">
     <div class="card shadow-sm">
@@ -6,10 +7,12 @@
           <div class="col">
             <h5 class="mt-1 mb-0">Manage Brand</h5>
           </div>
+          <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'create_brand')){?>
           <div class="col">
             <button class="btn btn-primary btn-sm float-end" id="addBrandBTN" data-bs-toggle="modal" data-bs-target="#brandModal"><i class="fa-solid fa-plus"></i>&nbsp;Add
               Brand</button>
           </div>
+          <?php } ?>
         </div>
       </div>
       <div class="card-body">
@@ -59,8 +62,10 @@
         },
         columns:[
           {data: 'brand_id', visible: false},
-          {data: 'brand_name', title: 'Brand Name'},
-          {"data": null, title: 'Action', "defaultContent": "<button class='btn btn-primary btn-sm btn-edit'><i class='fa-regular fa-pen-to-square'></i></button>&nbsp;<button class='btn btn-danger btn-sm'><i class='fa-solid fa-trash'></i></button>"}
+          {data: 'brand_name', title: 'Brand Name'}
+          <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'update_brand') || userHasPermission($pdo, $_SESSION["user_id"], 'delete_brand') ){?>
+          ,{"data": null,"className": "text-center", title: 'Action', "defaultContent": "<?php if(userHasPermission($pdo, $_SESSION["user_id"], 'update_brand')){ ?><button class='btn btn-primary btn-sm btn-edit'><i class='fa-regular fa-pen-to-square'></i></button>&nbsp;<?php } ?><?php if(userHasPermission($pdo, $_SESSION["user_id"], 'delete_brand')){ ?><button class='btn btn-danger btn-sm'><i class='fa-solid fa-trash'></i></button><?php } ?>"}
+          <?php } ?>
         ]
     });
     function LoadTable(){
@@ -138,3 +143,19 @@
     });
   });
 </script>
+<?php }else{
+  echo '
+  <div class="d-flex justify-content-center align-items-center vh-100">
+  <div class="container">
+      <div class="row">
+          <div class="col text-center">
+              <iconify-icon icon="maki:caution" width="50" height="50"></iconify-icon>
+              <h2 class="fw-bolder">User does not have permission!</h2>
+              <p>We are sorry, your account does not have permission to access this page.</p>
+          </div>
+      </div>
+  </div>
+</div>
+  ';
+}
+?>

@@ -64,7 +64,7 @@ $route = $_GET['route'] ?? 'home';
         <!-- Sidebar navigation-->
         <nav class="sidebar-nav scroll-sidebar" data-simplebar="">
           <ul id="sidebarnav">
-            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'Manage Dashboard')){?>
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_dashboard')){?>
             <li class="nav-small-cap">
               <iconify-icon icon="solar:menu-dots-linear" class="nav-small-cap-icon fs-4"></iconify-icon>
               <span class="hide-menu">Home</span>
@@ -76,6 +76,7 @@ $route = $_GET['route'] ?? 'home';
               </a>
             </li>
             <?php } ?>
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_product') || userHasPermission($pdo, $_SESSION["user_id"], 'manage_category') || userHasPermission($pdo, $_SESSION["user_id"], 'manage_brand') || userHasPermission($pdo, $_SESSION["user_id"], 'manage_units')||userHasPermission($pdo, $_SESSION["user_id"], 'manage_tax')){?>
             <li>
               <span class="sidebar-divider lg"></span>
             </li>
@@ -83,38 +84,51 @@ $route = $_GET['route'] ?? 'home';
               <iconify-icon icon="solar:menu-dots-linear" class="nav-small-cap-icon fs-4"></iconify-icon>
               <span class="hide-menu text-uppercase">product management</span>
             </li>
+            
             <div class="collapse <?php echo ($route == 'product-management'|| $route == 'view-product' || $route == 'category-management' || $route == 'brand-management' || $route == 'unit-management' || $route == 'tax-management') ? 'show' : ''; ?>" id="collapseProduct">
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_product')){?>
             <li class="sidebar-item">
               <a class="sidebar-link <?php echo ($route == 'view-product' )? 'active' : ''; ?>" href="index.php?route=product-management" aria-expanded="false">
                 <iconify-icon icon="mdi:cart"></iconify-icon>
                 <span class="hide-menu">Products</span>
               </a>
             </li>
+            <?php } ?>
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_category')){?>
             <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=category-management" aria-expanded="false">
                 <iconify-icon icon="material-symbols:category"></iconify-icon>
                 <span class="hide-menu">Category</span>
               </a>
             </li>
+            <?php } ?>
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_brand')){?>
             <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=brand-management" aria-expanded="false">
                 <iconify-icon icon="mdi:tags"></iconify-icon>
                 <span class="hide-menu">Brand</span>
               </a>
             </li>
+            <?php } ?>
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_units')){?>
             <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=unit-management" aria-expanded="false">
                 <iconify-icon icon="mdi:scale"></iconify-icon>
                 <span class="hide-menu">Units</span>
               </a>
             </li>
+            <?php } ?>
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_tax')){?>
             <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=tax-management" aria-expanded="false">
                 <iconify-icon icon="tabler:receipt-tax"></iconify-icon>
                 <span class="hide-menu">Tax</span>
               </a>
             </li>
+            <?php } ?>
             </div>
+            <?php } ?>
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_stockin') || userHasPermission($pdo, $_SESSION["user_id"], 'manage_stockout') || userHasPermission($pdo, $_SESSION["user_id"], 'manage_pending_stockin') || userHasPermission($pdo, $_SESSION["user_id"], 'manage_stockout_history')||userHasPermission($pdo, $_SESSION["user_id"], 'manage_costing')||userHasPermission($pdo, $_SESSION["user_id"], 'manage_waste')){?>
             <li>
               <span class="sidebar-divider lg"></span>
             </li>
@@ -123,43 +137,57 @@ $route = $_GET['route'] ?? 'home';
               <span class="hide-menu text-uppercase">stock management</span>
             </li>
             <div class="collapse <?php echo ($route == 'stock-in' || $route == 'stock-out' || $route == 'pending-stockin' || $route == 'pending-stockout' || $route == 'validate-stockout' || $route == 'costing' || $route == 'waste') ? 'show' : ''; ?>" id="collapseStock">
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_stockin')){?>
             <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=stock-in" aria-expanded="false">
                 <iconify-icon icon="ph:stack-plus"></iconify-icon>
                 <span class="hide-menu">Stock In</span>
               </a>
             </li>
+            <?php } ?>
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_stockout')){?>
             <li class="sidebar-item">
               <a class="sidebar-link <?php echo ($route == 'validate-stockout') ? 'active' : ''; ?>" href="index.php?route=stock-out" aria-expanded="false">
                 <iconify-icon icon="ph:stack-minus"></iconify-icon>
                 <span class="hide-menu">Stock Out</span>
               </a>
             </li>
+            <?php } ?>
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_pending_stockin')){?>
             <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=pending-stockin" aria-expanded="false">
                 <iconify-icon icon="mdi:receipt-text-pending"></iconify-icon>
-                <span class="hide-menu">Stock In History</span>
+                <span class="hide-menu">Pending Stock In</span>
               </a>
             </li>
+            <?php } ?>
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_stockout_history')){?>
             <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=pending-stockout" aria-expanded="false">
                 <iconify-icon icon="healthicons:stock-out" width="24" height="24"></iconify-icon>
                 <span class="hide-menu">Stock Out History</span>
               </a>
             </li>
+            <?php } ?>
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_costing')){?>
             <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=costing" aria-expanded="false">
                 <iconify-icon icon="fluent:money-calculator-24-regular"></iconify-icon>
                 <span class="hide-menu">Costing</span>
               </a>
             </li>
+            <?php } ?>
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_waste')){?>
             <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=waste" aria-expanded="false">
                 <iconify-icon icon="hugeicons:waste-restore" width="24" height="24"></iconify-icon>
                 <span class="hide-menu">Waste</span>
               </a>
             </li>
+            <?php } ?>
             </div>
+            <?php } ?>
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_user') || userHasPermission($pdo, $_SESSION["user_id"], 'manage_role')){?>
             <li>
               <span class="sidebar-divider lg"></span>
             </li>
@@ -168,19 +196,24 @@ $route = $_GET['route'] ?? 'home';
               <span class="hide-menu text-uppercase">user management</span>
             </li>
             <div class="collapse <?php echo ($route == 'user-management'|| $route == 'role-management') ? 'show' : ''; ?>" id="collapseUser">
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_user')){?>
             <li class="sidebar-item">
               <a class="sidebar-link <?php echo ($route == 'user-management' )? 'active' : ''; ?>" href="index.php?route=user-management" aria-expanded="false">
                 <iconify-icon icon="mdi:cart"></iconify-icon>
                 <span class="hide-menu">User</span>
               </a>
             </li>
+            <?php } ?>
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_role')){?>
             <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=role-management" aria-expanded="false">
                 <iconify-icon icon="material-symbols:category"></iconify-icon>
                 <span class="hide-menu">Role</span>
               </a>
             </li>
+            <?php } ?>
             </div>
+            <?php } ?>
           </ul>
         </nav>
         <!-- End Sidebar navigation -->

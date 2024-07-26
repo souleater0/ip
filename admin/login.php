@@ -31,12 +31,12 @@
                 <p class="text-center fw-bold">Inventory System</p>
                 <form id="login_form">
                   <div class="mb-3">
-                    <label for="exampleInputEmail1" class="form-label">Username</label>
-                    <input type="text" class="form-control" id="exampleInputEmail1" name="username" aria-describedby="emailHelp">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="username" name="username" aria-describedby="emailHelp">
                   </div>
                   <div class="mb-4">
-                    <label for="exampleInputPassword1" class="form-label">Password</label>
-                    <input type="password" class="form-control" id="exampleInputPassword1" name="password">
+                    <label for="userPassword" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="userPassword" name="password">
                   </div>
                   <div class="d-flex align-items-center justify-content-between mb-4">
                     <div class="form-check">
@@ -58,9 +58,18 @@
   </div>
   <script>
     $(document).ready(function(){
+      $('#userPassword').keypress(function (event) {
+          if (event.keyCode === 13) { // Check if Enter key is pressed
+              event.preventDefault(); // Prevent form submission
+              loginForm();
+          }
+      });
       $('#submit_login').click(function(){
-          var formData = $('#login_form').serialize();
-          // alert(formData);
+        loginForm();
+      });
+
+      function loginForm(){
+        var formData = $('#login_form').serialize();
           $.ajax({
               url: "process/admin_action.php",
               method: "POST",
@@ -78,7 +87,7 @@
                   }
               }
           });
-      });
+      }
     });
   </script>
 </body>

@@ -1,11 +1,11 @@
 <?php
- $totalItem_Count = getCount_TotalItems($pdo);
+ $totalProduct_Count = getCount_TotalProduct($pdo);
  $outstock_Count = getCount_OutofStock($pdo);
  $lowstock_Count = getCount_LowofStock($pdo);
  $outOfStockList = getOutofStock($pdo);
  $lowStockList = getLowofStock($pdo);
 ?>
-<?php if(userHasPermission($pdo, $_SESSION["user_id"], 'Manage Dashboard')){?>
+<?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_dashboard')){?>
 <div class="body-wrapper-inner"> 
     <div class="container-fluid">
         <div class="row">
@@ -22,7 +22,7 @@
                       </div>
                       <div class="row">
                         <div class="col-12">
-                          <h4><?php echo $totalItem_Count; ?></h4>
+                          <h4><?php echo $totalProduct_Count; ?></h4>
                         </div>
                       </div>
                     </div>

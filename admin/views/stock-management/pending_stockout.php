@@ -1,3 +1,4 @@
+<?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_stockout_history')){?>
 <div class="body-wrapper-inner">
     <div class="container-fluid">
           <div class="card shadow-sm">
@@ -84,14 +85,17 @@ $(document).ready( function () {
                     return '<span class="badge text-white" style="background-color: ' + statusColor + ';">' + statusText + '</span>';
                 },
                 "title": "Status",
-        },
-        { 
+        }
+        <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'show_stockout_history') || userHasPermission($pdo, $_SESSION["user_id"], 'delete_stockout_history') ){?>
+        ,{ 
             "data": null, 
             "title": "Action", 
+            "className":"text-center",
             "render": function(data, type, row) {
-                return '<button class="btn btn-info btn-sm btn-show"><i class="fa-solid fa-eye"></i></button>&nbsp;<button class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button>';
+                return '<?php if(userHasPermission($pdo, $_SESSION["user_id"], 'show_stockout_history')){ ?><button class="btn btn-info btn-sm btn-show"><i class="fa-solid fa-eye"></i></button>&nbsp;<?php } ?><?php if(userHasPermission($pdo, $_SESSION["user_id"], 'delete_stockout_history')){ ?><button class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button><?php } ?>';
             } 
         }
+        <?php } ?>
       ]
   });
   function LoadTable(){
@@ -168,3 +172,18 @@ $(document).ready( function () {
   // addtoInventory
 });
 </script>
+<?php }else{
+  echo '
+  <div class="d-flex justify-content-center align-items-center vh-100">
+  <div class="container">
+      <div class="row">
+          <div class="col text-center">
+              <iconify-icon icon="maki:caution" width="50" height="50"></iconify-icon>
+              <h2 class="fw-bolder">User does not have permission!</h2>
+              <p>We are sorry, your account does not have permission to access this page.</p>
+          </div>
+      </div>
+  </div>
+</div>
+  ';
+}?>

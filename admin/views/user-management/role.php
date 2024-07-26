@@ -7,6 +7,7 @@ $modules = getModules($pdo);
 //   });
 // }
 ?>
+<?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_role')){?>
 <div class="body-wrapper-inner">
   <div class="container-fluid">
     <div class="card shadow-sm">
@@ -15,10 +16,12 @@ $modules = getModules($pdo);
           <div class="col">
             <h5 class="mt-1 mb-0">Manage Role</h5>
           </div>
+          <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'create_role')){?>
           <div class="col">
             <button class="btn btn-primary btn-sm float-end" id="addRoleBTN" data-bs-toggle="modal" data-bs-target="#passModal"><i class="fa-solid fa-plus"></i>&nbsp;Add
               Role</button>
           </div>
+          <?php } ?>
         </div>
       </div>
       <div class="card-body">
@@ -101,8 +104,10 @@ $(document).ready( function () {
         },
         columns:[
             {data: 'id', visible: false},
-            {data: 'role_name', title: 'Role Name'},
-            {"data": null, title: 'Action', "defaultContent": "<button class='btn btn-primary btn-sm btn-edit'><i class='fa-regular fa-pen-to-square'></i></button>&nbsp;<button class='btn btn-danger btn-sm'><i class='fa-solid fa-trash'></i></button>"}
+            {data: 'role_name', title: 'Role Name'}
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'update_role') || userHasPermission($pdo, $_SESSION["user_id"], 'delete_role') ){?>
+            ,{"data": null,"className": "text-center", title: 'Action', "defaultContent": "<?php if(userHasPermission($pdo, $_SESSION["user_id"], 'update_role')){ ?><button class='btn btn-primary btn-sm btn-edit'><i class='fa-regular fa-pen-to-square'></i></button>&nbsp;<?php } ?><?php if(userHasPermission($pdo, $_SESSION["user_id"], 'delete_role')){ ?><button class='btn btn-danger btn-sm'><i class='fa-solid fa-trash'></i></button><?php } ?>"}
+            <?php } ?>
         ]
     });
     function LoadTable(){
@@ -160,3 +165,18 @@ $(document).ready( function () {
     });
 });
 </script>
+<?php }else{
+  echo '
+  <div class="d-flex justify-content-center align-items-center vh-100">
+  <div class="container">
+      <div class="row">
+          <div class="col text-center">
+              <iconify-icon icon="maki:caution" width="50" height="50"></iconify-icon>
+              <h2 class="fw-bolder">User does not have permission!</h2>
+              <p>We are sorry, your account does not have permission to access this page.</p>
+          </div>
+      </div>
+  </div>
+</div>
+  ';
+}?>

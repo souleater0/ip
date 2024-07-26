@@ -600,6 +600,20 @@
             return array(); // Return an empty array if an error occurs
         }
     }
+    function getCount_TotalProduct($pdo) {
+        try {
+            $query = "SELECT COUNT(*) AS total_products FROM product";
+            $stmt = $pdo->prepare($query);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result['total_products'];
+        } catch (PDOException $e) {
+            // Handle database connection error
+            echo "Error: " . $e->getMessage();
+            return 0; // Return 0 if an error occurs
+        }
+    }
+    
     function getCount_TotalItems($pdo) {
         try {
             $query = "SELECT SUM(item_qty) AS total_items FROM item";

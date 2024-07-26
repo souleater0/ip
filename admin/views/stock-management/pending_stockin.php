@@ -1,3 +1,4 @@
+<?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_pending_stockin')){?>
 <div class="body-wrapper-inner">
         <div class="container-fluid">
               <div class="card shadow-sm">
@@ -34,11 +35,13 @@
         <table id="itemDetailsTable" class="table table-hover table-cs-color">
         </table>
       </div>
+      <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'approve_pending_stockin')){?>
       <div class="modal-footer">
         <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> -->
         <button type="button" class="btn btn-primary" id="addInventory" update-id="">ADD TO INVENTORY</button>
         <button type="button" class="btn bg-secondary-subtle" id="stInventory" disabled>Already Added</button>
       </div>
+      <?php } ?>
       </form>
     </div>
   </div>
@@ -84,14 +87,17 @@ $(document).ready( function () {
                     return '<span class="badge text-white" style="background-color: ' + statusColor + ';">' + statusText + '</span>';
                 },
                 "title": "Status",
-        },
-        { 
+        }
+        <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'show_pending_stockin') || userHasPermission($pdo, $_SESSION["user_id"], 'delete_pending_stockin') ){?>
+        ,{ 
             "data": null, 
-            "title": "Action", 
+            "title": "Action",
+            "className":"text-center",
             "render": function(data, type, row) {
-                return '<button class="btn btn-info btn-sm btn-show"><i class="fa-solid fa-eye"></i></button>&nbsp;<button class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button>';
+                return '<?php if(userHasPermission($pdo, $_SESSION["user_id"], 'show_pending_stockin')){ ?><button class="btn btn-info btn-sm btn-show"><i class="fa-solid fa-eye"></i></button>&nbsp;<?php } ?><?php if(userHasPermission($pdo, $_SESSION["user_id"], 'delete_pending_stockin')){ ?><button class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button><?php } ?>';
             } 
         }
+        <?php } ?>
       ]
   });
   function LoadTable(){
@@ -168,3 +174,18 @@ $(document).ready( function () {
   // addtoInventory
 });
 </script>
+<?php }else{
+  echo '
+  <div class="d-flex justify-content-center align-items-center vh-100">
+  <div class="container">
+      <div class="row">
+          <div class="col text-center">
+              <iconify-icon icon="maki:caution" width="50" height="50"></iconify-icon>
+              <h2 class="fw-bolder">User does not have permission!</h2>
+              <p>We are sorry, your account does not have permission to access this page.</p>
+          </div>
+      </div>
+  </div>
+</div>
+  ';
+}?>
