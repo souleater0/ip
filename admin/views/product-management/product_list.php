@@ -268,7 +268,7 @@ $(document).ready( function () {
               }, 1000); // Adjust delay as needed
             },
             error: function () {
-                alert('Failed to retrieve categories.');
+                alert('Failed to retrieve products.');
             }
         });
     }
