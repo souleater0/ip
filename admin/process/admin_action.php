@@ -695,4 +695,79 @@ require_once 'function.php';
     //     echo json_encode($response);
     //     exit();
     // }
+    if (!empty($_POST['action']) && $_POST['action'] == 'addRole') {
+        if (empty($_POST['role_name'])) {
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter a Role Name!'
+            );
+        } else {
+            $result = addRole($pdo);
+            if ($result['success']) {
+                $response = array(
+                    'success' => true,
+                    'message' => $result['message']
+                );
+            } else {
+                $response = array(
+                    'success' => false,
+                    'message' => $result['message']
+                );
+            }
+        }
+        // Send response
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
+    if (!empty($_POST['action']) && $_POST['action'] == 'updateRole') {
+        if (empty($_POST['role_name'])) {
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter a Role Name!'
+            );
+        } else {
+            $result = updateRole($pdo);
+            if ($result['success']) {
+                $response = array(
+                    'success' => true,
+                    'message' => $result['message']
+                );
+            } else {
+                $response = array(
+                    'success' => false,
+                    'message' => $result['message']
+                );
+            }
+        }
+        // Send response
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
+    if (!empty($_POST['action']) && $_POST['action'] == 'getUserPermissionbyID') {
+        if (empty($_POST['role_id'])) {
+            $response = array(
+                'success' => false,
+                'message' => 'Could not retrieve role id.'
+            );
+        } else {
+            $result = getRolePermissions($pdo);
+            if ($result['success']) {
+                $response = array(
+                    'success' => true,
+                    'permissions' => $result['permissions']
+                );
+            } else {
+                $response = array(
+                    'success' => false,
+                    'message' => $result['message']
+                );
+            }
+        }
+        // Send response
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
 ?>

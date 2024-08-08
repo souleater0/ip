@@ -67,7 +67,7 @@
         try {
             $user_display = $_POST['user_display'];
             $username = $_POST['username'];
-            $password = password_hash('ecadmin', PASSWORD_BCRYPT);
+            $password = password_hash('ecsadmin', PASSWORD_BCRYPT);
             $user_role = $_POST['user_role'];
             $loginEnabled = !empty($_POST['loginEnabled']) ? '1' : '0';
 
@@ -1464,5 +1464,86 @@
             return array('success' => false, 'message' => 'Database error: ' . $e->getMessage());
         }
     }    
+    function addRole($pdo){
+        $roleName = $_POST['role_name'];
+        $permissions = $_POST['selected_permission'];
+
+        try {
+            // Start a transaction
+            $pdo->beginTransaction();
+    
+            // Insert the new role into the roles table (if you have one)
+            $stmt = $pdo->prepare("INSERT INTO roles (role_name) VALUES (:role_name)");
+            $stmt->execute(['role_name' => $roleName]);
+    
+            // Get the ID of the newly inserted role
+            $roleId = $pdo->lastInsertId();
+    
+            // Insert the permissions into the role_permissions table
+            $stmt = $pdo->prepare("INSERT INTO role_permissions (role_id, permission_id) VALUES (:role_id, :permission_id)");
+    
+            foreach ($permissions as $permissionId) {
+                $stmt->execute(['role_id' => $roleId, 'permission_id' => $permissionId]);
+            }
+            // Commit the transaction
+            $pdo->commit();
+            return array('success' => true, 'message' => 'Role and permissions added successfully!');
+        } catch (Exception $e) {
+            // Roll back the transaction if something failed
+            $pdo->rollBack();
+            return array('success' => false, 'message' => 'Failed to add role and permissions' . $e->getMessage());
+        }
+    }
+    function getRolePermissions($pdo) {
+        $roleId = $_POST['role_id'];
+        try {
+            // Fetch the permissions associated with the role
+            $stmt = $pdo->prepare("SELECT permission_id FROM role_permissions WHERE role_id = :role_id");
+            $stmt->execute(['role_id' => $roleId]);
+            $permissions = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    
+            // Fetch the role name (assuming you want to display it as well)
+            $stmt = $pdo->prepare("SELECT role_name FROM roles WHERE id = :role_id");
+            $stmt->execute(['role_id' => $roleId]);
+            $roleName = $stmt->fetchColumn();
+    
+            return array('success' => true, 'role_name' => $roleName, 'permissions' => $permissions);
+        } catch (Exception $e) {
+            return array('success' => false, 'message' => 'Failed to fetch role permissions: ' . $e->getMessage());
+        }
+    }
+    function updateRole($pdo) {
+        $roleId = $_POST['role_id'];
+        $roleName = $_POST['role_name'];
+        $permissions = $_POST['selected_permission'];
+    
+        try {
+            // Start a transaction
+            $pdo->beginTransaction();
+    
+            // Update the role name in the roles table
+            $stmt = $pdo->prepare("UPDATE roles SET role_name = :role_name WHERE id = :role_id");
+            $stmt->execute(['role_name' => $roleName, 'role_id' => $roleId]);
+    
+            // Delete existing permissions for the role
+            $stmt = $pdo->prepare("DELETE FROM role_permissions WHERE role_id = :role_id");
+            $stmt->execute(['role_id' => $roleId]);
+    
+            // Insert the updated permissions into the role_permissions table
+            $stmt = $pdo->prepare("INSERT INTO role_permissions (role_id, permission_id) VALUES (:role_id, :permission_id)");
+    
+            foreach ($permissions as $permissionId) {
+                $stmt->execute(['role_id' => $roleId, 'permission_id' => $permissionId]);
+            }
+    
+            // Commit the transaction
+            $pdo->commit();
+            return array('success' => true, 'message' => 'Role and permissions updated successfully!');
+        } catch (Exception $e) {
+            // Roll back the transaction if something failed
+            $pdo->rollBack();
+            return array('success' => false, 'message' => 'Failed to update role and permissions: ' . $e->getMessage());
+        }
+    }
     
 ?>

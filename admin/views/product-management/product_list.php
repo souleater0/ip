@@ -53,7 +53,6 @@
           <div class="col-lg-6">
             <label for="brand_id" class="form-label">Brand</label>
             <select class="selectpicker form-control" id="brand_id" name="brand_id" data-live-search="true">
-            <option value="">None</option>
               <?php foreach ($brands as $brand):?>
                 <option value="<?php echo $brand['brand_id'];?>"><?php echo $brand['brand_name'];?></option>
               <?php endforeach;?>
@@ -62,7 +61,6 @@
           <div class="col-lg-6">
             <label for="category_id" class="form-label">Category</label>
             <select class="selectpicker form-control" id="category_id" name="category_id" data-live-search="true">
-                <option value="">None</option>
               <?php foreach ($categorys as $category):?>
                 <option value="<?php echo $category['category_id'];?>"><?php echo $category['category_name'];?></option>
               <?php endforeach;?>
@@ -80,7 +78,6 @@
           <div class="col-lg-6">
             <label for="tax_id" class="form-label">Taxs</label>
             <select class="selectpicker form-control" id="tax_id" name="tax_id" data-live-search="true">
-            <option value="">None</option>
               <?php foreach ($taxs as $tax):?>
                 <option value="<?php echo $tax['tax_id'];?>"><?php echo $tax['tax_name'];?></option>
               <?php endforeach;?>
@@ -97,7 +94,6 @@
           <div class="col-lg-6">
             <label for="unit_id" class="form-label">Units</label>
             <select class="selectpicker form-control" id="unit_id" name="unit_id" data-live-search="true">
-            <option value="">None</option>
               <?php foreach ($units as $unit):?>
                 <option value="<?php echo $unit['unit_id'];?>"><?php echo $unit['short_name'];?></option>
               <?php endforeach;?>
@@ -121,6 +117,7 @@
 <!-- END -->
 <script>
 $(document).ready( function () {
+
   $('#purchase_price, #min_qty,#max_qty,#exp_notice ').on('input', function(){
       $(this).val($(this).val().replace(/\D/g,''));
   });
@@ -168,7 +165,7 @@ $(document).ready( function () {
                 targets: 0
             }
         ],
-        order: [[1, 'asc']],
+        order: [[1, 'desc']],
         paging: true,
         scrollCollapse: true,
         scrollX: true,
@@ -274,22 +271,18 @@ $(document).ready( function () {
     }
     setInterval(LoadTable, 15000);
     $('#addProductBTN').click(function(){
+      
       $('#sku_id').val('');
       $('#product_name').val('');
       $('#product_desc').val('');
-      $('#brand_id').val('');
-      $('#brand_id').selectpicker('refresh');
       $('#purchase_price').val('');
-      $('#category_id').val('');
-      $('#category_id').selectpicker('refresh');
-      $('#tax_id').val('');
-      $('#tax_id').selectpicker('refresh');
       $('#min_qty').val('');
       $('#max_qty').val('');
       $('#exp_notice').val('');
-      $('#unit_id').val('');
-      $('#unit_id').selectpicker('refresh');
       $('#addProduct').show();
+      $('#brand_id, #category_id, #tax_id, #unit_id').each(function() {
+        $(this).val($(this).find('option:first').val()).selectpicker('refresh');
+      });
       $('#updateProduct').hide();
     });
     $('#addProduct').click(function(){
