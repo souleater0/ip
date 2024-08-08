@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 26, 2024 at 02:10 PM
+-- Generation Time: Aug 08, 2024 at 02:05 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.1.25
 
@@ -45,7 +45,9 @@ INSERT INTO `brand` (`brand_id`, `brand_name`) VALUES
 (6, 'Lucky Me'),
 (7, 'Chupa Chups'),
 (8, 'Mixed Nuts'),
-(9, 'Mat\'s Donut');
+(9, 'Mat\'s Donut'),
+(10, 'Oishi'),
+(12, 'Lauras');
 
 -- --------------------------------------------------------
 
@@ -71,7 +73,9 @@ INSERT INTO `category` (`category_id`, `parent_category_id`, `category_name`, `c
 (4, NULL, 'Fruit Preserves', 'FP'),
 (5, 4, 'Syrup', 'SRP'),
 (6, 1, 'Peanuts', 'PNS'),
-(7, NULL, 'Box of 6', 'BX');
+(7, NULL, 'Box of 6', 'BX'),
+(8, 1, 'Snacks', 'SN'),
+(9, 1, 'Bread', 'BR');
 
 -- --------------------------------------------------------
 
@@ -94,10 +98,10 @@ CREATE TABLE `item` (
 --
 
 INSERT INTO `item` (`item_id`, `item_sku`, `item_barcode`, `item_qty`, `item_expiry`, `product_sku`, `created_at`) VALUES
-(2, 'ITM00002', 'MLWITL', 16, '2024-07-16', 'F00001', '2024-06-26 04:10:06'),
-(4, 'ITM00004', 'NCHDWHDF', 5, '2024-07-18', 'SRP00001', '2024-06-26 04:41:53'),
-(5, 'ITM00005', 'NCHDWHDC', 5, '2024-07-19', 'SRP00001', '2024-06-26 04:41:53'),
-(8, 'ITM00006', 'DINGD0001', 5, '2024-07-31', 'PNS00001', '2024-07-12 04:19:26');
+(1, 'ITM00001', '4800194151702', 19, '2024-08-18', 'SN00001', '2024-08-08 03:46:24'),
+(2, 'ITM00002', '4809010109651', 3, '2024-08-15', 'BR00001', '2024-08-08 03:46:24'),
+(3, 'ITM00003', '4800194117043', 36, '2024-08-20', 'BR00002', '2024-08-08 03:46:24'),
+(4, 'ITM00004', '4800194153225', 15, '2024-08-07', 'SN00002', '2024-08-08 03:46:24');
 
 -- --------------------------------------------------------
 
@@ -153,15 +157,10 @@ CREATE TABLE `pending_item` (
 --
 
 INSERT INTO `pending_item` (`id`, `series_number`, `item_sku`, `item_barcode`, `item_qty`, `item_expiry`, `product_sku`, `created_at`) VALUES
-(1, 'STK_IN00001', NULL, 'MLWITK', 5, '2026-05-05', 'F00001', '2024-06-26 04:04:45'),
-(2, 'STK_IN00002', NULL, 'MLWITL', 20, '2026-02-05', 'F00001', '2024-06-26 04:10:06'),
-(3, 'STK_IN00003', NULL, 'MLWITC', 20, '2027-05-20', 'F00001', '2024-06-26 04:10:23'),
-(4, 'STK_IN00004', NULL, 'NCHDWHDG', 10, '2027-01-08', 'SRP00001', '2024-06-26 04:40:54'),
-(5, 'STK_IN00005', NULL, 'NCHDWHDF', 5, '2028-05-05', 'SRP00001', '2024-06-26 04:41:53'),
-(6, 'STK_IN00005', NULL, 'NCHDWHDC', 5, '2027-05-05', 'SRP00001', '2024-06-26 04:41:53'),
-(7, 'STK_IN00006', NULL, 'DING0001', 5, '2024-07-30', 'PNS00001', '2024-07-12 01:24:38'),
-(8, 'STK_IN00006', NULL, 'DING0002', 12, '2024-07-31', 'PNS00001', '2024-07-12 01:24:38'),
-(9, 'STK_IN00007', NULL, 'DINGD0001', 5, '2024-07-31', 'PNS00001', '2024-07-12 04:19:26');
+(11, 'STK_IN00001', NULL, '4800194151702', 19, '2024-08-18', 'SN00001', '2024-08-08 03:46:24'),
+(12, 'STK_IN00001', NULL, '4809010109651', 3, '2024-08-15', 'BR00001', '2024-08-08 03:46:24'),
+(13, 'STK_IN00001', NULL, '4800194117043', 36, '2024-08-20', 'BR00002', '2024-08-08 03:46:24'),
+(14, 'STK_IN00001', NULL, '4800194153225', 15, '2024-08-08', 'SN00002', '2024-08-08 03:46:24');
 
 -- --------------------------------------------------------
 
@@ -279,10 +278,10 @@ CREATE TABLE `product` (
 --
 
 INSERT INTO `product` (`product_id`, `product_name`, `product_description`, `brand_id`, `category_id`, `status_id`, `product_sku`, `product_pp`, `product_sp`, `product_min`, `product_max`, `unit_id`, `tax_id`, `expiry_notice`, `created_at`, `updated_at`) VALUES
-(1, 'Red Mongo 340g', 'Red Mongo 340g 12oz', 2, 4, NULL, 'SRP00001', 102, 112, 10, 20, 1, 1, 10, '2024-05-10 07:47:44', '2024-07-19 11:57:34'),
-(2, 'Green Kaong 340g', 'Green Kaong 340g 12oz', 2, 5, NULL, 'SRP00002', 102, 110, 10, 20, 1, 1, 10, '2024-05-10 11:52:30', '2024-07-09 04:21:07'),
-(3, 'Milo 45', 'milo pawdir', 1, 4, NULL, 'F00001', 15, NULL, 20, 30, 1, 1, 10, '2024-05-14 06:50:52', '2024-07-09 04:21:07'),
-(4, 'Ding Dong', 'Mix Nuts 100g', 8, 5, NULL, 'PNS00001', 72, 78, 20, 30, 1, 1, 10, '2024-05-15 07:09:05', '2024-07-09 04:21:07');
+(1, 'OISHI PODS PEA SNACK 60G', 'OISHI PODS PEA SNACK 60G', 10, 8, NULL, 'SN00001', 30, NULL, 20, 30, 1, 1, 10, '2024-08-08 09:06:29', NULL),
+(2, 'LAURAS MANNA BUTTERED TOAST 200G', 'LAURAS MANNA BUTTERED TOAST 200G', 12, 9, NULL, 'BR00001', 100, NULL, 10, 20, 1, 1, 10, '2024-08-08 09:09:17', NULL),
+(3, 'BREAD PAN WHITE CHEDDAR 24G', 'BREAD PAN WHITE CHEDDAR 24G', 10, 9, NULL, 'BR00002', 15, NULL, 20, 50, 1, 1, 10, '2024-08-08 09:10:06', '2024-08-08 09:10:28'),
+(4, 'BREAD PAN CHEESE & ONION 24G', 'BREAD PAN CHEESE & ONION 24G', 10, 8, NULL, 'SN00002', 15, NULL, 20, 50, 1, 1, 10, '2024-08-08 09:12:50', '2024-08-08 09:13:19');
 
 -- --------------------------------------------------------
 
@@ -302,7 +301,8 @@ CREATE TABLE `roles` (
 INSERT INTO `roles` (`id`, `role_name`) VALUES
 (1, 'Admin'),
 (2, 'Purchasing'),
-(3, 'Accountant');
+(3, 'Accountant'),
+(4, 'Jhondell');
 
 -- --------------------------------------------------------
 
@@ -396,7 +396,14 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 (3, 21),
 (3, 22),
 (3, 32),
-(3, 33);
+(3, 33),
+(4, 11),
+(4, 15),
+(4, 19),
+(4, 23),
+(4, 24),
+(4, 34),
+(4, 35);
 
 -- --------------------------------------------------------
 
@@ -436,13 +443,7 @@ CREATE TABLE `stockin_history` (
 --
 
 INSERT INTO `stockin_history` (`id`, `series_number`, `date`, `isAdded`) VALUES
-(1, 'STK_IN00001', '2024-06-26 10:04:45', 1),
-(3, 'STK_IN00002', '2024-06-26 10:10:06', 1),
-(4, 'STK_IN00003', '2024-06-26 10:10:23', 0),
-(5, 'STK_IN00004', '2024-06-26 10:40:54', 1),
-(6, 'STK_IN00005', '2024-06-26 10:41:53', 1),
-(18, 'STK_IN00006', '2024-07-12 07:24:38', 1),
-(19, 'STK_IN00007', '2024-07-12 10:19:26', 1);
+(1, 'STK_IN00001', '2024-08-08 09:46:24', 1);
 
 -- --------------------------------------------------------
 
@@ -456,13 +457,6 @@ CREATE TABLE `stockout_history` (
   `date` timestamp NULL DEFAULT current_timestamp(),
   `isAdded` tinyint(4) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `stockout_history`
---
-
-INSERT INTO `stockout_history` (`id`, `series_number`, `date`, `isAdded`) VALUES
-(1, 'STK_OUT00001', '2024-07-22 11:06:24', 1);
 
 -- --------------------------------------------------------
 
@@ -560,8 +554,9 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `username`, `password`, `display_name`, `role_id`, `isEnabled`, `created_at`, `updated_at`) VALUES
 (1, 'admin', '$2y$10$Yvn5wPKG1D1ovcMe5wM2lemqHaX40cKBJ7ybknP0rtYFkVSYt0MmK', 'Jerome De Lara', 1, 1, '2024-05-08 12:30:37', '2024-05-24 03:49:31'),
-(3, 'jhondell', '$2y$10$JRSUatHPUFuxnBTk2t1PzeHke3itwMQXgGiKJrvWT.55bKynetknq', 'Jhondell', 3, 1, '2024-05-22 07:11:58', '2024-07-15 07:54:34'),
-(4, 'account', '$2y$10$fu8HEOtJ/Jq2yVXmua8meeAFO3i04W.V6lcj.jdoMXfkHhn1/KWC.', 'account', 2, 1, '2024-07-26 10:24:19', '2024-07-26 10:24:32');
+(3, 'jhondell', '$2y$10$JRSUatHPUFuxnBTk2t1PzeHke3itwMQXgGiKJrvWT.55bKynetknq', 'Jhondell', 3, 1, '2024-05-22 07:11:58', '2024-08-07 06:30:26'),
+(4, 'purchase', '$2y$10$fu8HEOtJ/Jq2yVXmua8meeAFO3i04W.V6lcj.jdoMXfkHhn1/KWC.', 'Purchasing', 2, 1, '2024-07-26 10:24:19', '2024-08-05 11:43:46'),
+(5, 'test', '$2y$10$qfmr6EXxOW/GVoj05G/z0urNEM.i4WSTHrx4LtvEDdn.XA2Nc8cEe', 'test', 4, 1, '2024-08-08 08:45:42', NULL);
 
 -- --------------------------------------------------------
 
@@ -581,14 +576,6 @@ CREATE TABLE `waste` (
   `waste_reason` varchar(255) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `waste`
---
-
-INSERT INTO `waste` (`waste_id`, `product_sku`, `product_name`, `product_pp`, `category_name`, `item_barcode`, `item_qty`, `item_expiry`, `waste_reason`, `created_at`) VALUES
-(1, 'F00001', 'Milo 45', 15, 'Fruit Preserves', 'MLWITK', 2, '2024-07-14', 'expired', '2024-07-18 22:36:18'),
-(2, 'F00001', 'Milo 45', 15, 'Fruit Preserves', 'MLWITL', 2, '2024-07-16', 'Rejected', '2024-07-18 22:37:28');
 
 --
 -- Indexes for dumped tables
@@ -723,19 +710,19 @@ ALTER TABLE `waste`
 -- AUTO_INCREMENT for table `brand`
 --
 ALTER TABLE `brand`
-  MODIFY `brand_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `brand_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `category`
 --
 ALTER TABLE `category`
-  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `item`
 --
 ALTER TABLE `item`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `modules`
@@ -747,7 +734,7 @@ ALTER TABLE `modules`
 -- AUTO_INCREMENT for table `pending_item`
 --
 ALTER TABLE `pending_item`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `pending_stock_out`
@@ -771,7 +758,7 @@ ALTER TABLE `product`
 -- AUTO_INCREMENT for table `roles`
 --
 ALTER TABLE `roles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `status`
@@ -783,13 +770,13 @@ ALTER TABLE `status`
 -- AUTO_INCREMENT for table `stockin_history`
 --
 ALTER TABLE `stockin_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `stockout_history`
 --
 ALTER TABLE `stockout_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `system_option`
@@ -801,13 +788,13 @@ ALTER TABLE `system_option`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `waste`
 --
 ALTER TABLE `waste`
-  MODIFY `waste_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `waste_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables
