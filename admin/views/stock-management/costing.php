@@ -72,22 +72,11 @@ $(document).ready( function () {
       event.preventDefault();
   });
   var table = $('#productTable').DataTable({
-        columnDefs: [
-            {
-                orderable: false,
-                render: DataTable.render.select(),
-                targets: 0
-            }
-        ],
         order: [[4, 'asc']],
         paging: true,
         scrollCollapse: true,
         scrollX: true,
         scrollY: 300,
-        select: {
-            style: 'multi',
-            selector: 'td:first-child'
-        },
         responsive: true,
         autoWidth: false,
         ajax:{
@@ -95,7 +84,6 @@ $(document).ready( function () {
           dataSrc: 'data'
         },
         columns:[
-          {data: null},
           {data: 'product_id', visible: false},
           {data: 'product_name', title: 'Product Name'},
           {data: 'product_description', visible: false},
@@ -159,13 +147,46 @@ $(document).ready( function () {
           ,{ 
             "data": null, 
             "title": "Action",
-            "className": "text-center",
+            "className": "text-center noExport",
             "render": function(data, type, row) {
                 return '<?php if(userHasPermission($pdo, $_SESSION["user_id"], 'update_costing')){ ?><button class="btn btn-primary btn-sm btn-edit"><i class="fa-regular fa-pen-to-square"></i></button>&nbsp;<?php } ?>';
             } 
           }
           <?php } ?>
-        ]
+        ],
+		        dom: 'Bfrtip',
+        buttons: [
+        {
+            extend: 'copy',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'csv',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'excel',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'pdf',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'print',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+            }
+        }
+    ]
     });
     function LoadTable(){
         $.ajax({

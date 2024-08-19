@@ -127,6 +127,8 @@ $suggestedItems = getSuggestedbySystem($pdo, $picklist);
                             <th>Product Name</th>
                             <th>SKU</th>
                             <th>Barcode</th>
+                            <th>Purchase Price</th>
+                            <th>Selling Price</th>
                             <th>Expiry</th>
                             <th>Quantity</th>
                             <th>Status</th>
@@ -138,6 +140,8 @@ $suggestedItems = getSuggestedbySystem($pdo, $picklist);
                                 <td><?php echo htmlspecialchars($item['product_name']); ?></td>
                                 <td><?php echo htmlspecialchars($item['product_sku']); ?></td>
                                 <td><?php echo htmlspecialchars($item['barcode']); ?></td>
+                                <td><?php echo htmlspecialchars($item['product_pp']); ?></td>
+                                <td><?php echo htmlspecialchars($item['product_sp']); ?></td>
                                 <td><?php echo htmlspecialchars($item['expiry']); ?></td>
                                 <td><?php echo htmlspecialchars($item['qty']); ?></td>
                                 <td class="status" data-sku="<?php echo htmlspecialchars($item['barcode']); ?>" data-required-qty="<?php echo htmlspecialchars($item['qty']); ?>">
@@ -235,10 +239,18 @@ $suggestedItems = getSuggestedbySystem($pdo, $picklist);
                     },
                     {
                         targets: 3, // Second column
-                        className: 'text-dark text-start' // Add another class name if needed
+                        className: 'text-dark text-center' // Add another class name if needed
                     },
                     {
                         targets: 4, // Second column
+                        className: 'text-dark text-center' // Add another class name if needed
+                    },
+                    {
+                        targets: 5, // Second column
+                        className: 'text-dark text-start' // Add another class name if needed
+                    },
+                    {
+                        targets: 6, // Second column
                         className: 'text-dark text-start' // Add another class name if needed
                     },
                 ]
@@ -327,8 +339,10 @@ $('#proceedStockOut').on('click', function() {
             itemsToStockOut.push({
                 product_name: rowData[0],
                 barcode: rowData[2], // Barcode from the row data
+                product_pp: rowData[3], // Barcode from the row data
+                product_sp: rowData[4], // Barcode from the row data
+                expiry: rowData[5], // Expiry from the row data
                 qty: currentQty,
-                expiry: rowData[3], // Expiry from the row data
                 product_sku: rowData[1] // Product SKU from the row data
             });
         }
@@ -340,7 +354,7 @@ $('#proceedStockOut').on('click', function() {
             stockout_number: $("#stockOutNumber").val(),
             items: itemsToStockOut
         };
-        // console.log(stockoutData);
+        console.log(stockoutData);
 
         $.ajax({
             url: "admin/process/admin_action.php",
@@ -361,8 +375,6 @@ $('#proceedStockOut').on('click', function() {
                 }
             }
         });
-        // Here you can make an AJAX call to process the stock out
-        // $.ajax({ ... });
 
         toastr.success("All items validated. Proceeding with stock out.");
     } else {

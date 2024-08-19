@@ -16,7 +16,7 @@
     </div>
   </div>
 </div>
-<div class="modal fade modal-lg" id="pendingModal" tabindex="-1" aria-labelledby="pendingModal" aria-hidden="true">
+<div class="modal fade modal-xl" id="pendingModal" tabindex="-1" aria-labelledby="pendingModal" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
     <form id="brandForm">
@@ -33,6 +33,15 @@
       </div>
       <div class="modal-body border">
         <table id="itemDetailsTable" class="table table-hover table-cs-color">
+        <tfoot>
+        <tr>
+            <th colspan="4"></th>
+            <th colspan="1">Total:</th>
+            <th></th>
+            <th colspan="1">Average</th>
+            <th></th>
+        </tr>
+    </tfoot>
         </table>
       </div>
       <div class="modal-footer">
@@ -140,10 +149,73 @@ $(document).ready( function () {
             },
             columns: [
                 { data: 'product_name', title: 'Product Name' },
-                { data: 'item_barcode', title: 'Item Barcode' ,className: 'text-center' },
-                { data: 'quantity', title: 'item_qty',className: 'text-center'},
-                { data: 'item_expiry', title: 'item_expiry' ,className: 'text-start'}
-            ]
+                { data: 'item_barcode', title: 'Barcode' ,className: 'text-center' },
+                { data: 'product_pp', title: 'Purchase Price' ,className: 'text-center' },
+                { data: 'product_sp', title: 'Selling Price' ,className: 'text-center' },
+                { data: 'quantity', title: 'Qty',className: 'text-center'},
+                { data: 'total_cost', title: 'Total Cost',className: 'text-start'},
+                { data: 'item_expiry', title: 'Expiry Date' ,className: 'text-start'},
+                { data: 'created_at', title: 'Date Added',className: 'text-start'}
+            ],
+			        dom: 'Bfrtip',
+        buttons: [
+        {
+            extend: 'copy',
+			title: 'EC-Inventory-'+data.series_number,
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'csv',
+			title: 'EC-Inventory-'+data.series_number,
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'excel',
+			title: 'EC-Inventory-'+data.series_number,
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'pdf',
+			title: 'EC-Inventory-'+data.series_number,
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'print',
+			title: 'EC-Inventory-'+data.series_number,
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+            }
+        }
+    ],
+    drawCallback: function () {
+    // Check if tfoot exists
+    // Compute the total for the 'Total Cost' column
+    var columnData = this.api().column(5, { page: 'current' }).data();
+    var total = columnData.reduce(function (a, b) {
+        return a + parseFloat(b) || 0; // handle non-numeric values
+    }, 0);
+
+    // Calculate the average
+    var average = total / columnData.length;
+
+    // Set the computed total in the footer
+    $('#itemDetailsTable tfoot th').eq(2).html(total.toFixed(2));
+
+    // Set the computed average in the footer
+    $('#itemDetailsTable tfoot th').eq(4).html(average.toFixed(2));
+
+    console.log("Footer updated with total: " + total.toFixed(2) + " and average: " + average.toFixed(2)); // Debug message
+}
+
+
         });
       $('#pendingModal').modal('show');
   });

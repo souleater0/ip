@@ -129,6 +129,13 @@ $(document).ready( function () {
       }
       $("#stockInNumber").val(data.series_number);
       $("#addInventory").attr("update-id", data.series_number);
+	  var currentdate = new Date();
+		var datetime = "Now: " + currentdate.getDate() + "/"
+					+ (currentdate.getMonth()+1)  + "/"
+					+ currentdate.getFullYear() + " @ " 
+					+ currentdate.getHours() + ":" 
+					+ currentdate.getMinutes() + ":"
+					+ currentdate.getSeconds();
       var itemDetailsTable = $('#itemDetailsTable').DataTable({
             destroy: true,
             responsive: true,
@@ -142,10 +149,49 @@ $(document).ready( function () {
             },
             columns: [
                 { data: 'product_name', title: 'Product Name' },
-                { data: 'item_barcode', title: 'Item Barcode' ,className: 'text-center' },
-                { data: 'quantity', title: 'item_qty',className: 'text-center'},
-                { data: 'item_expiry', title: 'item_expiry' ,className: 'text-start'}
-            ]
+                { data: 'item_barcode', title: 'Barcode' ,className: 'text-center' },
+                { data: 'quantity', title: 'Qty',className: 'text-center'},
+                { data: 'item_expiry', title: 'Expiry Date' ,className: 'text-start'},
+                { data: 'created_at', title: 'Date Added',className: 'text-start'}
+            ],
+						        dom: 'Bfrtip',
+        buttons: [
+        {
+            extend: 'copy',
+			title: 'EC-Inventory-'+data.series_number,
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'csv',
+			title: 'EC-Inventory-'+data.series_number,
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'excel',
+			title: 'EC-Inventory-'+data.series_number,
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'pdf',
+			title: 'EC-Inventory-'+data.series_number,
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'print',
+			title: 'EC-Inventory-'+data.series_number,
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+            }
+        }
+    ]
         });
       $('#pendingModal').modal('show');
   });

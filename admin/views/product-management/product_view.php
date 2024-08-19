@@ -131,7 +131,7 @@ $items = getItembyID($product_id, $pdo);
                             <th class="text-center">Qty</th>
                             <th>Expiry Date</th>
                             <th class="text-center">Remaining Days</th>
-                            <th class="text-center">Action</th>
+                            <th class="text-center noExport">Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -207,13 +207,47 @@ $(document).ready( function () {
     scrollCollapse: true,
     scrollX: true,
     scrollY: 200,
-    select: {
-        style: 'multi',
-        selector: 'td:first-child'
-    },
     responsive: true,
     autoWidth: false,
-    footer: false
+    footer: false,
+	dom: 'Bfrtip',
+        buttons: [
+        {
+            extend: 'copy',
+			title: '<?php echo !empty($product['product_name']) ? $product['product_name'] : 'none' ?>',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'csv',
+			title: '<?php echo !empty($product['product_name']) ? $product['product_name'] : 'none' ?>',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'excel',
+			title: '<?php echo !empty($product['product_name']) ? $product['product_name'] : 'none' ?>',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'pdf',
+			title: '<?php echo !empty($product['product_name']) ? $product['product_name'] : 'none' ?>',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'print',
+			title: '<?php echo !empty($product['product_name']) ? $product['product_name'] : 'none' ?>',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+            }
+        }
+    ]
     });
     $('#qty').on('input', function(){
         let value = $(this).val().replace(/\D/g, ''); // Remove non-digit characters

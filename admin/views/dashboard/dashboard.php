@@ -22,7 +22,7 @@
                       </div>
                       <div class="row">
                         <div class="col-12">
-                          <h4><?php echo $totalProduct_Count; ?></h4>
+                          <h4><?php echo $totalProduct_Count = !empty($totalProduct_Count) ? $totalProduct_Count : 0; ?></h4>
                         </div>
                       </div>
                     </div>
@@ -42,7 +42,7 @@
                       </div>
                       <div class="row">
                         <div class="col-12">
-                          <h4><?php echo $lowstock_Count; ?></h4>
+                          <h4><?php echo $lowstock_Count = !empty($lowstock_Count) ? $lowstock_Count : 0; ?></h4>
                         </div>
                       </div>
                     </div>
@@ -62,7 +62,7 @@
                       </div>
                       <div class="row">
                         <div class="col-12">
-                          <h4><?php echo $outstock_Count; ?></h4>
+                          <h4><?php echo $outstock_Count = !empty($outstock_Count) ? $outstock_Count : 0; ?></h4>
                         </div>
                       </div>
                     </div>
@@ -204,13 +204,11 @@
 <script>
   $(document).ready( function () {
     var table = $('#productExpiringTable').DataTable({
-        columnDefs: [
-            {
-                orderable: false,
-                render: DataTable.render.select(),
-                targets: 0
-            }
-        ],
+      layout: {
+                topStart: {
+                    buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
+                }
+            },
         order: [[3, 'asc']],
         paging: true,
         scrollCollapse: true,
@@ -223,9 +221,9 @@
           dataSrc: 'data'
         },
         columns:[
-          {data: 'item_id', visible: false},
-          {data: 'product_id', visible: false},
-          {data: 'item_barcode', title: 'Barcode'},
+          {data: 'item_id', visible: false, className: 'noExport'},
+          {data: 'product_id', visible: false, className: 'noExport'},
+          {data: 'item_barcode', title: 'Barcode', className: 'noExport'},
           {data: 'product_name', title: 'Product Name'},
           {data: 'item_expiry', title: 'Expiry Date', className: 'text-center'},
           {data: 'expiry_notice', title: 'Expiry Notice', className: 'text-center'},
@@ -251,15 +249,58 @@
           },
           { 
             "data": null, 
-            "title": "Action", 
+            "title": "Action",
+            "className": "noExport",
             "render": function(data, type, row) {
                 return '<a class="btn btn-info btn-sm" href="index.php?route=view-product&product=' + row.product_id + '"><i class="fa-solid fa-eye"></i></a>';
             } 
           }
-        ]
+        ],
+        dom: 'Bfrtip',
+        buttons: [
+        {
+            extend: 'copy',
+            title: 'List of Product Expiring Soon',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'csv',
+            title: 'List of Product Expiring Soon',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'excel',
+            title: 'List of Product Expiring Soon',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'pdf',
+            title: 'List of Product Expiring Soon',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'print',
+            title: 'List of Product Expiring Soon',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+        }
+    ]
     });
     $('#lowstockTable').DataTable({
-      
+      layout: {
+                topStart: {
+                    buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
+                }
+            },
         order: [[2, 'asc']],
         paging: true,
         scrollCollapse: true,
@@ -283,6 +324,11 @@
         ]
     });
     $('#outstockTable').DataTable({
+      layout: {
+                topStart: {
+                    buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
+                }
+            },
         order: [[1, 'asc']],
         paging: true,
         scrollCollapse: true,

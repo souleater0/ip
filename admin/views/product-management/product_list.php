@@ -158,22 +158,11 @@ $(document).ready( function () {
     }
   });
   var table = $('#productTable').DataTable({
-        columnDefs: [
-            {
-                orderable: false,
-                render: DataTable.render.select(),
-                targets: 0
-            }
-        ],
         order: [[1, 'desc']],
         paging: true,
         scrollCollapse: true,
         scrollX: true,
         scrollY: 300,
-        select: {
-            style: 'multi',
-            selector: 'td:first-child'
-        },
         responsive: true,
         autoWidth: false,
         ajax:{
@@ -181,7 +170,7 @@ $(document).ready( function () {
           dataSrc: 'data'
         },
         columns:[
-          {data: null},
+          // {data: null},
           {data: 'product_id', visible: false},
           {data: 'product_name', title: 'Product Name'},
           {data: 'product_description', visible: false},
@@ -244,13 +233,51 @@ $(document).ready( function () {
           ,{ 
             "data": null, 
             "title": "Action",
-            "className" : "text-center",
+            "className" : "text-center noExport",
             "render": function(data, type, row) {
                 return '<?php if(userHasPermission($pdo, $_SESSION["user_id"], 'show_product')){?><a class="btn btn-info btn-sm" href="index.php?route=view-product&product=' + row.product_id + '"><i class="fa-solid fa-eye"></i></a>&nbsp;<?php } ?><?php if(userHasPermission($pdo, $_SESSION["user_id"], 'update_product')){?><button class="btn btn-primary btn-sm btn-edit"><i class="fa-regular fa-pen-to-square"></i></button>&nbsp;<?php } ?><?php if(userHasPermission($pdo, $_SESSION["user_id"], 'delete_product')){?><button class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button><?php } ?>';
             } 
           }
           <?php } ?>
-        ]
+        ],
+        dom: 'Bfrtip',
+        buttons: [
+        {
+            extend: 'copy',
+			title: 'EC-Inventory Product List',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'csv',
+			title: 'EC-Inventory Product List',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'excel',
+			title: 'EC-Inventory Product List',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'pdf',
+			title: 'EC-Inventory Product List',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'print',
+			title: 'EC-Inventory Product List',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+            }
+        }
+    ]
     });
     function LoadTable(){
         $.ajax({

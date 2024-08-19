@@ -140,7 +140,8 @@
                                 b.product_name,
                                 a.item_qty AS quantity,
                                 a.item_barcode,
-                                a.item_expiry
+                                a.item_expiry,
+                                DATE(a.created_at) AS created_at
                             FROM pending_item a
                             INNER JOIN product b ON b.product_sku = a.product_sku
                             WHERE a.series_number = :series_number';
@@ -160,13 +161,18 @@
                 if (isset($_GET['series_number'])) {
                     $seriesNumber = $_GET['series_number'];
                     $sql = 'SELECT
-                                b.product_name,
-                                a.item_qty AS quantity,
-                                a.item_barcode,
-                                a.item_expiry
-                            FROM pending_stock_out a
-                            INNER JOIN product b ON b.product_sku = a.product_sku
-                            WHERE a.series_number = :series_number';
+                    b.product_name,
+                    a.item_qty AS quantity,
+                    a.item_barcode,
+                    a.product_pp,
+                    a.product_sp,
+                    a.item_expiry,
+                    DATE(a.created_at) AS created_at,
+                    (a.product_pp * a.item_qty) AS total_cost
+                FROM pending_stock_out a
+                INNER JOIN product b ON b.product_sku = a.product_sku
+                WHERE a.series_number = :series_number';
+        
                     
                     // Prepare and execute the statement
                     $stmt = $pdo->prepare($sql);

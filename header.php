@@ -187,6 +187,31 @@ $route = $_GET['route'] ?? 'home';
             <?php } ?>
             </div>
             <?php } ?>
+            <li>
+              <span class="sidebar-divider lg"></span>
+            </li>
+            <li class="nav-small-cap" data-bs-toggle="collapse" data-bs-target="#collapseUser" aria-expanded="<?php echo ($route == 'product-management') ? 'true' : 'false'; ?>" aria-controls="collapseUser">
+              <iconify-icon icon="solar:menu-dots-linear" class="nav-small-cap-icon fs-4"></iconify-icon>
+              <span class="hide-menu text-uppercase">Vendor Management</span>
+            </li>
+            <div class="collapse <?php echo ($route == 'user-management'|| $route == 'role-management') ? 'show' : ''; ?>" id="collapseUser">
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_user')){?>
+            <li class="sidebar-item">
+              <a class="sidebar-link <?php echo ($route == 'user-management' )? 'active' : ''; ?>" href="index.php?route=user-management" aria-expanded="false">
+                <iconify-icon icon="mdi:cart"></iconify-icon>
+                <span class="hide-menu">Supplier</span>
+              </a>
+            </li>
+            <?php } ?>
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_role')){?>
+            <li class="sidebar-item">
+              <a class="sidebar-link" href="index.php?route=role-management" aria-expanded="false">
+                <iconify-icon icon="material-symbols:category"></iconify-icon>
+                <span class="hide-menu">Receipt</span>
+              </a>
+            </li>
+            <?php } ?>
+            </div>
             <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_user') || userHasPermission($pdo, $_SESSION["user_id"], 'manage_role')){?>
             <li>
               <span class="sidebar-divider lg"></span>
@@ -214,6 +239,7 @@ $route = $_GET['route'] ?? 'home';
             <?php } ?>
             </div>
             <?php } ?>
+
           </ul>
         </nav>
         <!-- End Sidebar navigation -->

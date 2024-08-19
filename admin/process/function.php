@@ -1076,12 +1076,14 @@
             }
     
             // Step 5: Prepare pending_stock_out insert
-            $stmt_pending = $pdo->prepare("INSERT INTO pending_stock_out (series_number, item_barcode, item_qty, item_expiry, product_sku, created_at) VALUES (:series_number, :item_barcode, :item_qty, :item_expiry, :product_sku, NOW())");
+            $stmt_pending = $pdo->prepare("INSERT INTO pending_stock_out (series_number, item_barcode, item_qty, product_pp, product_sp, item_expiry, product_sku, created_at) VALUES (:series_number, :item_barcode, :item_qty, :product_pp, :product_sp, :item_expiry, :product_sku, NOW())");
     
             // Step 6: Loop through items
             foreach ($data['items'] as $item) {
                 $productSku = $item['product_sku'];
                 $itemBarcode = $item['barcode'];
+                $product_pp = $item['product_pp'];
+                $product_sp = $item['product_sp'];
                 $itemQty = $item['qty'];
                 $itemExpiry = $item['expiry'];
     
@@ -1089,6 +1091,8 @@
                 $stmt_pending->execute([
                     ':series_number' => $stockoutNumber,
                     ':item_barcode' => $itemBarcode,
+                    ':product_pp' => $product_pp,
+                    ':product_sp' => $product_sp,
                     ':item_qty' => $itemQty,
                     ':item_expiry' => $itemExpiry,
                     ':product_sku' => $productSku
@@ -1329,6 +1333,8 @@
                 p.product_name,
                 i.item_qty,
                 i.item_expiry,
+                p.product_pp,
+                p.product_sp,
                 DATEDIFF(i.item_expiry, NOW()) + 1 AS days_to_expiry
             FROM
                 item i
@@ -1362,6 +1368,8 @@
                     'product_name' => $row['product_name'],
                     'product_sku' => $row['product_sku'],
                     'barcode' => $row['item_barcode'],
+                    'product_pp' => $row['product_pp'],
+                    'product_sp' => $row['product_sp'],
                     'expiry' => $row['item_expiry'],
                     'qty' => $suggested_qty
                 ];
