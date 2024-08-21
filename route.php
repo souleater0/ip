@@ -46,6 +46,9 @@ switch ($route){
     case "waste":
         require 'admin/views/stock-management/waste.php';
         break;
+    case "manage-supplier":
+        require 'admin/views/vendor-management/supplier.php';
+        break;
     case "user-management":
         require 'admin/views/user-management/users.php';
         break;

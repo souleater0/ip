@@ -38,7 +38,7 @@
             <th colspan="4"></th>
             <th colspan="1">Total:</th>
             <th></th>
-            <th colspan="1">Average</th>
+            <th colspan="1">Average:</th>
             <th></th>
         </tr>
     </tfoot>

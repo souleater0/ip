@@ -194,11 +194,11 @@ $route = $_GET['route'] ?? 'home';
               <iconify-icon icon="solar:menu-dots-linear" class="nav-small-cap-icon fs-4"></iconify-icon>
               <span class="hide-menu text-uppercase">Vendor Management</span>
             </li>
-            <div class="collapse <?php echo ($route == 'user-management'|| $route == 'role-management') ? 'show' : ''; ?>" id="collapseUser">
+            <div class="collapse <?php echo ($route == 'manage-supplier'|| $route == 'manage-supplier') ? 'show' : ''; ?>" id="collapseUser">
             <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_user')){?>
             <li class="sidebar-item">
-              <a class="sidebar-link <?php echo ($route == 'user-management' )? 'active' : ''; ?>" href="index.php?route=user-management" aria-expanded="false">
-                <iconify-icon icon="mdi:cart"></iconify-icon>
+              <a class="sidebar-link <?php echo ($route == 'manage-supplier' )? 'active' : ''; ?>" href="index.php?route=manage-supplier" aria-expanded="false">
+                <iconify-icon icon="carbon:scis-transparent-supply"></iconify-icon>
                 <span class="hide-menu">Supplier</span>
               </a>
             </li>
@@ -206,7 +206,7 @@ $route = $_GET['route'] ?? 'home';
             <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_role')){?>
             <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=role-management" aria-expanded="false">
-                <iconify-icon icon="material-symbols:category"></iconify-icon>
+                <iconify-icon icon="ic:baseline-receipt-long"></iconify-icon>
                 <span class="hide-menu">Receipt</span>
               </a>
             </li>

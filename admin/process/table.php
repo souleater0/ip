@@ -237,6 +237,10 @@
                 ORDER BY 
                     i.item_expiry ASC';
                 break;
+            case 'supplier-list':
+                $sql = 'SELECT * FROM supplier
+                        ORDER BY vendor_name ASC';
+                break;
             default:
             case 'waste':
                 $sql ='SELECT * FROM waste
