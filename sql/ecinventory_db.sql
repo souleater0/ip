@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 19, 2024 at 01:56 PM
+-- Generation Time: Aug 21, 2024 at 01:38 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.1.25
 
@@ -473,13 +473,26 @@ INSERT INTO `stockout_history` (`id`, `series_number`, `date`, `isAdded`) VALUES
 
 CREATE TABLE `supplier` (
   `id` int(11) NOT NULL,
-  `vendor_name` varchar(255) DEFAULT NULL,
   `vendor_company` varchar(255) DEFAULT NULL,
+  `vendor_name` varchar(255) DEFAULT NULL,
+  `vendor_address` varchar(255) DEFAULT NULL,
   `vendor_contact` varchar(255) DEFAULT NULL,
   `vendor_email` varchar(255) DEFAULT NULL,
+  `status` tinyint(1) NOT NULL DEFAULT 1,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `supplier`
+--
+
+INSERT INTO `supplier` (`id`, `vendor_company`, `vendor_name`, `vendor_address`, `vendor_contact`, `vendor_email`, `status`, `created_at`, `updated_at`) VALUES
+(1, 'Company A', 'Vendor A', 'Sto. Cristo Pulilan, Bulacan', '09123456789', 'company@gmail.com', 1, '2024-08-21 05:46:37', '2024-08-21 08:34:54'),
+(2, 'Company B', 'Vendor B', 'Baliuag, Bulacan', '09123456789', 'company@gmail.com', 1, '2024-08-21 05:46:44', '2024-08-21 08:35:07'),
+(3, 'Company C', 'Vendor C', 'Sto. Cristo Pulilan, Bulacan', '09123456789', 'company@gmail.com', 1, '2024-08-21 05:46:51', '2024-08-21 08:34:57'),
+(4, 'Company D', 'Vendor D', 'Sto. Cristo Pulilan, Bulacan', '09123456789', 'company@gmail.com', 1, '2024-08-21 05:55:01', '2024-08-21 08:34:57'),
+(5, 'Company E', 'Vendor E', 'Sto. Cristo Pulilan, Bulacan', '09123456789', 'company@gmail.com', 0, '2024-08-21 05:58:47', '2024-08-21 08:34:57');
 
 -- --------------------------------------------------------
 
@@ -817,7 +830,7 @@ ALTER TABLE `stockout_history`
 -- AUTO_INCREMENT for table `supplier`
 --
 ALTER TABLE `supplier`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `system_option`
