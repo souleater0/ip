@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 21, 2024 at 01:38 PM
+-- Generation Time: Sep 06, 2024 at 01:03 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.1.25
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -98,11 +98,8 @@ CREATE TABLE `item` (
 --
 
 INSERT INTO `item` (`item_id`, `item_sku`, `item_barcode`, `item_qty`, `item_expiry`, `product_sku`, `created_at`) VALUES
-(1, 'ITM00001', '4800194151702', 9, '2024-08-18', 'SN00001', '2024-08-08 03:46:24'),
-(3, 'ITM00003', '4800194117043', 31, '2024-08-20', 'BR00002', '2024-08-08 03:46:24'),
-(4, 'ITM00004', '4800194153225', 15, '2024-08-07', 'SN00002', '2024-08-08 03:46:24'),
-(5, 'ITM00005', 'TEST0001', 5, '2024-08-25', 'BR00001', '2024-08-09 02:42:09'),
-(6, 'ITM00006', 'TEST0002', 4, '2024-08-21', 'BR00001', '2024-08-12 03:15:22');
+(1, 'ITM00001', 'NCHDWHDG', 10, '2024-09-30', 'SN00001', '2024-09-05 21:39:58'),
+(2, 'ITM00002', 'AWDASCAD', 5, '2024-09-30', 'BR00001', '2024-09-05 21:39:58');
 
 -- --------------------------------------------------------
 
@@ -146,7 +143,10 @@ CREATE TABLE `pending_item` (
   `id` int(11) NOT NULL,
   `series_number` varchar(255) DEFAULT NULL,
   `item_sku` varchar(255) DEFAULT NULL,
+  `product_name` varchar(255) DEFAULT NULL,
   `item_barcode` varchar(255) DEFAULT NULL,
+  `product_pp` int(11) DEFAULT NULL,
+  `product_sp` int(11) DEFAULT NULL,
   `item_qty` int(11) DEFAULT NULL,
   `item_expiry` date DEFAULT NULL,
   `product_sku` varchar(255) DEFAULT NULL,
@@ -157,8 +157,9 @@ CREATE TABLE `pending_item` (
 -- Dumping data for table `pending_item`
 --
 
-INSERT INTO `pending_item` (`id`, `series_number`, `item_sku`, `item_barcode`, `item_qty`, `item_expiry`, `product_sku`, `created_at`) VALUES
-(3, 'STK_IN00001', NULL, 'TEST0002', 5, '2024-08-21', 'BR00001', '2024-08-12 03:15:22');
+INSERT INTO `pending_item` (`id`, `series_number`, `item_sku`, `product_name`, `item_barcode`, `product_pp`, `product_sp`, `item_qty`, `item_expiry`, `product_sku`, `created_at`) VALUES
+(1, 'STK_IN00001', NULL, 'OISHI PODS PEA SNACK 60G', 'NCHDWHDG', 30, NULL, 15, '2024-09-30', 'SN00001', '2024-09-05 21:39:58'),
+(2, 'STK_IN00001', NULL, 'LAURAS MANNA BUTTERED TOAST 200G', 'AWDASCAD', 100, NULL, 10, '2024-09-30', 'BR00001', '2024-09-05 21:39:58');
 
 -- --------------------------------------------------------
 
@@ -170,6 +171,7 @@ CREATE TABLE `pending_stock_out` (
   `id` int(11) NOT NULL,
   `series_number` varchar(255) DEFAULT NULL,
   `item_sku` varchar(255) DEFAULT NULL,
+  `product_name` varchar(255) DEFAULT NULL,
   `item_barcode` varchar(255) DEFAULT NULL,
   `product_pp` int(11) DEFAULT NULL,
   `product_sp` int(11) DEFAULT NULL,
@@ -183,14 +185,9 @@ CREATE TABLE `pending_stock_out` (
 -- Dumping data for table `pending_stock_out`
 --
 
-INSERT INTO `pending_stock_out` (`id`, `series_number`, `item_sku`, `item_barcode`, `product_pp`, `product_sp`, `item_qty`, `item_expiry`, `product_sku`, `created_at`) VALUES
-(1, 'STK_OUT00001', NULL, 'MLWITL', NULL, NULL, 2, '2024-07-16', 'BR00001', '2024-07-22 11:06:24'),
-(2, 'STK_OUT00001', NULL, '4809010109651', NULL, NULL, 3, '2024-08-15', 'BR00001', '2024-08-09 06:53:20'),
-(3, 'STK_OUT00001', NULL, '4800194153225', NULL, NULL, 5, '2024-08-07', 'SN00002', '2024-08-09 06:53:20'),
-(4, 'STK_OUT00002', NULL, '4800194151702', 30, 0, 5, '2024-08-18', 'SN00001', '2024-08-19 07:33:58'),
-(5, 'STK_OUT00003', NULL, 'TEST0002', 100, 0, 6, '2024-08-21', 'BR00001', '2024-08-19 09:09:01'),
-(6, 'STK_OUT00003', NULL, '4800194117043', 15, 0, 5, '2024-08-20', 'BR00002', '2024-08-19 09:09:01'),
-(7, 'STK_OUT00003', NULL, '4800194151702', 30, 0, 5, '2024-08-18', 'SN00001', '2024-08-19 09:09:01');
+INSERT INTO `pending_stock_out` (`id`, `series_number`, `item_sku`, `product_name`, `item_barcode`, `product_pp`, `product_sp`, `item_qty`, `item_expiry`, `product_sku`, `created_at`) VALUES
+(1, 'STK_OUT00001', NULL, 'LAURAS MANNA BUTTERED TOAST 200G', 'AWDASCAD', 100, 0, 5, '2024-09-30', 'BR00001', '2024-09-06 03:44:26'),
+(2, 'STK_OUT00001', NULL, 'OISHI PODS PEA SNACK 60G', 'NCHDWHDG', 30, 0, 5, '2024-09-30', 'SN00001', '2024-09-06 03:44:26');
 
 -- --------------------------------------------------------
 
@@ -288,6 +285,25 @@ INSERT INTO `product` (`product_id`, `product_name`, `product_description`, `bra
 (2, 'LAURAS MANNA BUTTERED TOAST 200G', 'LAURAS MANNA BUTTERED TOAST 200G', 12, 9, NULL, 'BR00001', 100, NULL, 10, 20, 1, 1, 10, '2024-08-08 09:09:17', NULL),
 (3, 'BREAD PAN WHITE CHEDDAR 24G', 'BREAD PAN WHITE CHEDDAR 24G', 10, 9, NULL, 'BR00002', 15, NULL, 20, 50, 1, 1, 10, '2024-08-08 09:10:06', '2024-08-08 09:10:28'),
 (4, 'BREAD PAN CHEESE & ONION 24G', 'BREAD PAN CHEESE & ONION 24G', 10, 8, NULL, 'SN00002', 15, NULL, 20, 50, 1, 1, 10, '2024-08-08 09:12:50', '2024-08-08 09:13:19');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `receipts`
+--
+
+CREATE TABLE `receipts` (
+  `id` int(11) NOT NULL,
+  `receipt_no` varchar(255) DEFAULT NULL,
+  `vendor_id` int(11) DEFAULT NULL,
+  `customer_id` int(11) DEFAULT NULL,
+  `total_amount` decimal(10,2) DEFAULT NULL,
+  `receipt_type` enum('PURCHASE','BILL','') DEFAULT NULL,
+  `receipt_date` date DEFAULT NULL,
+  `payment_method` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -441,7 +457,7 @@ CREATE TABLE `stockin_history` (
 --
 
 INSERT INTO `stockin_history` (`id`, `series_number`, `date`, `isAdded`) VALUES
-(3, 'STK_IN00001', '2024-08-12 09:15:22', 1);
+(1, 'STK_IN00001', '2024-09-06 03:39:58', 1);
 
 -- --------------------------------------------------------
 
@@ -461,9 +477,7 @@ CREATE TABLE `stockout_history` (
 --
 
 INSERT INTO `stockout_history` (`id`, `series_number`, `date`, `isAdded`) VALUES
-(1, 'STK_OUT00001', '2024-08-09 06:53:20', 1),
-(3, 'STK_OUT00002', '2024-08-19 07:33:58', 1),
-(4, 'STK_OUT00003', '2024-08-19 09:09:01', 1);
+(1, 'STK_OUT00001', '2024-09-06 03:44:26', 1);
 
 -- --------------------------------------------------------
 
@@ -492,7 +506,8 @@ INSERT INTO `supplier` (`id`, `vendor_company`, `vendor_name`, `vendor_address`,
 (2, 'Company B', 'Vendor B', 'Baliuag, Bulacan', '09123456789', 'company@gmail.com', 1, '2024-08-21 05:46:44', '2024-08-21 08:35:07'),
 (3, 'Company C', 'Vendor C', 'Sto. Cristo Pulilan, Bulacan', '09123456789', 'company@gmail.com', 1, '2024-08-21 05:46:51', '2024-08-21 08:34:57'),
 (4, 'Company D', 'Vendor D', 'Sto. Cristo Pulilan, Bulacan', '09123456789', 'company@gmail.com', 1, '2024-08-21 05:55:01', '2024-08-21 08:34:57'),
-(5, 'Company E', 'Vendor E', 'Sto. Cristo Pulilan, Bulacan', '09123456789', 'company@gmail.com', 0, '2024-08-21 05:58:47', '2024-08-21 08:34:57');
+(5, 'Company E', 'Vendor E', 'Sto. Cristo Pulilan, Bulacan', '09123456789', 'company@gmail.com', 0, '2024-08-21 05:58:47', '2024-08-21 08:34:57'),
+(6, 'test2s', 'test2s', 'test2s', '1234', 'test@gmail.com', 1, '2024-08-27 03:15:11', '2024-08-27 06:53:28');
 
 -- --------------------------------------------------------
 
@@ -591,7 +606,7 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `username`, `password`, `display_name`, `role_id`, `isEnabled`, `created_at`, `updated_at`) VALUES
 (1, 'admin', '$2y$10$Yvn5wPKG1D1ovcMe5wM2lemqHaX40cKBJ7ybknP0rtYFkVSYt0MmK', 'Jerome De Lara', 1, 1, '2024-05-08 12:30:37', '2024-08-12 03:45:55'),
 (3, 'jhondell', '$2y$10$JRSUatHPUFuxnBTk2t1PzeHke3itwMQXgGiKJrvWT.55bKynetknq', 'Jhondell', 3, 1, '2024-05-22 07:11:58', '2024-08-07 06:30:26'),
-(4, 'purchase', '$2y$10$fu8HEOtJ/Jq2yVXmua8meeAFO3i04W.V6lcj.jdoMXfkHhn1/KWC.', 'Purchasing', 2, 1, '2024-07-26 10:24:19', '2024-08-05 11:43:46');
+(4, 'purchase', '$2y$10$fu8HEOtJ/Jq2yVXmua8meeAFO3i04W.V6lcj.jdoMXfkHhn1/KWC.', 'Purchasing', 2, 0, '2024-07-26 10:24:19', '2024-08-27 03:09:17');
 
 -- --------------------------------------------------------
 
@@ -682,6 +697,12 @@ ALTER TABLE `product`
   ADD KEY `product_sku` (`product_sku`);
 
 --
+-- Indexes for table `receipts`
+--
+ALTER TABLE `receipts`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `roles`
 --
 ALTER TABLE `roles`
@@ -770,7 +791,7 @@ ALTER TABLE `category`
 -- AUTO_INCREMENT for table `item`
 --
 ALTER TABLE `item`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `modules`
@@ -782,13 +803,13 @@ ALTER TABLE `modules`
 -- AUTO_INCREMENT for table `pending_item`
 --
 ALTER TABLE `pending_item`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `pending_stock_out`
 --
 ALTER TABLE `pending_stock_out`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `permissions`
@@ -818,19 +839,19 @@ ALTER TABLE `status`
 -- AUTO_INCREMENT for table `stockin_history`
 --
 ALTER TABLE `stockin_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `stockout_history`
 --
 ALTER TABLE `stockout_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `supplier`
 --
 ALTER TABLE `supplier`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `system_option`

@@ -41,7 +41,7 @@
             <th colspan="1">Average:</th>
             <th></th>
         </tr>
-    </tfoot>
+        </tfoot>
         </table>
       </div>
       <div class="modal-footer">

@@ -669,32 +669,7 @@ require_once 'function.php';
         echo json_encode($response);
         exit();
     }
-    
-    // if(!empty($_POST['action']) && $_POST['action'] == 'addtoInventory') {
-    //     if(empty($_POST['series_number'])){
-    //         $response = array(
-    //             'success' => false,
-    //             'message' => 'Could not retrieve Series Number!'
-    //         );
-    //     }else{
-    //         $series_number = $_POST['series_number'];
-    //         if(addtoInventory($pdo, $series_number)){
-    //             $response = array(
-    //                 'success' => true,
-    //                 'message' => $series_number.' has been successfully added.'
-    //             );
-    //         }else{
-    //             $response = array(
-    //                 'success' => false,
-    //                 'message' => 'Failed to add to inventory!'
-    //             );
-    //         }
-    //     }
-    //     // Send response
-    //     header('Content-Type: application/json');
-    //     echo json_encode($response);
-    //     exit();
-    // }
+
     if (!empty($_POST['action']) && $_POST['action'] == 'addRole') {
         if (empty($_POST['role_name'])) {
             $response = array(
@@ -757,6 +732,83 @@ require_once 'function.php';
                 $response = array(
                     'success' => true,
                     'permissions' => $result['permissions']
+                );
+            } else {
+                $response = array(
+                    'success' => false,
+                    'message' => $result['message']
+                );
+            }
+        }
+        // Send response
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
+
+    if (!empty($_POST['action']) && $_POST['action'] == 'addSupplier') {
+        if (empty($_POST['company_name'])) {
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter Company Name!'
+            );
+        }
+        else if (empty($_POST['supplier_name'])) {
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter Supplier Name!'
+            );
+        }
+        else if (empty($_POST['supplier_address'])) {
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter the Supplier Address!'
+            );
+        }
+        else {
+            $result = addSupplier($pdo);
+            if ($result['success']) {
+                $response = array(
+                    'success' => true,
+                    'message' => $result['message']
+                );
+            } else {
+                $response = array(
+                    'success' => false,
+                    'message' => $result['message']
+                );
+            }
+        }
+        // Send response
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
+    if (!empty($_POST['action']) && $_POST['action'] == 'updateSupplier') {
+        if (empty($_POST['company_name'])) {
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter Company Name!'
+            );
+        }
+        else if (empty($_POST['supplier_name'])) {
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter Supplier Name!'
+            );
+        }
+        else if (empty($_POST['supplier_address'])) {
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter the Supplier Address!'
+            );
+        }
+        else {
+            $result = updateSupplier($pdo);
+            if ($result['success']) {
+                $response = array(
+                    'success' => true,
+                    'message' => $result['message']
                 );
             } else {
                 $response = array(

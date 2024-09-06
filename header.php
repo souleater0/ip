@@ -205,7 +205,7 @@ $route = $_GET['route'] ?? 'home';
             <?php } ?>
             <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_role')){?>
             <li class="sidebar-item">
-              <a class="sidebar-link" href="index.php?route=role-management" aria-expanded="false">
+              <a class="sidebar-link" href="index.php?route=manage-receipt" aria-expanded="false">
                 <iconify-icon icon="ic:baseline-receipt-long"></iconify-icon>
                 <span class="hide-menu">Receipt</span>
               </a>

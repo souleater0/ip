@@ -961,7 +961,6 @@
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         return $result ? (int)$result['total_qty'] : 0;
     }
-    
     function stockIN($pdo, $postData) {
         try {
             if (is_array($postData)) {
@@ -992,17 +991,23 @@
                 ];
             }
     
-            $stmt = $pdo->prepare("INSERT INTO pending_item (series_number, item_barcode, item_qty, item_expiry, product_sku, created_at) VALUES (:series_number, :item_barcode, :item_qty, :item_expiry, :product_sku, :created_at)");
+            $stmt = $pdo->prepare("
+                INSERT INTO pending_item (
+                    series_number,product_name, item_barcode, item_qty, item_expiry, product_sku, product_pp, product_sp, created_at
+                ) VALUES (
+                    :series_number,:product_name, :item_barcode, :item_qty, :item_expiry, :product_sku, :product_pp, :product_sp, :created_at
+                )
+            ");
     
             foreach ($data['items'] as $product) {
                 $product_sku = $product['product_sku'];
     
-                // Fetch product limits
-                $stmt_product = $pdo->prepare("SELECT product_min, product_max FROM product WHERE product_sku = :product_sku");
+                // Fetch product details including purchase and selling price
+                $stmt_product = $pdo->prepare("SELECT product_name, product_min, product_max, product_pp, product_sp FROM product WHERE product_sku = :product_sku");
                 $stmt_product->execute([':product_sku' => $product_sku]);
-                $product_limits = $stmt_product->fetch(PDO::FETCH_ASSOC);
+                $product_info = $stmt_product->fetch(PDO::FETCH_ASSOC);
     
-                if (!$product_limits) {
+                if (!$product_info) {
                     $pdo->rollBack();
                     return [
                         'success' => false,
@@ -1010,14 +1015,12 @@
                     ];
                 }
     
-                $product_max = (int)$product_limits['product_max'];
+                $product_max = (int)$product_info['product_max'];
                 $current_count = getCurrentInventoryCount($pdo, $product_sku);
     
                 foreach ($product['items'] as $item) {
-                    // Calculate the new total count if the item is added
                     $new_total_count = $current_count + $item['qty'];
     
-                    // Validate the item's quantity against the max limit
                     if ($new_total_count > $product_max) {
                         $pdo->rollBack();
                         return [
@@ -1026,16 +1029,18 @@
                         ];
                     }
     
-                    // Update the current count for the next iteration
                     $current_count = $new_total_count;
     
-                    // Insert the item into the pending_item table
+                    // Insert the item into the pending_item table including product_pp and product_sp
                     $stmt->execute([
                         ':series_number' => $series_number,
+                        ':product_name' => $product_info['product_name'],
                         ':item_barcode' => $item['barcode'],
                         ':item_qty' => $item['qty'],
                         ':item_expiry' => $item['expiry'],
                         ':product_sku' => $product_sku,
+                        ':product_pp' => $product_info['product_pp'],
+                        ':product_sp' => $product_info['product_sp'],
                         ':created_at' => date('Y-m-d H:i:s')
                     ]);
                 }
@@ -1051,6 +1056,96 @@
             return ['success' => false, 'message' => 'Failed to add stocks.'];
         }
     }
+    
+    // function stockIN($pdo, $postData) {
+    //     try {
+    //         if (is_array($postData)) {
+    //             $postData = json_encode($postData);
+    //         }
+    
+    //         $data = json_decode($postData, true);
+    
+    //         if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
+    //             return [
+    //                 'success' => false,
+    //                 'message' => 'Invalid JSON data!'
+    //             ];
+    //         }
+    
+    //         // Begin the transaction
+    //         $pdo->beginTransaction();
+    
+    //         $series_number = $data['stockin_number'];
+    //         $stmt_stockin = $pdo->prepare("INSERT INTO stockin_history (series_number) VALUES (:series_number)");
+    //         $insert_stockin_history = $stmt_stockin->execute([':series_number' => $series_number]);
+    
+    //         if (!$insert_stockin_history) {
+    //             $pdo->rollBack();
+    //             return [
+    //                 'success' => false,
+    //                 'message' => 'Failed to insert into stockin_history!'
+    //             ];
+    //         }
+    
+    //         $stmt = $pdo->prepare("INSERT INTO pending_item (series_number, item_barcode, item_qty, item_expiry, product_sku, created_at) VALUES (:series_number, :item_barcode, :item_qty, :item_expiry, :product_sku, :created_at)");
+    
+    //         foreach ($data['items'] as $product) {
+    //             $product_sku = $product['product_sku'];
+    
+    //             // Fetch product limits
+    //             $stmt_product = $pdo->prepare("SELECT product_min, product_max FROM product WHERE product_sku = :product_sku");
+    //             $stmt_product->execute([':product_sku' => $product_sku]);
+    //             $product_limits = $stmt_product->fetch(PDO::FETCH_ASSOC);
+    
+    //             if (!$product_limits) {
+    //                 $pdo->rollBack();
+    //                 return [
+    //                     'success' => false,
+    //                     'message' => "Product with SKU $product_sku not found."
+    //                 ];
+    //             }
+    
+    //             $product_max = (int)$product_limits['product_max'];
+    //             $current_count = getCurrentInventoryCount($pdo, $product_sku);
+    
+    //             foreach ($product['items'] as $item) {
+    //                 // Calculate the new total count if the item is added
+    //                 $new_total_count = $current_count + $item['qty'];
+    
+    //                 // Validate the item's quantity against the max limit
+    //                 if ($new_total_count > $product_max) {
+    //                     $pdo->rollBack();
+    //                     return [
+    //                         'success' => false,
+    //                         'message' => "Adding item with barcode {$item['barcode']} exceeds the allowed maximum of $product_max for product SKU $product_sku."
+    //                     ];
+    //                 }
+    
+    //                 // Update the current count for the next iteration
+    //                 $current_count = $new_total_count;
+    
+    //                 // Insert the item into the pending_item table
+    //                 $stmt->execute([
+    //                     ':series_number' => $series_number,
+    //                     ':item_barcode' => $item['barcode'],
+    //                     ':item_qty' => $item['qty'],
+    //                     ':item_expiry' => $item['expiry'],
+    //                     ':product_sku' => $product_sku,
+    //                     ':created_at' => date('Y-m-d H:i:s')
+    //                 ]);
+    //             }
+    //         }
+    
+    //         // Commit the transaction
+    //         $pdo->commit();
+    
+    //         return ['success' => true, 'message' => 'Stock has been recorded.'];
+    //     } catch (PDOException $e) {
+    //         // Rollback the transaction in case of an error
+    //         $pdo->rollBack();
+    //         return ['success' => false, 'message' => 'Failed to add stocks.'];
+    //     }
+    // }
     function stockOut($pdo, $postData) {
         try {
             // Step 1: Handle input
@@ -1076,11 +1171,12 @@
             }
     
             // Step 5: Prepare pending_stock_out insert
-            $stmt_pending = $pdo->prepare("INSERT INTO pending_stock_out (series_number, item_barcode, item_qty, product_pp, product_sp, item_expiry, product_sku, created_at) VALUES (:series_number, :item_barcode, :item_qty, :product_pp, :product_sp, :item_expiry, :product_sku, NOW())");
+            $stmt_pending = $pdo->prepare("INSERT INTO pending_stock_out (series_number, product_name, item_barcode, item_qty, product_pp, product_sp, item_expiry, product_sku, created_at) VALUES (:series_number, :product_name, :item_barcode, :item_qty, :product_pp, :product_sp, :item_expiry, :product_sku, NOW())");
     
             // Step 6: Loop through items
             foreach ($data['items'] as $item) {
                 $productSku = $item['product_sku'];
+                $product_name = $item['product_name'];
                 $itemBarcode = $item['barcode'];
                 $product_pp = $item['product_pp'];
                 $product_sp = $item['product_sp'];
@@ -1090,6 +1186,7 @@
                 // Insert the item into pending_stock_out table
                 $stmt_pending->execute([
                     ':series_number' => $stockoutNumber,
+                    ':product_name' => $product_name,
                     ':item_barcode' => $itemBarcode,
                     ':product_pp' => $product_pp,
                     ':product_sp' => $product_sp,
@@ -1553,5 +1650,93 @@
             return array('success' => false, 'message' => 'Failed to update role and permissions: ' . $e->getMessage());
         }
     }
+    function addSupplier($pdo) {
+        $supplier_id = !empty($_POST['supplier_id']) ? $_POST['supplier_id'] : null;
+        $companyName = !empty($_POST['company_name']) ? $_POST['company_name'] : null;
+        $supplierName = !empty($_POST['supplier_name']) ? $_POST['supplier_name'] : null;
+        $supplierAddress = !empty($_POST['supplier_address']) ? $_POST['supplier_address'] : null;
+        $supplierContact = !empty($_POST['supplier_contact']) ? $_POST['supplier_contact'] : null;
+        $supplierEmail = !empty($_POST['supplier_email']) ? $_POST['supplier_email'] : null;
+        $isActive = !empty($_POST['isActive']) ? '1' : '0';
+    
+        try {
+            // Start a transaction
+            $pdo->beginTransaction();
+    
+            // Insert the new supplier into the suppliers table
+            $stmt = $pdo->prepare("
+                INSERT INTO supplier (vendor_company, vendor_name, vendor_address, vendor_contact, vendor_email, status, created_at)
+                VALUES (:vendor_company, :vendor_name, :vendor_address, :vendor_contact, :vendor_email, :status, NOW())
+            ");
+            $stmt->execute([
+                'vendor_company' => $companyName,
+                'vendor_name' => $supplierName,
+                'vendor_address' => $supplierAddress,
+                'vendor_contact' => $supplierContact,
+                'vendor_email' => $supplierEmail,
+                'status' => $isActive
+            ]);
+    
+            // Commit the transaction
+            $pdo->commit();
+            return array('success' => true, 'message' => 'Supplier added successfully!');
+        } catch (Exception $e) {
+            // Roll back the transaction if something failed
+            $pdo->rollBack();
+            return array('success' => false, 'message' => 'Failed to add supplier: ' . $e->getMessage());
+        }
+    }
+    function updateSupplier($pdo) {
+        // Get the supplier ID for the update
+        $supplierId = !empty($_POST['update_id']) ? $_POST['update_id'] : null;
+    
+        // If no supplier ID is provided, return an error message
+        if (is_null($supplierId)) {
+            return array('success' => false, 'message' => 'Supplier ID is required for updating.');
+        }
+    
+        $companyName = !empty($_POST['company_name']) ? $_POST['company_name'] : null;
+        $supplierName = !empty($_POST['supplier_name']) ? $_POST['supplier_name'] : null;
+        $supplierAddress = !empty($_POST['supplier_address']) ? $_POST['supplier_address'] : null;
+        $supplierContact = !empty($_POST['supplier_contact']) ? $_POST['supplier_contact'] : null;
+        $supplierEmail = !empty($_POST['supplier_email']) ? $_POST['supplier_email'] : null;
+        $isActive = !empty($_POST['isActive']) ? '1' : '0';
+    
+        try {
+            // Start a transaction
+            $pdo->beginTransaction();
+    
+            // Update the existing supplier in the supplier table
+            $stmt = $pdo->prepare("
+                UPDATE supplier 
+                SET vendor_company = :vendor_company, 
+                    vendor_name = :vendor_name, 
+                    vendor_address = :vendor_address, 
+                    vendor_contact = :vendor_contact, 
+                    vendor_email = :vendor_email, 
+                    status = :status,
+                    updated_at = NOW()
+                WHERE id = :supplier_id
+            ");
+            $stmt->execute([
+                'vendor_company' => $companyName,
+                'vendor_name' => $supplierName,
+                'vendor_address' => $supplierAddress,
+                'vendor_contact' => $supplierContact,
+                'vendor_email' => $supplierEmail,
+                'status' => $isActive,
+                'supplier_id' => $supplierId
+            ]);
+    
+            // Commit the transaction
+            $pdo->commit();
+            return array('success' => true, 'message' => 'Supplier updated successfully!');
+        } catch (Exception $e) {
+            // Roll back the transaction if something failed
+            $pdo->rollBack();
+            return array('success' => false, 'message' => 'Failed to update supplier: ' . $e->getMessage());
+        }
+    }
+    
     
 ?>
