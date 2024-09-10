@@ -173,6 +173,20 @@
     function getPermissionList($pdo){
 
     }
+    function getSupplierList($pdo){
+        try {
+            $query = "SELECT * FROM supplier";
+            $stmt = $pdo->prepare($query);
+    
+            $stmt ->execute();
+            $supplier = $stmt -> fetchAll(PDO::FETCH_ASSOC);
+            return $supplier;
+        }catch(PDOException $e){
+                    // Handle database connection error
+            echo "Error: " . $e->getMessage();
+            return array(); // Return an empty array if an error occurs
+        }
+    }
     function getCategory($pdo){
         // require_once 'config.php';
         try {
