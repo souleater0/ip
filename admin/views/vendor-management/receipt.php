@@ -72,51 +72,63 @@
                 </div>
               </div>
               <table id="example" class="table table-hover table-cs-color display">
-            <thead>
-              <tr>
-                <th>Product Name</th>
-                <th>SKU</th>
-                <th>Barcode</th>
-                <th>Description</th>
-                <th>Qty</th>
-                <th>Rate</th>
-                <th>Amount</th>
-                <th>Customer</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-              <td class="editable" data-type="product-name">
-  <input type="text" class="form-control plain-text" readonly />
-  <div class="select-wrapper" style="display:none;">
-    <select class="selectpicker form-control" data-live-search="true">
-      <option value="" disabled selected>Select a product</option>
-      <option value="1">Chocolate</option>
-      <option value="2">Vanilla</option>
-      <option value="3">Strawberry</option>
-    </select>
-  </div>
-</td>
-                <td class="editable">CHC0001</td>
-                <td class="editable">ABC1234</td>
-                <td class="editable">A 30g Choco</td>
-                <td class="editable qty">15</td>
-                <td class="editable rate"></td>
-                <td class="editable amount">200</td>
-                <td class="editable" data-type="customer">
-                  <input type="text" class="form-control plain-text" readonly />
-                  <div class="select-wrapper" style="display:none;">
-                    <select class="selectpicker form-control" data-live-search="true">
-                      <option value="" disabled selected>Select a customer</option>
-                      <option value="1">Customer X</option>
-                      <option value="2">Customer Y</option>
-                      <option value="3">Customer Z</option>
-                    </select>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+  <thead>
+    <tr>
+      <th>Product Name</th>
+      <th>SKU</th>
+      <th>Barcode</th>
+      <th>Description</th>
+      <th>Qty</th>
+      <th>Rate</th>
+      <th>Amount</th>
+      <th>Customer</th>
+      <th>Actions</th> <!-- Add this column for action buttons -->
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="editable" data-type="product-name">
+        <input type="text" class="form-control plain-text" readonly />
+        <div class="select-wrapper" style="display:none;">
+          <select class="selectpicker form-control" data-live-search="true">
+            <option value="" disabled selected>Select a product</option>
+            <option value="1">Chocolate</option>
+            <option value="2">Vanilla</option>
+            <option value="3">Strawberry</option>
+          </select>
+        </div>
+      </td>
+      <td class=""></td>
+      <td class="editable"></td>
+      <td class="editable"></td>
+      <td class="editable qty"></td>
+      <td class="editable rate"></td>
+      <td class="editable amount"></td>
+      <td class="editable" data-type="customer">
+        <input type="text" class="form-control plain-text" readonly />
+        <div class="select-wrapper" style="display:none;">
+          <select class="selectpicker form-control" data-live-search="true">
+            <option value="" disabled selected>Select a customer</option>
+            <option value="1">Customer X</option>
+            <option value="2">Customer Y</option>
+            <option value="3">Customer Z</option>
+          </select>
+        </div>
+      </td>
+      <td>
+        <button class="btn btn-danger btn-sm btn-delete">Delete</button>
+      </td>
+    </tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="9">
+        <button type="button" class="btn btn-primary btn-sm btn-add-row">Add Row</button>
+      </td>
+    </tr>
+  </tfoot>
+</table>
+
               <!-- Additional fields for bill form -->
             </form>
             <!-- Expense and Invoice forms here -->
@@ -129,9 +141,8 @@
       </div>
     </div>
   </div>
-
   <script>
-  $(document).ready(function() {
+$(document).ready(function() {
   // Initialize Select Picker
   $('.selectpicker').selectpicker();
 
@@ -149,63 +160,194 @@
     var $cell = $(this);
     if ($cell.hasClass('editing')) return;
 
-    var $input = $cell.find('input');
-    var $selectWrapper = $cell.find('.select-wrapper');
-    var $select = $cell.find('select');
-    var currentValue = $input.val();
+    var originalWidth = $cell.width();
+    var originalHeight = $cell.height();
+    $cell.css({ 'min-width': originalWidth, 'min-height': originalHeight });
 
-    // Switch to editing mode
-    $cell.addClass('editing');
-    $input.hide();
-    $selectWrapper.show();
-    $select.selectpicker('refresh');
+    if ($cell.data('type') === 'product-name' || $cell.data('type') === 'customer') {
+      var $input = $cell.find('input');
+      var $selectWrapper = $cell.find('.select-wrapper');
+      var $select = $cell.find('select');
+      var currentValue = $input.val();
 
-    // Set the selectpicker to the current value
-    if ($select.length) {
-      $select.val(function() {
-        return $select.find('option').filter(function() {
-          return $(this).text() === currentValue;
-        }).val();
-      }).selectpicker('refresh');
-    }
-    
-    $select.focus();
+      $cell.addClass('editing');
+      $input.hide();
+      $selectWrapper.show();
+      $select.selectpicker('refresh');
 
-    // Handle select change
-    $select.on('change', function() {
-      var selectedText = $(this).find('option:selected').text();
-      $input.val(selectedText).show();
-      $selectWrapper.hide();
-      $cell.removeClass('editing');
-    });
+      if ($select.length) {
+        $select.val(function() {
+          return $select.find('option').filter(function() {
+            return $(this).text() === currentValue;
+          }).val();
+        }).selectpicker('refresh');
+      }
 
-    // Handle click outside to save changes
-    $(document).on('click', function(event) {
-      if (!$cell.is(event.target) && !$cell.has(event.target).length) {
-        $input.show();
+      $select.focus();
+
+      $select.on('change', function() {
+        var selectedText = $(this).find('option:selected').text();
+        $input.val(selectedText).show();
         $selectWrapper.hide();
         $cell.removeClass('editing');
-      }
-    });
+        resetCellSize($cell);
+        computeRow($cell); // Ensure computation is updated after selection
+      });
+
+      $(document).on('click', function(event) {
+        if (!$cell.is(event.target) && !$cell.has(event.target).length) {
+          $input.show();
+          $selectWrapper.hide();
+          $cell.removeClass('editing');
+          resetCellSize($cell);
+        }
+      });
+    } else {
+      var originalValue = $cell.text();
+      $cell.addClass('editing').empty();
+
+      var $input = $('<input>', {
+        type: 'text',
+        class: 'form-control',
+        value: originalValue
+      }).appendTo($cell);
+
+      $input.focus().val('').val(originalValue);
+
+      $input.on('blur', function() {
+        saveChanges($cell, $input.val(), originalValue);
+      });
+
+      $input.on('keypress', function(e) {
+        if (e.which === 13) { // Enter key
+          saveChanges($cell, $input.val(), originalValue);
+        }
+      });
+    }
   });
 
-  // Compute rate
+  function saveChanges(cell, newValue, originalValue) {
+    if (newValue === originalValue) {
+      cell.text(originalValue).removeClass('editing');
+      resetCellSize(cell);
+      return;
+    }
+
+    cell.text(newValue).removeClass('editing');
+    resetCellSize(cell);
+
+    computeRow(cell); // Ensure computation is updated after saving changes
+  }
+
+  function resetCellSize(cell) {
+    cell.css({ 'min-width': '', 'min-height': '' });
+  }
+
+  function computeRow(cell) {
+    var $row = cell.closest('tr');
+    var qty = parseFloat($row.find('.qty').text()) || 0;
+    var rate = parseFloat($row.find('.rate').text()) || 0;
+    var amount = parseFloat($row.find('.amount').text()) || 0;
+
+    if (qty === 0) {
+      if (cell.hasClass('amount')) {
+        $row.find('.rate').text('');
+      } else if (rate) {
+        $row.find('.amount').text((rate * qty).toFixed(2));
+      }
+    } else {
+      if (cell.hasClass('qty')) {
+        if (rate) {
+          $row.find('.amount').text((rate * qty).toFixed(2));
+        } else if (amount) {
+          $row.find('.rate').text((amount / qty).toFixed(2));
+        }
+      } else if (cell.hasClass('rate')) {
+        $row.find('.amount').text((rate * qty).toFixed(2));
+      } else if (cell.hasClass('amount')) {
+        if (qty) {
+          $row.find('.rate').text((amount / qty).toFixed(2));
+        }
+      }
+    }
+  }
+
   function computeRate() {
     $('#example tbody tr').each(function() {
-      var qty = $(this).find('.qty').text();
-      var amount = $(this).find('.amount').text();
-      var rate = (qty && amount) ? (amount / qty).toFixed(2) : '';
-      $(this).find('.rate').text(rate);
+      var $row = $(this);
+      var qty = parseFloat($row.find('.qty').text()) || 0;
+      var amount = parseFloat($row.find('.amount').text()) || 0;
+      var rate = qty ? (amount / qty).toFixed(2) : '';
+      $row.find('.rate').text(rate);
     });
   }
 
-  $('#example').on('input', '.qty, .amount', function() {
+  function computeAmount(cell) {
+    var $row = cell.closest('tr');
+    var rate = parseFloat($row.find('.rate').text()) || 0;
+    var qty = parseFloat($row.find('.qty').text()) || 0;
+    var amount = (rate * qty).toFixed(2);
+    $row.find('.amount').text(amount);
+  }
+
+  $('#example').on('input', '.qty', function() {
+    computeRow($(this));
+  });
+
+  $('#example').on('input', '.amount', function() {
     computeRate();
   });
 
-  // Initialize DataTable
+  $('#example').on('input', '.rate', function() {
+    computeAmount($(this));
+  });
+
   $('#example').DataTable({
     autoWidth: false
   });
+
+  $('#example').on('click', 'tbody .btn-delete', function() {
+    $(this).closest('tr').remove();
+    computeRate();
+  });
+
+  $('.btn-add-row').on('click', function() {
+    var newRow = `<tr>
+      <td class="editable" data-type="product-name">
+        <input type="text" class="form-control plain-text" readonly />
+        <div class="select-wrapper" style="display:none;">
+          <select class="selectpicker form-control" data-live-search="true">
+            <option value="" disabled selected>Select a product</option>
+            <option value="1">Chocolate</option>
+            <option value="2">Vanilla</option>
+            <option value="3">Strawberry</option>
+          </select>
+        </div>
+      </td>
+      <td class="editable"></td>
+      <td class="editable"></td>
+      <td class="editable"></td>
+      <td class="editable qty dt-type-numeric"></td>
+      <td class="editable rate dt-type-numeric"></td>
+      <td class="editable amount dt-type-numeric"></td>
+      <td class="editable" data-type="customer">
+        <input type="text" class="form-control plain-text" readonly />
+        <div class="select-wrapper" style="display:none;">
+          <select class="selectpicker form-control" data-live-search="true">
+            <option value="" disabled selected>Select a customer</option>
+            <option value="1">Customer X</option>
+            <option value="2">Customer Y</option>
+            <option value="3">Customer Z</option>
+          </select>
+        </div>
+      </td>
+      <td>
+        <button class="btn btn-danger btn-sm btn-delete">Delete</button>
+      </td>
+    </tr>`;
+    $('#example tbody').append(newRow);
+    $('.selectpicker').selectpicker('refresh');
+  });
 });
+
 </script>
