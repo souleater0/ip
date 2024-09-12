@@ -1,18 +1,3 @@
-<style>
-  .plain-text {
-  border: none;
-  background: transparent;
-  padding: 0;
-  font-size: inherit;
-  line-height: inherit;
-  box-shadow: none;
-  cursor: default;
-}
-
-.plain-text:focus {
-  outline: none;
-}
-</style>
 <div class="body-wrapper-inner">
     <div class="container-fluid mw-100">
       <div class="row py-3">
@@ -48,8 +33,8 @@
     </div>
   </div>
 
-  <!-- Modal -->
-  <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+<!-- Modal -->
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog modal-fullscreen">
       <div class="modal-content">
         <div class="modal-header">
@@ -61,77 +46,36 @@
           <div id="dynamicFormContent">
             <!-- Bill form -->
             <form id="billForm" class="dynamic-form" style="display:none;">
-              <div class="row">
-                <div class="col-2">
-                  <label for="supplier" class="form-label">Supplier</label>
-                  <select class="selectpicker form-control show-tick" id="supplier" name="supplier" data-live-search="true">
-                    <?php foreach ($suppliers as $supplier):?>
-                      <option value="<?php echo $supplier['id'];?>"><?php echo $supplier['vendor_company'];?></option>
-                    <?php endforeach;?>
+              <div class="row mb-3">
+                <div class="col-3">
+                  <label for="supplier" class="form-label">Supplier</label >
+                  <select class="selectpicker form-control" id="supplier" name="supplier" data-live-search="true">
+                    <option value="1">Supplier A</option>
+                    <option value="2">Supplier B</option>
                   </select>
                 </div>
               </div>
-              <table id="example" class="table table-hover table-cs-color display">
-  <thead>
-    <tr>
-      <th>Product Name</th>
-      <th>SKU</th>
-      <th>Barcode</th>
-      <th>Description</th>
-      <th>Qty</th>
-      <th>Rate</th>
-      <th>Amount</th>
-      <th>Customer</th>
-      <th>Actions</th> <!-- Add this column for action buttons -->
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td class="editable" data-type="product-name">
-        <input type="text" class="form-control plain-text" readonly />
-        <div class="select-wrapper" style="display:none;">
-          <select class="selectpicker form-control" data-live-search="true">
-            <option value="" disabled selected>Select a product</option>
-            <option value="1">Chocolate</option>
-            <option value="2">Vanilla</option>
-            <option value="3">Strawberry</option>
-          </select>
-        </div>
-      </td>
-      <td class=""></td>
-      <td class="editable"></td>
-      <td class="editable"></td>
-      <td class="editable qty"></td>
-      <td class="editable rate"></td>
-      <td class="editable amount"></td>
-      <td class="editable" data-type="customer">
-        <input type="text" class="form-control plain-text" readonly />
-        <div class="select-wrapper" style="display:none;">
-          <select class="selectpicker form-control" data-live-search="true">
-            <option value="" disabled selected>Select a customer</option>
-            <option value="1">Customer X</option>
-            <option value="2">Customer Y</option>
-            <option value="3">Customer Z</option>
-          </select>
-        </div>
-      </td>
-      <td>
-        <button class="btn btn-danger btn-sm btn-delete">Delete</button>
-      </td>
-    </tr>
-  </tbody>
-  <tfoot>
-    <tr>
-      <td colspan="9">
-        <button type="button" class="btn btn-primary btn-sm btn-add-row">Add Row</button>
-      </td>
-    </tr>
-  </tfoot>
-</table>
 
-              <!-- Additional fields for bill form -->
+              <!-- Table for items -->
+              <table id="editableTable" class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Product Name</th>
+                    <th>SKU</th>
+                    <th>Qty</th>
+                    <th>Rate</th>
+                    <th>Amount</th>
+                    <th>Customer</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+
+              <!-- Buttons to add and clear rows -->
+              <button id="addRow" type="button" class="btn btn-success">Add Row</button>
+              <button id="clearRows" type="button" class="btn btn-danger">Clear All</button>
             </form>
-            <!-- Expense and Invoice forms here -->
           </div>
         </div>
         <div class="modal-footer">
@@ -141,213 +85,141 @@
       </div>
     </div>
   </div>
+
   <script>
-$(document).ready(function() {
-  // Initialize Select Picker
-  $('.selectpicker').selectpicker();
-
-  // Show the appropriate form in the modal
-  $('.dropdown-item').on('click', function() {
-    var formType = $(this).data('form');
-    $('.dynamic-form').hide();
-    $('#' + formType + 'Form').show();
-    var newTitle = $(this).text();
-    $('#staticBackdropLabel').text(newTitle);
-  });
-
-  // Handle cell click for inline editing
-  $('#example').on('click', 'tbody td.editable', function() {
-    var $cell = $(this);
-    if ($cell.hasClass('editing')) return;
-
-    var originalWidth = $cell.width();
-    var originalHeight = $cell.height();
-    $cell.css({ 'min-width': originalWidth, 'min-height': originalHeight });
-
-    if ($cell.data('type') === 'product-name' || $cell.data('type') === 'customer') {
-      var $input = $cell.find('input');
-      var $selectWrapper = $cell.find('.select-wrapper');
-      var $select = $cell.find('select');
-      var currentValue = $input.val();
-
-      $cell.addClass('editing');
-      $input.hide();
-      $selectWrapper.show();
-      $select.selectpicker('refresh');
-
-      if ($select.length) {
-        $select.val(function() {
-          return $select.find('option').filter(function() {
-            return $(this).text() === currentValue;
-          }).val();
-        }).selectpicker('refresh');
-      }
-
-      $select.focus();
-
-      $select.on('change', function() {
-        var selectedText = $(this).find('option:selected').text();
-        $input.val(selectedText).show();
-        $selectWrapper.hide();
-        $cell.removeClass('editing');
-        resetCellSize($cell);
-        computeRow($cell); // Ensure computation is updated after selection
+    $(document).ready(function() {
+      // Show the appropriate form in the modal
+      $('.dropdown-item').on('click', function() {
+        var formType = $(this).data('form');
+        $('.dynamic-form').hide();
+        $('#' + formType + 'Form').show();
+        var newTitle = $(this).text();
+        $('#staticBackdropLabel').text(newTitle);
       });
 
-      $(document).on('click', function(event) {
-        if (!$cell.is(event.target) && !$cell.has(event.target).length) {
-          $input.show();
-          $selectWrapper.hide();
-          $cell.removeClass('editing');
-          resetCellSize($cell);
-        }
-      });
-    } else {
-      var originalValue = $cell.text();
-      $cell.addClass('editing').empty();
-
-      var $input = $('<input>', {
-        type: 'text',
-        class: 'form-control',
-        value: originalValue
-      }).appendTo($cell);
-
-      $input.focus().val('').val(originalValue);
-
-      $input.on('blur', function() {
-        saveChanges($cell, $input.val(), originalValue);
+      var table = $('#editableTable').DataTable({
+        columns: [
+          { title: "Product Name", data: "product_name" },
+          { title: "SKU", data: "sku" },
+          { title: "Qty", data: "qty" },
+          { title: "Rate", data: "rate" },
+          { title: "Amount", data: "amount" },
+          { title: "Customer", data: "customer" },
+          {
+            title: "Actions", 
+            data: null,
+            defaultContent: '<button type="button" class="btn btn-primary btn-sm edit-row">Edit</button>'
+          }
+        ],
+        paging: false,
+        ordering: false,
+        searching: false,
+        autoWidth: false
       });
 
-      $input.on('keypress', function(e) {
-        if (e.which === 13) { // Enter key
-          saveChanges($cell, $input.val(), originalValue);
-        }
-      });
-    }
-  });
-
-  function saveChanges(cell, newValue, originalValue) {
-    if (newValue === originalValue) {
-      cell.text(originalValue).removeClass('editing');
-      resetCellSize(cell);
-      return;
-    }
-
-    cell.text(newValue).removeClass('editing');
-    resetCellSize(cell);
-
-    computeRow(cell); // Ensure computation is updated after saving changes
-  }
-
-  function resetCellSize(cell) {
-    cell.css({ 'min-width': '', 'min-height': '' });
-  }
-
-  function computeRow(cell) {
-    var $row = cell.closest('tr');
-    var qty = parseFloat($row.find('.qty').text()) || 0;
-    var rate = parseFloat($row.find('.rate').text()) || 0;
-    var amount = parseFloat($row.find('.amount').text()) || 0;
-
-    if (qty === 0) {
-      if (cell.hasClass('amount')) {
-        $row.find('.rate').text('');
-      } else if (rate) {
-        $row.find('.amount').text((rate * qty).toFixed(2));
-      }
-    } else {
-      if (cell.hasClass('qty')) {
-        if (rate) {
-          $row.find('.amount').text((rate * qty).toFixed(2));
-        } else if (amount) {
-          $row.find('.rate').text((amount / qty).toFixed(2));
-        }
-      } else if (cell.hasClass('rate')) {
-        $row.find('.amount').text((rate * qty).toFixed(2));
-      } else if (cell.hasClass('amount')) {
-        if (qty) {
-          $row.find('.rate').text((amount / qty).toFixed(2));
+      // Function to add empty rows
+      function addEmptyRows(numRows) {
+        for (var i = 0; i < numRows; i++) {
+          table.row.add({
+            product_name: '',
+            sku: '',
+            qty: '',
+            rate: '',
+            amount: '',
+            customer: ''
+          }).draw(false);
         }
       }
-    }
-  }
 
-  function computeRate() {
-    $('#example tbody tr').each(function() {
-      var $row = $(this);
-      var qty = parseFloat($row.find('.qty').text()) || 0;
-      var amount = parseFloat($row.find('.amount').text()) || 0;
-      var rate = qty ? (amount / qty).toFixed(2) : '';
-      $row.find('.rate').text(rate);
+      // Initialize with 2 empty rows
+      addEmptyRows(2);
+
+      // Handle Add Row button
+      $('#addRow').on('click', function() {
+        table.row.add({
+          product_name: '',
+          sku: '',
+          qty: '',
+          rate: '',
+          amount: '',
+          customer: ''
+        }).draw(false);
+      });
+
+      // Handle Clear Rows button, keeping 2 empty rows
+      $('#clearRows').on('click', function() {
+        table.clear().draw(false); // Clear all rows
+        addEmptyRows(2); // Add 2 default empty rows
+      });
+
+      // Handle Edit button click
+      $('#editableTable tbody').on('click', '.edit-row', function() {
+        var row = $(this).closest('tr');
+        var rowData = table.row(row).data();
+
+        if ($(this).text() === 'Edit') {
+          // Switch to Edit Mode
+          row.find('td').each(function(index) {
+            if (index === 0) {
+              $(this).html('<input type="text" class="form-control product-name" value="' + rowData.product_name + '">');
+            } else if (index === 1) {
+              $(this).html('<input type="text" class="form-control sku" value="' + rowData.sku + '">');
+            } else if (index === 2) {
+              $(this).html('<input type="number" class="form-control qty" value="' + rowData.qty + '">');
+            } else if (index === 3) {
+              $(this).html('<input type="number" class="form-control rate" value="' + rowData.rate + '">');
+            } else if (index === 4) {
+              $(this).html('<input type="number" class="form-control amount" value="' + rowData.amount + '">');
+            } else if (index === 5) {
+              $(this).html('<select class="selectpicker form-control" data-live-search="true"><option value="Customer A">Customer A</option><option value="Customer B">Customer B</option></select>');
+              $(this).find('select').val(rowData.customer);
+              // Reinitialize the selectpicker
+              $(this).find('select').selectpicker('refresh');
+            }
+          });
+          $(this).text('Save');
+        } else {
+          // Switch to Display Mode and Save the changes
+          var updatedData = {
+            product_name: row.find('.product-name').val(),
+            sku: row.find('.sku').val(),
+            qty: row.find('.qty').val(),
+            rate: row.find('.rate').val(),
+            amount: row.find('.amount').val(),
+            customer: row.find('.selectpicker').val()
+          };
+
+          table.row(row).data(updatedData).draw(false);
+          $(this).text('Edit');
+        }
+      });
+
+      // Handle calculations between Qty and Rate to update Amount
+      $('#editableTable').on('input', '.qty, .rate', function() {
+        var row = $(this).closest('tr');
+        var qty = parseFloat(row.find('.qty').val()) || 0;
+        var rate = parseFloat(row.find('.rate').val()) || 0;
+        row.find('.amount').val((qty * rate).toFixed(2));
+      });
+
+      // Handle changes to Amount to update Rate
+      $('#editableTable').on('input', '.amount', function() {
+        var row = $(this).closest('tr');
+        var qty = parseFloat(row.find('.qty').val()) || 0;
+        var amount = parseFloat($(this).val()) || 0;
+        if (qty > 0) {
+          row.find('.rate').val((amount / qty).toFixed(2));
+        }
+      });
+      // Handle Save & Close button click
+      $('#submitForm').on('click', function() {
+        var formData = [];
+        table.rows().every(function() {
+          var data = this.data();
+          formData.push(data);
+        });
+
+        console.log('Form Data:', formData);
+      });
     });
-  }
-
-  function computeAmount(cell) {
-    var $row = cell.closest('tr');
-    var rate = parseFloat($row.find('.rate').text()) || 0;
-    var qty = parseFloat($row.find('.qty').text()) || 0;
-    var amount = (rate * qty).toFixed(2);
-    $row.find('.amount').text(amount);
-  }
-
-  $('#example').on('input', '.qty', function() {
-    computeRow($(this));
-  });
-
-  $('#example').on('input', '.amount', function() {
-    computeRate();
-  });
-
-  $('#example').on('input', '.rate', function() {
-    computeAmount($(this));
-  });
-
-  $('#example').DataTable({
-    autoWidth: false
-  });
-
-  $('#example').on('click', 'tbody .btn-delete', function() {
-    $(this).closest('tr').remove();
-    computeRate();
-  });
-
-  $('.btn-add-row').on('click', function() {
-    var newRow = `<tr>
-      <td class="editable" data-type="product-name">
-        <input type="text" class="form-control plain-text" readonly />
-        <div class="select-wrapper" style="display:none;">
-          <select class="selectpicker form-control" data-live-search="true">
-            <option value="" disabled selected>Select a product</option>
-            <option value="1">Chocolate</option>
-            <option value="2">Vanilla</option>
-            <option value="3">Strawberry</option>
-          </select>
-        </div>
-      </td>
-      <td class="editable"></td>
-      <td class="editable"></td>
-      <td class="editable"></td>
-      <td class="editable qty dt-type-numeric"></td>
-      <td class="editable rate dt-type-numeric"></td>
-      <td class="editable amount dt-type-numeric"></td>
-      <td class="editable" data-type="customer">
-        <input type="text" class="form-control plain-text" readonly />
-        <div class="select-wrapper" style="display:none;">
-          <select class="selectpicker form-control" data-live-search="true">
-            <option value="" disabled selected>Select a customer</option>
-            <option value="1">Customer X</option>
-            <option value="2">Customer Y</option>
-            <option value="3">Customer Z</option>
-          </select>
-        </div>
-      </td>
-      <td>
-        <button class="btn btn-danger btn-sm btn-delete">Delete</button>
-      </td>
-    </tr>`;
-    $('#example tbody').append(newRow);
-    $('.selectpicker').selectpicker('refresh');
-  });
-});
-
-</script>
+  </script>
