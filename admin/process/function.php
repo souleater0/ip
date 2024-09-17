@@ -1,4 +1,18 @@
 <?php
+    function getProductList($pdo){
+        try {
+            $query = "SELECT * FROM product";
+            $stmt = $pdo->prepare($query);
+
+            $stmt ->execute();
+            $productList = $stmt -> fetchAll(PDO::FETCH_ASSOC);
+            return $productList;
+        }catch(PDOException $e){
+            // Handle database connection error
+            echo "Error: " . $e->getMessage();
+            return array(); // Return an empty array if an error occurs
+        }
+    }
     function getModules($pdo){
         try {
             $query = "SELECT * FROM modules";
