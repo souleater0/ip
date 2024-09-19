@@ -822,4 +822,30 @@ require_once 'function.php';
         echo json_encode($response);
         exit();
     }
+    if (!empty($_POST['action']) && $_POST['action'] == 'getProductSKU') {
+        if (empty($_POST['product_name'])) {
+            $response = array(
+                'success' => false,
+                'message' => 'No Product Data Found!'
+            );
+        }
+        else {
+            $result = updateSupplier($pdo);
+            if ($result['success']) {
+                $response = array(
+                    'success' => true,
+                    'message' => $result['message']
+                );
+            } else {
+                $response = array(
+                    'success' => false,
+                    'message' => $result['message']
+                );
+            }
+        }
+        // Send response
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
 ?>

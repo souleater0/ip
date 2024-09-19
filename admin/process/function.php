@@ -1765,6 +1765,23 @@
             return array('success' => false, 'message' => 'Failed to update supplier: ' . $e->getMessage());
         }
     }
+    function getProductSKU($pdo) {
+
+        $product_name = !empty($_POST['product_name']) ? $_POST['product_name'] : null;
+
+
+        try {
+            // Start a transaction
+            $pdo->beginTransaction();
     
+            // Commit the transaction
+            $pdo->commit();
+            return array('success' => true, 'message' => 'Product Record has been Retrieved!');
+        } catch (Exception $e) {
+            // Roll back the transaction if something failed
+            $pdo->rollBack();
+            return array('success' => false, 'message' => 'Failed to retrieved Product: ' . $e->getMessage());
+        }
+    }
     
 ?>

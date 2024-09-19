@@ -179,6 +179,11 @@ $(document).ready(function() {
     var newTitle = $(this).text();
     $('#transactionModalLabel').text(newTitle);
   });
+
+  $('.selected-product').change(function () {  
+    
+  });
+
   var table = $('#editableTable').DataTable({
     columns: [
       { title: "Product Name", data: "product_name", className: "text-dark" },
@@ -257,7 +262,7 @@ $(document).ready(function() {
       amount: row.find('.amount').val(),
       customer: row.find('.selected-customer').selectpicker('val')
     };
-    console.log('Selected Customer:', updatedData.customer);  // For debugging
+    console.log('Selected Data:', updatedData.product_name);  // For debugging
     table.row(row).data(updatedData).draw(false);
     updateTotalAmount();
     row.find('.edit-row').text('Edit');
