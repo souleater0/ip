@@ -2,7 +2,7 @@
 $productlists = getProductList($pdo);
 $selectProduct = '';
 foreach ($productlists as $productlist) {
-  $selectProduct .= '<option value="' . htmlspecialchars($productlist['product_name']) . '">' . htmlspecialchars($productlist['product_name']) . '</option>';
+  $selectProduct .= '<option value="' . htmlspecialchars($productlist['product_name']) . '" data-sku="' . htmlspecialchars($productlist['product_sku']) . '" data-rate="' . htmlspecialchars($productlist['product_pp']) . '">'.htmlspecialchars($productlist['product_name']) . '</option>';
 }
 ?>
 <div class="body-wrapper-inner">
@@ -262,12 +262,28 @@ $(document).ready(function() {
       amount: row.find('.amount').val(),
       customer: row.find('.selected-customer').selectpicker('val')
     };
-    console.log('Selected Data:', updatedData.product_name);  // For debugging
+    // console.log('Selected Data:', updatedData.product_name);  // For debugging
     table.row(row).data(updatedData).draw(false);
     updateTotalAmount();
     row.find('.edit-row').text('Edit');
     currentlyEditingRow = null;  // Reset currently editing row
   }
+
+  $(document).on('changed.bs.select', '.selected-product', function (e, clickedIndex, isSelected, previousValue) {
+    var selectedOption = $(this).find('option:selected');
+    var sku = selectedOption.data('sku');  // Get the SKU from the selected option
+    var rate = selectedOption.data('rate');  // Get the Rate from the selected option
+
+    var row = $(this).closest('tr');  // Get the closest row of the table
+
+    // Populate the SKU and Rate fields in the current row
+    row.find('.sku').val(sku);
+    row.find('.rate').val(rate);
+    row.find('.qty').val(1);
+    row.find('.amount').val((1 * rate).toFixed(2));
+    updateTotalAmount();
+  });
+
 
   // Handle double-click on a row to trigger edit mode
   $('#editableTable tbody').on('dblclick', 'tr', function() {
@@ -346,10 +362,33 @@ $(document).ready(function() {
 
   // Handle Delete button
   $('#editableTable tbody').on('click', '.delete-row', function() {
+    // var row = table.row($(this).closest('tr'));
+    // if (table.rows().count() > 2) {
+    //   row.remove().draw(false);
+    // } else {
+    //   row.data({
+    //     product_name: '',
+    //     sku: '',
+    //     barcode: '',
+    //     qty: '',
+    //     rate: '',
+    //     amount: '',
+    //     customer: ''
+    //   }).draw(false);
+    // }
+    // updateTotalAmount();
     var row = table.row($(this).closest('tr'));
+    
+    if (currentlyEditingRow && currentlyEditingRow.is(row.node())) {
+      // If the row being deleted is currently being edited, reset the editing state
+      currentlyEditingRow = null;
+    }
+
+    // If there are more than 2 rows, remove the row
     if (table.rows().count() > 2) {
       row.remove().draw(false);
     } else {
+      // If only 2 rows left, clear the row instead of removing it
       row.data({
         product_name: '',
         sku: '',
@@ -360,6 +399,7 @@ $(document).ready(function() {
         customer: ''
       }).draw(false);
     }
+    
     updateTotalAmount();
   });
 

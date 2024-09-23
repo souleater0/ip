@@ -822,28 +822,24 @@ require_once 'function.php';
         echo json_encode($response);
         exit();
     }
-    if (!empty($_POST['action']) && $_POST['action'] == 'getProductSKU') {
-        if (empty($_POST['product_name'])) {
+    if (!empty($_POST['action']) && $_POST['action'] == 'getProductbyName') {
+        // Call the function directly as the validation is handled inside the function
+        $result = getProductDetailsbyName($pdo);
+    
+        if ($result['success']) {
+            $response = array(
+                'success' => true,
+                'message' => $result['message'],
+                'data'    => $result['data'] // Include product data if available
+            );
+        } else {
             $response = array(
                 'success' => false,
-                'message' => 'No Product Data Found!'
+                'message' => $result['message']
             );
         }
-        else {
-            $result = updateSupplier($pdo);
-            if ($result['success']) {
-                $response = array(
-                    'success' => true,
-                    'message' => $result['message']
-                );
-            } else {
-                $response = array(
-                    'success' => false,
-                    'message' => $result['message']
-                );
-            }
-        }
-        // Send response
+    
+        // Send response as JSON
         header('Content-Type: application/json');
         echo json_encode($response);
         exit();

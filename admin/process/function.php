@@ -1765,23 +1765,44 @@
             return array('success' => false, 'message' => 'Failed to update supplier: ' . $e->getMessage());
         }
     }
-    function getProductSKU($pdo) {
-
+    function getProductDetailsbyName($pdo) {
         $product_name = !empty($_POST['product_name']) ? $_POST['product_name'] : null;
-
-
+    
+        if (!$product_name) {
+            return array('success' => false, 'message' => 'Product name is required.');
+        }
+    
         try {
             // Start a transaction
             $pdo->beginTransaction();
     
-            // Commit the transaction
-            $pdo->commit();
-            return array('success' => true, 'message' => 'Product Record has been Retrieved!');
+            // Prepare the SQL query to retrieve product_sku and product_pp by product_name
+            $sql = "SELECT product_sku, product_pp FROM product WHERE product_name = :product_name LIMIT 1";
+            $stmt = $pdo->prepare($sql);
+            $stmt->bindParam(':product_name', $product_name);
+            
+            // Execute the query
+            $stmt->execute();
+    
+            // Fetch the product details
+            $product = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+            if ($product) {
+                // Commit the transaction
+                $pdo->commit();
+                return array('success' => true, 'data' => $product, 'message' => 'Product record has been retrieved!');
+            } else {
+                // Roll back the transaction if no product found
+                $pdo->rollBack();
+                return array('success' => false, 'message' => 'Product not found.');
+            }
         } catch (Exception $e) {
             // Roll back the transaction if something failed
             $pdo->rollBack();
-            return array('success' => false, 'message' => 'Failed to retrieved Product: ' . $e->getMessage());
+            return array('success' => false, 'message' => 'Failed to retrieve product: ' . $e->getMessage());
         }
     }
+    
+
     
 ?>
