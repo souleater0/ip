@@ -123,6 +123,12 @@ foreach ($productlists as $productlist) {
               </div>
             </form>
             <!-- Table for items -->
+             <!-- Dropdown for Tax Options -->
+          <select id="taxOption">
+            <option value="1">Exclusive of Tax</option>
+            <option value="2">Inclusive of Tax</option>
+            <option value="3" selected>Out of Scope of Tax</option>
+          </select>
             <table id="editableTable" class="table table-hover table-bordered">
               <thead>
                 <tr>
@@ -132,6 +138,7 @@ foreach ($productlists as $productlist) {
                   <th>Qty</th>
                   <th>Rate</th>
                   <th>Amount</th>
+                  <th>Tax</th>
                   <th>Customer</th>
                   <th>Actions</th>
                 </tr>
@@ -139,7 +146,11 @@ foreach ($productlists as $productlist) {
               <tbody></tbody>
               <tfoot>
               <tr>
-                <td colspan="7" class="text-dark text-end fw-bolder">Total:</td>
+                <td colspan="8" class="text-dark text-end fw-bolder">Sub Total:</td>
+                <td id="totalSubAmount" class="text-dark fw-bold">0.00</td>
+              </tr>
+              <tr>
+                <td colspan="8" class="text-dark text-end fw-bolder">Total:</td>
                 <td id="totalAmount" class="text-dark fw-bold">0.00</td>
               </tr>
             </tfoot>
@@ -179,11 +190,7 @@ $(document).ready(function() {
     var newTitle = $(this).text();
     $('#transactionModalLabel').text(newTitle);
   });
-
-  $('.selected-product').change(function () {  
-    
-  });
-
+  
   var table = $('#editableTable').DataTable({
     columns: [
       { title: "Product Name", data: "product_name", className: "text-dark" },
@@ -192,6 +199,18 @@ $(document).ready(function() {
       { title: "Qty", data: "qty", className: "text-dark" },
       { title: "Rate", data: "rate", className: "text-dark"},
       { title: "Amount", data: "amount", className: "text-dark" },
+      {
+        title: "Tax", 
+        data: "tax",
+        className: "text-dark",
+        render: function(data, type, row) {
+        // Check if data is null, undefined, or an empty string
+        if (data === null || data === undefined || data === '') {
+          return null; // Display 0% if no data
+        }
+        return data + '%'; // Display as percentage if there is data
+      }
+      },
       { title: "Customer", data: "customer" },
       {
         title: "Actions", 
@@ -206,51 +225,121 @@ $(document).ready(function() {
     searching: false,
     autoWidth: false
   });
+  var taxOption = $('#taxOption');
+    var taxColumnIndex = 6; // Adjust this if the tax column index changes
 
+    // Function to show/hide tax column based on the selected value
+    function toggleTaxColumn() {
+      var selectedValue = taxOption.val();
+
+      if (selectedValue === "3") { // Out of Scope of Tax
+        table.column(taxColumnIndex).visible(false); // Hide the tax column
+        // Reset tax values for all rows
+        table.rows().every(function() {
+          var rowData = this.data();
+          rowData.tax = null;
+          this.data(rowData).draw(false); // Redraw row with tax set to null
+        });
+      } else {
+        table.column(taxColumnIndex).visible(true); // Show the tax column
+      }
+    }
+
+
+    // Call the function on page load to apply the initial state
+    toggleTaxColumn();
+
+    // Handle the change event of the dropdown
+    taxOption.change(function() {
+        toggleTaxColumn(); // Reuse the same logic on change
+    });
   var currentlyEditingRow = null;
 
-  // Function to enter edit mode
   function enterEditMode(row) {
-    if (currentlyEditingRow) {
-      saveChanges(currentlyEditingRow);  // Save previous row before editing a new one
-    }
-    
-    currentlyEditingRow = row;  // Set currently editing row
-    var rowData = table.row(row).data();
-    row.find('td').each(function(index) {
-      if (index === 0) {
-        $(this).html('<select class="selected-product selectpicker form-control" data-live-search="true">' +
-                   '<?php echo $selectProduct; ?>' +
-                   '</select>');
-      // Set the value after the selectpicker is added to the DOM
-      var selectProduct = $(this).find('.selected-product');
-      selectProduct.val(rowData.product_name);
-      selectProduct.selectpicker('refresh');  // Refresh selectpicker to apply changes
-      } else if (index === 1) {
-        $(this).html('<input type="text" class="form-control sku" value="' + rowData.sku + '">');
-      } else if (index === 2) {
-        $(this).html('<input type="text" class="form-control barcode" value="' + rowData.barcode + '">');
-      } else if (index === 3) {
-        $(this).html('<input type="number" class="form-control qty" value="' + rowData.qty + '">');
-      } else if (index === 4) {
-        $(this).html('<input type="number" class="form-control rate" value="' + rowData.rate + '">');
-      } else if (index === 5) {
-        $(this).html('<input type="number" class="form-control amount" value="' + rowData.amount + '">');
-      } else if (index === 6) {
-        $(this).html('<select class="selected-customer selectpicker form-control" data-live-search="true">' +
-                   '<option value="">None</option>' +
-                   '<option value="Customer A">Customer A</option>' +
-                   '<option value="Customer B">Customer B</option>' +
-                   '</select>');
-      // Set the value after the selectpicker is added to the DOM
-      var selectCustomer = $(this).find('.selected-customer');
-      selectCustomer.val(rowData.customer);
-      selectCustomer.selectpicker('refresh');  // Refresh selectpicker to apply changes
-      }
-    });
-    row.find('.edit-row').text('Save');
+  if (currentlyEditingRow) {
+    saveChanges(currentlyEditingRow); // Save previous row before editing a new one
   }
 
+  currentlyEditingRow = row; // Set currently editing row
+  var rowData = table.row(row).data();
+  var lastRow = $('#editableTable tbody tr').last();
+
+  // If this is the last row, add a new row after editing starts
+  if (row.is(lastRow)) {
+    addNewRow();
+  }
+
+  // Check if the tax column is visible
+  var isTaxVisible = table.column(6).visible();
+  var fields = [
+    '<select class="selected-product selectpicker form-control" data-live-search="true"><?php echo $selectProduct; ?></select>',
+    '<input type="text" class="form-control sku" value="' + rowData.sku + '" readonly>',
+    '<input type="text" class="form-control barcode" value="' + rowData.barcode + '">',
+    '<input type="number" class="form-control qty" value="' + rowData.qty + '">',
+    '<input type="number" class="form-control rate" value="' + rowData.rate + '">',
+    '<input type="number" class="form-control amount" value="' + rowData.amount + '">'
+  ];
+
+  // Add the tax field only if visible
+  if (isTaxVisible) {
+    fields.push(
+      '<select class="tax selectpicker form-control" data-live-search="true">' +
+        '<option value="0">0%</option>' +
+        '<option value="5">5%</option>' +
+        '<option value="12">12%</option>' +
+      '</select>'
+    );
+  }
+
+  // Add the customer field (always visible)
+  fields.push(
+    '<select class="selected-customer selectpicker form-control" data-live-search="true">' +
+      '<option value="">None</option>' +
+      '<option value="Customer A">Customer A</option>' +
+      '<option value="Customer B">Customer B</option>' +
+    '</select>'
+  );
+
+  // Fill the row cells with the corresponding fields
+  row.find('td').each(function(index) {
+    $(this).html(fields[index]);
+  });
+
+  // Set values for the fields
+  row.find('.selected-product').val(rowData.product_name).selectpicker('refresh');
+  if (isTaxVisible) {
+    row.find('.tax').val(rowData.tax || 0).selectpicker('refresh');
+  }
+  row.find('.selected-customer').val(rowData.customer).selectpicker('refresh');
+
+  row.find('.edit-row').text('Save');
+
+  // Reset tax value when "Out of Scope of Tax" is selected
+  row.find('.tax').change(function() {
+    if ($(this).val() === "3") { // Assuming "3" represents Out of Scope of Tax
+      rowData.tax = null; // Set tax to null
+      table.row(row).data(rowData); // Update the row data
+      $(this).val(null); // Reset tax select
+    }
+  });
+}
+
+
+
+  // Function to add a new row to the table
+  function addNewRow() {
+    table.row.add({
+      product_name: '',
+      sku: '',
+      barcode: '',
+      qty: '',
+      rate: '',
+      amount: '',
+      tax: '',
+      customer: ''
+    }).draw(false);
+    updateTotalAmount();
+  }
   // Function to save changes
   function saveChanges(row) {
     var updatedData = {
@@ -260,6 +349,7 @@ $(document).ready(function() {
       qty: row.find('.qty').val(),
       rate: row.find('.rate').val(),
       amount: row.find('.amount').val(),
+      tax: table.column(6).visible() ? row.find('.tax').selectpicker('val') : null, // Get tax value only if column is visible
       customer: row.find('.selected-customer').selectpicker('val')
     };
     // console.log('Selected Data:', updatedData.product_name);  // For debugging
@@ -282,6 +372,12 @@ $(document).ready(function() {
     row.find('.qty').val(1);
     row.find('.amount').val((1 * rate).toFixed(2));
     updateTotalAmount();
+  });
+
+  $(document).on('changed.bs.select', '.tax', function (e, clickedIndex, isSelected, previousValue) {
+    var row = $(this).closest('tr');  // Get the closest row of the table
+    var tax = row.find('.tax').selectpicker('val');
+    console.log(tax);
   });
 
 
@@ -329,6 +425,7 @@ $(document).ready(function() {
       qty: '',
       rate: '',
       amount: '',
+      tax: '',
       customer: ''
     }).draw(false);
     updateTotalAmount();
@@ -341,42 +438,42 @@ $(document).ready(function() {
     updateTotalAmount();
   });
 
-  // Handle calculations for Qty, Rate, and Amount
-  $('#editableTable').on('input', '.qty, .rate', function() {
+// Handle calculations for Qty, Rate, Amount based on tax selection
+$('#editableTable').on('input', '.qty, .rate', function() {
     var row = $(this).closest('tr');
     var qty = parseFloat(row.find('.qty').val()) || 0;
     var rate = parseFloat(row.find('.rate').val()) || 0;
-    row.find('.amount').val((qty * rate).toFixed(2));
-    updateTotalAmount();
-  });
 
-  $('#editableTable').on('input', '.amount', function() {
+    var taxType = $('#taxOption').val();
+    var amount = 0;
+
+    // Calculate amount based on tax type
+    if (taxType === "1") { // Exclusive of Tax
+        amount = qty * rate;
+    } else if (taxType === "2") { // Inclusive of Tax
+        amount = qty * rate / (1 + (parseFloat(row.find('.tax').val()) || 0) / 100);
+    } else if (taxType === "3") { // Out of Scope of Tax
+        amount = qty * rate; // No tax applied
+    }
+
+    row.find('.amount').val(amount.toFixed(2));
+    updateTotalAmount();
+});
+
+// Handle input for amount to update rate if needed
+$('#editableTable').on('input', '.amount', function() {
     var row = $(this).closest('tr');
     var qty = parseFloat(row.find('.qty').val()) || 0;
     var amount = parseFloat($(this).val()) || 0;
+
     if (qty > 0) {
-      row.find('.rate').val((amount / qty).toFixed(2));
+        row.find('.rate').val((amount / qty).toFixed(2));
     }
     updateTotalAmount();
-  });
+});
 
   // Handle Delete button
   $('#editableTable tbody').on('click', '.delete-row', function() {
-    // var row = table.row($(this).closest('tr'));
-    // if (table.rows().count() > 2) {
-    //   row.remove().draw(false);
-    // } else {
-    //   row.data({
-    //     product_name: '',
-    //     sku: '',
-    //     barcode: '',
-    //     qty: '',
-    //     rate: '',
-    //     amount: '',
-    //     customer: ''
-    //   }).draw(false);
-    // }
-    // updateTotalAmount();
     var row = table.row($(this).closest('tr'));
     
     if (currentlyEditingRow && currentlyEditingRow.is(row.node())) {
@@ -396,6 +493,7 @@ $(document).ready(function() {
         qty: '',
         rate: '',
         amount: '',
+        tax: '',
         customer: ''
       }).draw(false);
     }
@@ -429,6 +527,7 @@ $(document).ready(function() {
         qty: '',
         rate: '',
         amount: '',
+        tax: '',
         customer: ''
       }).draw(false);
     }
