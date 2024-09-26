@@ -183,6 +183,18 @@ foreach ($productlists as $productlist) {
 
 <script>
 $(document).ready(function() {
+  // const displayedMessages = new Set();
+  // function showNotification(message) {
+  //   if (!displayedMessages.has(message)) {
+  //     toastr.error(message);
+  //     displayedMessages.add(message);
+      
+  //     // Optional: Clear the message from the Set after a timeout
+  //     setTimeout(() => {
+  //       displayedMessages.delete(message);
+  //     }, 2000); // Match with the timeOut setting
+  //   }
+  // }
   $('.dropdown-item').on('click', function() {
     var formType = $(this).data('form');
     $('.dynamic-form').hide();
@@ -257,7 +269,10 @@ $(document).ready(function() {
 
   function enterEditMode(row) {
   if (currentlyEditingRow) {
-    saveChanges(currentlyEditingRow); // Save previous row before editing a new one
+    // Attempt to save changes for the currently editing row
+    if (!saveChanges(currentlyEditingRow)) {
+      return;  // Exit if save was not successful
+    }
   }
 
   currentlyEditingRow = row; // Set currently editing row
@@ -275,9 +290,9 @@ $(document).ready(function() {
     '<select class="selected-product selectpicker form-control" data-live-search="true"><?php echo $selectProduct; ?></select>',
     '<input type="text" class="form-control sku" value="' + rowData.sku + '" readonly>',
     '<input type="text" class="form-control barcode" value="' + rowData.barcode + '">',
-    '<input type="number" class="form-control qty" value="' + rowData.qty + '">',
-    '<input type="number" class="form-control rate" value="' + rowData.rate + '">',
-    '<input type="number" class="form-control amount" value="' + rowData.amount + '">'
+    '<input type="number" class="form-control qty" value="' + rowData.qty + '" min="1">',
+    '<input type="number" class="form-control rate" value="' + rowData.rate + '" min="1">',
+    '<input type="number" class="form-control amount" value="' + rowData.amount + '" min="1">'
   ];
 
   // Add the tax field only if visible
@@ -325,7 +340,6 @@ $(document).ready(function() {
 }
 
 
-
   // Function to add a new row to the table
   function addNewRow() {
     table.row.add({
@@ -340,24 +354,87 @@ $(document).ready(function() {
     }).draw(false);
     updateTotalAmount();
   }
-  // Function to save changes
+
   function saveChanges(row) {
+    var isValid = true;
+    var errorMessages = []; // Use a Set to collect unique error messages
+
+    function validateField(selector, fieldName, type) {
+        var field = row.find(selector);
+        var value = field.selectpicker ? field.selectpicker('val') : field.val().trim();
+
+        switch(type) {
+            case 'required':
+                if (!value || value.length === 0) {
+                    isValid = false;
+                    errorMessages.push(fieldName + ' is required.'); // Add to Set
+                    field.addClass('is-invalid');
+                }
+                break;
+            case 'number':
+                var value = field.val().trim();
+                const floatValue = parseFloat(value.replace(/,/g, ''));
+                if (isNaN(floatValue) || floatValue <= 0) {
+                    isValid = false;
+                    errorMessages.push(fieldName + ' must be a positive number.'); // Add to Set
+                    field.addClass('is-invalid');
+                }
+                break;
+            case 'integer':
+                var value = field.val().trim();
+                const intValue = parseFloat(value.replace(/,/g, ''));
+                if (isNaN(intValue) || intValue <= 0 || !Number.isInteger(intValue)) {
+                    isValid = false;
+                    errorMessages.push(fieldName + ' must be a positive integer.'); // Add to Set
+                    field.addClass('is-invalid');
+                }
+                break;
+        }
+    }
+
+    // Validate each field
+    validateField('.selected-product', 'Product', 'required');
+    validateField('.qty', 'Quantity', 'integer');
+    validateField('.rate', 'Rate', 'number');
+    validateField('.amount', 'Amount', 'number');
+
+    if (table.column(6).visible()) {
+        validateField('.tax', 'Tax', 'number');
+    }
+
+    // Check if all validations passed
+    if (!isValid) {
+        // Convert the Set to an array and display unique error messages
+
+            toastr.error(errorMessages[0]);
+
+        return false;  // Stop the save process
+    }
+
+    // Prepare updated data if validation is successful
     var updatedData = {
-      product_name: row.find('.selected-product').selectpicker('val'),
-      sku: row.find('.sku').val(),
-      barcode: row.find('.barcode').val(),
-      qty: row.find('.qty').val(),
-      rate: row.find('.rate').val(),
-      amount: row.find('.amount').val(),
-      tax: table.column(6).visible() ? row.find('.tax').selectpicker('val') : null, // Get tax value only if column is visible
-      customer: row.find('.selected-customer').selectpicker('val')
+        product_name: row.find('.selected-product').selectpicker('val'),
+        sku: row.find('.sku').val(),
+        barcode: row.find('.barcode').val(),
+        qty: parseInt(row.find('.qty').val(), 10),
+        rate: parseFloat(row.find('.rate').val()),
+        amount: parseFloat(row.find('.amount').val()),
+        tax: table.column(6).visible() ? row.find('.tax').selectpicker('val') : null,
+        customer: row.find('.selected-customer').selectpicker('val')
     };
-    // console.log('Selected Data:', updatedData.product_name);  // For debugging
+
+    // Update the table with the new data
     table.row(row).data(updatedData).draw(false);
     updateTotalAmount();
     row.find('.edit-row').text('Edit');
     currentlyEditingRow = null;  // Reset currently editing row
-  }
+
+    // Remove all 'is-invalid' classes after successful save
+    row.find('.is-invalid').removeClass('is-invalid');
+
+    return true;  // Indicate success
+}
+
 
   $(document).on('changed.bs.select', '.selected-product', function (e, clickedIndex, isSelected, previousValue) {
     var selectedOption = $(this).find('option:selected');

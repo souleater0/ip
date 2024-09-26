@@ -42,8 +42,6 @@ $route = $_GET['route'] ?? 'home';
   <link rel="stylesheet" href="assets/libs/toastr/css/toastr.min.css">
   <script src="assets/libs/toastr/js/toastr.min.js"></script>
   <script src="assets/js/all.js"></script>
-
-
 </head>
 <body>
   <!--  Body Wrapper -->
