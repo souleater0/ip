@@ -1,5 +1,6 @@
 <?php 
 $productlists = getProductList($pdo);
+$supplierlists = getSupplierList($pdo);
 $selectProduct = '';
 foreach ($productlists as $productlist) {
   $selectProduct .= '<option value="' . htmlspecialchars($productlist['product_name']) . '" data-sku="' . htmlspecialchars($productlist['product_sku']) . '" data-rate="' . htmlspecialchars($productlist['product_pp']) . '">'.htmlspecialchars($productlist['product_name']) . '</option>';
@@ -41,7 +42,7 @@ foreach ($productlists as $productlist) {
 </div>
 
 <!-- Modal -->
-<div class="modal fade" id="transactionModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
+<div class="modal fade" id="transactionModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="transactionModalLabel">
   <div class="modal-dialog modal-fullscreen">
     <div class="modal-content">
       <div class="modal-header">
@@ -56,28 +57,29 @@ foreach ($productlists as $productlist) {
             <div class="row">
               <div class="col-2">
                 <label for="supplier" class="form-label">Supplier</label >
-                <select class="selectpicker form-control" id="supplier" name="supplier" data-live-search="true">
-                  <option value="1">Supplier A</option>
-                  <option value="2">Supplier B</option>
+                <select class="selectpicker form-control" id="bill_supplier" name="bill_supplier" data-live-search="true">
+                  <?php foreach ($supplierlists as $suplierlist):?>
+                    <option value="<?php echo $suplierlist['id'];?>"><?php echo $suplierlist['vendor_name'];?></option>
+                  <?php endforeach;?>
                 </select>
               </div>
               <div class="row py-3">
                 <div class="col-2">
                   <div>
                     <label for="exampleFormControlTextarea1" class="form-label">Mailing Address</label>
-                    <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+                    <textarea class="form-control" id="bill_address" name="bill_address" rows="3"></textarea>
                   </div>
                 </div>
                 <div class="col-2">
                   <div>
-                  <label for="startDate" class="form-label">Bill Date</label>
-                  <input id="startDate" class="form-control" type="date" />
+                  <label for="bill_start_date" class="form-label">Bill Date</label>
+                  <input id="bill_start_date" name="bill_start_date" class="form-control" type="date" />
                   </div>
                 </div>
                 <div class="col-2">
                   <div>
-                  <label for="startDate" class="form-label">Due Date</label>
-                  <input id="startDate" class="form-control" type="date" />
+                  <label for="bill_end_date" class="form-label">Due Date</label>
+                  <input id="bill_end_date" name="bill_end_date" class="form-control" type="date" />
                   </div>
                 </div>
                 <div class="col-2">
@@ -93,22 +95,23 @@ foreach ($productlists as $productlist) {
               <div class="row mb-3">
                 <div class="col-2">
                   <label for="supplier" class="form-label">Payee</label >
-                  <select class="selectpicker form-control" name="supplier" data-live-search="true">
-                    <option value="1">Supplier A</option>
-                    <option value="2">Supplier B</option>
+                  <select class="selectpicker form-control" id="expense_supplier" name="expense_supplier" data-live-search="true">
+                    <?php foreach ($supplierlists as $suplierlist):?>
+                      <option value="<?php echo $suplierlist['id'];?>"><?php echo $suplierlist['vendor_name'];?></option>
+                    <?php endforeach;?>
                   </select>
                 </div>
               </div>
               <div class="row mb-3">
                 <div class="col-2">
                     <div>
-                    <label for="payment_Date" class="form-label">Bill Date</label>
-                    <input id="payment_Date" class="form-control" type="date" />
+                    <label for="expense_date" class="form-label">Bill Date</label>
+                    <input id="expense_date" name="expense_date" class="form-control" type="date" />
                     </div>
                 </div>
                 <div class="col-2">
-                  <label for="paymentMethod" class="form-label">Payee</label >
-                  <select class="selectpicker form-control" name="paymentMethod" data-live-search="true">
+                  <label for="expense_payment" class="form-label">Payee</label >
+                  <select class="selectpicker form-control" id="expense_payment" name="expense_payment" data-live-search="true">
                     <option value="1">CASH</option>
                     <option value="2">GCASH</option>
                     <option value="3">CREDIT CARD</option>
@@ -116,8 +119,8 @@ foreach ($productlists as $productlist) {
                 </div>
                 <div class="col-2">
                   <div>
-                    <label for="refNo" class="form-label">Ref No.</label>
-                    <input type="text" class="form-control" id="refNo">
+                    <label for="expense_ref_no" class="form-label">Ref No.</label>
+                    <input type="text" class="form-control" id="expense_ref_no" name="expense_ref_no">
                   </div>
                 </div>
               </div>
@@ -129,12 +132,13 @@ foreach ($productlists as $productlist) {
             <option value="2">Inclusive of Tax</option>
             <option value="3" selected>Out of Scope of Tax</option>
           </select>
-            <table id="editableTable" class="table table-hover table-bordered">
+            <table id="editableTable" class="table table-hover table-bordered w-100">
               <thead>
                 <tr>
                   <th>Product Name</th>
                   <th>SKU</th>
                   <th>Barcode</th>
+                  <th>Expiry Date</th>
                   <th>Qty</th>
                   <th>Rate</th>
                   <th>Amount</th>
@@ -146,11 +150,11 @@ foreach ($productlists as $productlist) {
               <tbody></tbody>
               <tfoot>
               <tr>
-                <td colspan="8" class="text-dark text-end fw-bolder">Sub Total:</td>
+                <td colspan="9" class="text-dark text-end fw-bolder">Sub Total:</td>
                 <td id="totalSubAmount" class="text-dark fw-bold">0.00</td>
               </tr>
               <tr>
-                <td colspan="8" class="text-dark text-end fw-bolder">Total:</td>
+                <td colspan="9" class="text-dark text-end fw-bolder">Total:</td>
                 <td id="totalAmount" class="text-dark fw-bold">0.00</td>
               </tr>
             </tfoot>
@@ -183,18 +187,7 @@ foreach ($productlists as $productlist) {
 
 <script>
 $(document).ready(function() {
-  // const displayedMessages = new Set();
-  // function showNotification(message) {
-  //   if (!displayedMessages.has(message)) {
-  //     toastr.error(message);
-  //     displayedMessages.add(message);
-      
-  //     // Optional: Clear the message from the Set after a timeout
-  //     setTimeout(() => {
-  //       displayedMessages.delete(message);
-  //     }, 2000); // Match with the timeOut setting
-  //   }
-  // }
+
   $('.dropdown-item').on('click', function() {
     var formType = $(this).data('form');
     $('.dynamic-form').hide();
@@ -206,8 +199,9 @@ $(document).ready(function() {
   var table = $('#editableTable').DataTable({
     columns: [
       { title: "Product Name", data: "product_name", className: "text-dark" },
-      { title: "SKU", data: "sku" },
-      { title: "Barcode", data: "barcode" },
+      { title: "SKU", data: "sku"},
+      { title: "Barcode", data: "barcode", className: "text-dark" },
+      { title: "Expiry Date", data: "expiry", className: "text-dark" },
       { title: "Qty", data: "qty", className: "text-dark" },
       { title: "Rate", data: "rate", className: "text-dark"},
       { title: "Amount", data: "amount", className: "text-dark" },
@@ -235,10 +229,10 @@ $(document).ready(function() {
     paging: false,
     ordering: false,
     searching: false,
-    autoWidth: false
+    autoWidth: true
   });
   var taxOption = $('#taxOption');
-    var taxColumnIndex = 6; // Adjust this if the tax column index changes
+    var taxColumnIndex = 7; // Adjust this if the tax column index changes
 
     // Function to show/hide tax column based on the selected value
     function toggleTaxColumn() {
@@ -254,6 +248,11 @@ $(document).ready(function() {
         });
       } else {
         table.column(taxColumnIndex).visible(true); // Show the tax column
+        table.rows().every(function() {
+          var rowData = this.data();
+          rowData.tax = null;
+          this.data(rowData).draw(false); // Redraw row with tax set to null
+        });
       }
     }
 
@@ -266,33 +265,33 @@ $(document).ready(function() {
         toggleTaxColumn(); // Reuse the same logic on change
     });
   var currentlyEditingRow = null;
-
   function enterEditMode(row) {
-  if (currentlyEditingRow) {
-    // Attempt to save changes for the currently editing row
-    if (!saveChanges(currentlyEditingRow)) {
-      return;  // Exit if save was not successful
+    if (currentlyEditingRow) {
+      // Attempt to save changes for the currently editing row
+      if (!saveChanges(currentlyEditingRow)) {
+        return;  // Exit if save was not successful
+      }
     }
-  }
 
-  currentlyEditingRow = row; // Set currently editing row
-  var rowData = table.row(row).data();
-  var lastRow = $('#editableTable tbody tr').last();
+    currentlyEditingRow = row; // Set currently editing row
+    var rowData = table.row(row).data();
+    var lastRow = $('#editableTable tbody tr').last();
 
-  // If this is the last row, add a new row after editing starts
-  if (row.is(lastRow)) {
-    addNewRow();
-  }
+    // If this is the last row, add a new row after editing starts
+    if (row.is(lastRow)) {
+      addNewRow();
+    }
 
   // Check if the tax column is visible
-  var isTaxVisible = table.column(6).visible();
+  var isTaxVisible = table.column(7).visible();
   var fields = [
-    '<select class="selected-product selectpicker form-control" data-live-search="true"><?php echo $selectProduct; ?></select>',
-    '<input type="text" class="form-control sku" value="' + rowData.sku + '" readonly>',
-    '<input type="text" class="form-control barcode" value="' + rowData.barcode + '">',
-    '<input type="number" class="form-control qty" value="' + rowData.qty + '" min="1">',
-    '<input type="number" class="form-control rate" value="' + rowData.rate + '" min="1">',
-    '<input type="number" class="form-control amount" value="' + rowData.amount + '" min="1">'
+    '<select class="selected-product selectpicker form-control col-auto" data-live-search="true"><?php echo $selectProduct; ?></select>',
+    '<input type="text" class="form-control sku col-auto" value="' + rowData.sku + '" readonly>',
+    '<input type="text" class="form-control barcode col-auto" value="' + rowData.barcode + '">',
+    '<input type="date" class="form-control expiry col-auto" value="' + rowData.expiry + '">',
+    '<input type="number" class="form-control qty col-auto" min="1" value="' + rowData.qty + '">',
+    '<input type="number" class="form-control rate col-auto" min="1" value="' + rowData.rate + '">',
+    '<input type="number" class="form-control amount col-auto" min="1" value="' + rowData.amount + '">'
   ];
 
   // Add the tax field only if visible
@@ -346,6 +345,7 @@ $(document).ready(function() {
       product_name: '',
       sku: '',
       barcode: '',
+      expiry: '',
       qty: '',
       rate: '',
       amount: '',
@@ -356,6 +356,24 @@ $(document).ready(function() {
   }
 
   function saveChanges(row) {
+    // Check if all input fields are empty
+    var allEmpty = true;
+
+    row.find('input, select').each(function() {
+        var value = $(this).selectpicker ? $(this).selectpicker('val') : $(this).val().trim();
+        if (value) {
+            allEmpty = false; // Found a non-empty field
+        }
+    });
+
+    if (allEmpty) {
+        // Clear all fields
+        row.find('input, select').val('').trigger('change'); // Clear input fields and trigger change for selectpicker
+        row.find('.edit-row').text('Edit'); // Reset edit button text
+        currentlyEditingRow = null; // Reset currently editing row
+        return true; // Indicate success
+    }
+
     var isValid = true;
     var errorMessages = []; // Use a Set to collect unique error messages
 
@@ -363,7 +381,7 @@ $(document).ready(function() {
         var field = row.find(selector);
         var value = field.selectpicker ? field.selectpicker('val') : field.val().trim();
 
-        switch(type) {
+        switch (type) {
             case 'required':
                 if (!value || value.length === 0) {
                     isValid = false;
@@ -380,12 +398,11 @@ $(document).ready(function() {
                     field.addClass('is-invalid');
                 }
                 break;
-            case 'integer':
-                var value = field.val().trim();
-                const intValue = parseFloat(value.replace(/,/g, ''));
-                if (isNaN(intValue) || intValue <= 0 || !Number.isInteger(intValue)) {
+            case 'positiveNumber':
+                var positiveValue = parseFloat(value.replace(/,/g, '')); // Use parseFloat for decimal support
+                if (isNaN(positiveValue) || positiveValue < 0) { // Must be greater than or equal to 0
                     isValid = false;
-                    errorMessages.push(fieldName + ' must be a positive integer.'); // Add to Set
+                    errorMessages.push(fieldName + ' must be 0 or greater.'); // Updated message
                     field.addClass('is-invalid');
                 }
                 break;
@@ -394,21 +411,18 @@ $(document).ready(function() {
 
     // Validate each field
     validateField('.selected-product', 'Product', 'required');
-    validateField('.qty', 'Quantity', 'integer');
+    validateField('.qty', 'Quantity', 'number');
     validateField('.rate', 'Rate', 'number');
     validateField('.amount', 'Amount', 'number');
 
-    if (table.column(6).visible()) {
-        validateField('.tax', 'Tax', 'number');
+    if (table.column(7).visible()) {
+        validateField('.tax', 'Tax', 'positiveNumber');
     }
 
     // Check if all validations passed
     if (!isValid) {
-        // Convert the Set to an array and display unique error messages
-
-            toastr.error(errorMessages[0]);
-
-        return false;  // Stop the save process
+        toastr.error(errorMessages[0]);
+        return false; // Stop the save process
     }
 
     // Prepare updated data if validation is successful
@@ -416,10 +430,11 @@ $(document).ready(function() {
         product_name: row.find('.selected-product').selectpicker('val'),
         sku: row.find('.sku').val(),
         barcode: row.find('.barcode').val(),
-        qty: parseInt(row.find('.qty').val(), 10),
-        rate: parseFloat(row.find('.rate').val()),
-        amount: parseFloat(row.find('.amount').val()),
-        tax: table.column(6).visible() ? row.find('.tax').selectpicker('val') : null,
+        expiry: row.find('.expiry').val(),
+        qty: parseInt(row.find('.qty').val(), 10) || 0,
+        rate: parseFloat(row.find('.rate').val()) || 0,
+        amount: parseFloat(row.find('.amount').val()) || 0,
+        tax: table.column(7).visible() ? row.find('.tax').selectpicker('val') : null,
         customer: row.find('.selected-customer').selectpicker('val')
     };
 
@@ -427,14 +442,13 @@ $(document).ready(function() {
     table.row(row).data(updatedData).draw(false);
     updateTotalAmount();
     row.find('.edit-row').text('Edit');
-    currentlyEditingRow = null;  // Reset currently editing row
+    currentlyEditingRow = null; // Reset currently editing row
 
     // Remove all 'is-invalid' classes after successful save
     row.find('.is-invalid').removeClass('is-invalid');
 
-    return true;  // Indicate success
-}
-
+    return true; // Indicate success
+  }
 
   $(document).on('changed.bs.select', '.selected-product', function (e, clickedIndex, isSelected, previousValue) {
     var selectedOption = $(this).find('option:selected');
@@ -499,6 +513,7 @@ $(document).ready(function() {
       product_name: '',
       sku: '',
       barcode: '',
+      expiry: '',
       qty: '',
       rate: '',
       amount: '',
@@ -510,6 +525,8 @@ $(document).ready(function() {
 
   // Clear Rows button
   $('#clearRows').on('click', function() {
+    currentlyEditingRow = null; // Reset the editing state
+
     table.clear().draw(false); // Clear all rows
     addEmptyRows(2); // Add 2 default empty rows
     updateTotalAmount();
@@ -567,6 +584,7 @@ $('#editableTable').on('input', '.amount', function() {
         product_name: '',
         sku: '',
         barcode: '',
+        expiry: '',
         qty: '',
         rate: '',
         amount: '',
@@ -580,8 +598,42 @@ $('#editableTable').on('input', '.amount', function() {
 
   // Form submission
   $('#submitForm').on('click', function() {
-    var formData = table.rows().data().toArray();
-    console.log(formData);
+    var billForm = $("#billForm").serializeArray();
+    var expenseForm = $("#expenseForm").serializeArray();
+    
+    var itemList = table.rows().data().toArray();
+    var bill_header = {};
+    var bill_header2 = {};
+    // Convert the serialized array into a JSON object
+    $.each(billForm, function() {
+      bill_header[this.name] = this.value;
+    });
+    $.each(expenseForm, function() {
+      bill_header2[this.name] = this.value;
+    });
+    // Add items to the bill_header object
+    bill_header.items = itemList;
+    bill_header2.items = itemList;
+
+
+    Swal.fire({
+        title: "Do you want to save the changes?",
+        showDenyButton: true,
+        showCancelButton: true,
+        confirmButtonText: "Save",
+        denyButtonText: `Don't save`
+      }).then((result) => {
+        /* Read more about isConfirmed, isDenied below */
+        if (result.isConfirmed) {
+          Swal.fire("Saved!", "", "success");
+          console.log(JSON.stringify(bill_header, null, 2)); // Pretty-print JSON
+          // console.log(JSON.stringify(bill_header2, null, 2)); // Pretty-print JSON
+          // $("#transactionModal").modal('hide');
+        } else if (result.isDenied) {
+          Swal.fire("Changes are not saved", "", "error");
+          $("#transactionModal").modal('hide');
+        }
+    });
   });
 
   // Calculate total amount
@@ -589,9 +641,16 @@ $('#editableTable').on('input', '.amount', function() {
     var total = 0;
     table.rows().every(function() {
       var data = this.data();
-      total += parseFloat(data.amount) || 0;
+      total += parseFloat(data.amount) || 0; // Sum the amount for subtotal
     });
-    $('#totalAmount').text(total.toFixed(2));
+    
+    // Update the subtotal display
+    $('#totalSubAmount').text(total.toFixed(2));
+
+    // If needed, calculate total including tax
+    var grandTotal = total; // Start with subtotal
+    // You can add additional logic for grand total calculation if required
+    $('#totalAmount').text(grandTotal.toFixed(2));
   }
 
   // Initialize table with 2 empty rows
@@ -601,6 +660,7 @@ $('#editableTable').on('input', '.amount', function() {
         product_name: '',
         sku: '',
         barcode: '',
+        expiry: '',
         qty: '',
         rate: '',
         amount: '',
