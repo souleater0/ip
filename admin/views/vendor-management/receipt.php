@@ -1,3 +1,4 @@
+current code
 <?php 
 $productlists = getProductList($pdo);
 $supplierlists = getSupplierList($pdo);
@@ -149,9 +150,14 @@ foreach ($productlists as $productlist) {
               </thead>
               <tbody></tbody>
               <tfoot>
+              
               <tr>
                 <td colspan="9" class="text-dark text-end fw-bolder">Sub Total:</td>
                 <td id="totalSubAmount" class="text-dark fw-bold">0.00</td>
+              </tr>
+              <tr>
+                <td colspan="9" class="text-dark text-end fw-bolder">Tax:</td>
+                <td id="totalTaxAmount" class="text-dark fw-bold">0.00</td>
               </tr>
               <tr>
                 <td colspan="9" class="text-dark text-end fw-bolder">Total:</td>
@@ -164,16 +170,18 @@ foreach ($productlists as $productlist) {
             <button id="clearRows" type="button" class="btn btn-danger btn-sm">Clear All</button>
 
             <div class="row">
+              <form id="attachForm">
               <div class="col-2">
                 <div>
-                  <label for="exampleFormControlTextarea1" class="form-label">Remarks</label>
-                  <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+                  <label for="attach_Remarks" class="form-label">Remarks</label>
+                  <textarea class="form-control" id="attach_Remarks" rows="3"></textarea>
                 </div>
               </div>
               <div class="col-3">
-                <label for="formFile" class="form-label">Attachment</label>
-                <input class="form-control" type="file" id="formFile">
+                <label for="attach_File" class="form-label">Attachment</label>
+                <input class="form-control" type="file" id="attach_File">
               </div>
+              </form>
             </div>
         </div>
       </div>
@@ -263,6 +271,7 @@ $(document).ready(function() {
     // Handle the change event of the dropdown
     taxOption.change(function() {
         toggleTaxColumn(); // Reuse the same logic on change
+        updateTotalAmount();
     });
   var currentlyEditingRow = null;
   function enterEditMode(row) {
@@ -450,28 +459,6 @@ $(document).ready(function() {
     return true; // Indicate success
   }
 
-  $(document).on('changed.bs.select', '.selected-product', function (e, clickedIndex, isSelected, previousValue) {
-    var selectedOption = $(this).find('option:selected');
-    var sku = selectedOption.data('sku');  // Get the SKU from the selected option
-    var rate = selectedOption.data('rate');  // Get the Rate from the selected option
-
-    var row = $(this).closest('tr');  // Get the closest row of the table
-
-    // Populate the SKU and Rate fields in the current row
-    row.find('.sku').val(sku);
-    row.find('.rate').val(rate);
-    row.find('.qty').val(1);
-    row.find('.amount').val((1 * rate).toFixed(2));
-    updateTotalAmount();
-  });
-
-  $(document).on('changed.bs.select', '.tax', function (e, clickedIndex, isSelected, previousValue) {
-    var row = $(this).closest('tr');  // Get the closest row of the table
-    var tax = row.find('.tax').selectpicker('val');
-    console.log(tax);
-  });
-
-
   // Handle double-click on a row to trigger edit mode
   $('#editableTable tbody').on('dblclick', 'tr', function() {
     var row = $(this);
@@ -532,25 +519,74 @@ $(document).ready(function() {
     updateTotalAmount();
   });
 
-// Handle calculations for Qty, Rate, Amount based on tax selection
-$('#editableTable').on('input', '.qty, .rate', function() {
-    var row = $(this).closest('tr');
-    var qty = parseFloat(row.find('.qty').val()) || 0;
-    var rate = parseFloat(row.find('.rate').val()) || 0;
+  $(document).on('changed.bs.select', '.selected-product', function (e, clickedIndex, isSelected, previousValue) {
+    var selectedOption = $(this).find('option:selected');
+    var sku = selectedOption.data('sku');  // Get the SKU from the selected option
+    var rate = selectedOption.data('rate');  // Get the Rate from the selected option
 
-    var taxType = $('#taxOption').val();
+    var row = $(this).closest('tr');  // Get the closest row of the table
+
+    // Populate the SKU and Rate fields in the current row
+    row.find('.sku').val(sku);
+    row.find('.rate').val(rate);
+    row.find('.qty').val(1);
+    row.find('.amount').val((1 * rate).toFixed(2));
+    updateTotalAmount();
+  });
+
+// Update the total amount after selecting a new tax value from the picker
+$(document).on('changed.bs.select', '.tax', function (e, clickedIndex, isSelected, previousValue) {
+    var row = $(this).closest('tr');  // Get the current row
+    var qty = parseFloat(row.find('.qty').val()) || 0;  // Get quantity
+    var rate = parseFloat(row.find('.rate').val()) || 0;  // Get base rate
+    var taxRate = parseFloat($(this).selectpicker('val')) || 0;  // Get the selected tax rate
+
+    var taxType = $('#taxOption').val();  // Fetch the selected tax type
     var amount = 0;
 
     // Calculate amount based on tax type
-    if (taxType === "1") { // Exclusive of Tax
-        amount = qty * rate;
-    } else if (taxType === "2") { // Inclusive of Tax
-        amount = qty * rate / (1 + (parseFloat(row.find('.tax').val()) || 0) / 100);
-    } else if (taxType === "3") { // Out of Scope of Tax
-        amount = qty * rate; // No tax applied
+    if (taxType === "1") {  // Exclusive of Tax
+        amount = qty * rate;  // Calculate amount without tax
+        row.find('.amount').val(amount.toFixed(2));  // Update the amount in the row
+    } else if (taxType === "2") {  // Inclusive of Tax
+        // Amount includes tax, calculate rate
+        amount = qty * rate / (1 + taxRate / 100);  // Adjust amount to exclude tax
+        row.find('.amount').val(amount.toFixed(2));  // Update the amount in the row
+    } else if (taxType === "3") {  // Out of Scope of Tax
+        amount = qty * rate;  // No tax applied, just the base amount
+        row.find('.amount').val(amount.toFixed(2));  // Update the amount in the row
     }
 
-    row.find('.amount').val(amount.toFixed(2));
+    // Update total amounts at the bottom
+    updateTotalAmount();
+});
+
+// Handle calculations for Qty, Rate, and Amount based on tax selection
+$('#editableTable').on('input', '.qty, .rate', function() {
+    var row = $(this).closest('tr');  // Get the current row
+    var qty = parseFloat(row.find('.qty').val()) || 0;  // Get quantity
+    var rate = parseFloat(row.find('.rate').val()) || 0;  // Get base rate
+
+    var taxRate = parseFloat(row.find('.tax').selectpicker('val')) || 0;  // Get the selected tax rate
+    var taxType = $('#taxOption').val();  // Fetch the selected tax type
+    
+    var amount = 0;
+
+    // Calculate amount based on tax type
+    if (taxType === "1") {  // Exclusive of Tax
+        // Amount is just qty * rate (no changes)
+        amount = qty * rate;
+        row.find('.amount').val(amount.toFixed(2));  // Update the amount in the row (without tax)
+    } else if (taxType === "2") {  // Inclusive of Tax
+        // For Inclusive of Tax, calculate amount based on qty and rate
+        amount = qty * rate / (1 + taxRate / 100);  // Adjust amount to exclude tax
+        row.find('.amount').val(amount.toFixed(2));  // Update the amount in the row
+    } else if (taxType === "3") {  // Out of Scope of Tax
+        amount = qty * rate;  // No tax applied, just the base amount
+        row.find('.amount').val(amount.toFixed(2));  // Update the amount in the row (without tax)
+    }
+
+    // Update total amounts at the bottom
     updateTotalAmount();
 });
 
@@ -565,6 +601,47 @@ $('#editableTable').on('input', '.amount', function() {
     }
     updateTotalAmount();
 });
+// Update the total amount and tax at the bottom
+function updateTotalAmount() {
+    var subtotal = 0;
+    var totalTax = 0;
+    var grandTotal = 0;
+    var taxType = $('#taxOption').val();  // Fetch the selected tax type
+
+    // Iterate over each row to calculate subtotal and tax
+    table.rows().every(function() {
+        var data = this.data();
+        var rowAmount = parseFloat(data.amount) || 0;  // Subtotal for each row
+        var taxRate = parseFloat(data.tax) || 0;  // Get the selected tax rate
+        var rate = parseFloat(data.rate) || 0;  // Get the base rate
+
+        // For Inclusive tax, the row amount already includes tax.
+        if (taxType === "2") { // Inclusive of Tax
+            // Extract the tax from the row amount for display
+            var taxAmount = (rowAmount * taxRate / (100 + taxRate));
+            totalTax += Math.floor(taxAmount * 100) / 100;  // Round down to two decimal places
+            subtotal += rowAmount; // The subtotal is still the amount with tax.
+        } else {
+            subtotal += rowAmount;  // Sum the amounts for subtotal
+            if (taxType === "1") {  // Exclusive of Tax
+                totalTax += rowAmount * (taxRate / 100);  // Add tax for exclusive tax
+            }
+            // Out of Scope (taxType === "3") doesn't add any tax
+        }
+    });
+
+    // For Inclusive Tax, grandTotal should be equal to subtotal
+    if (taxType === "2") {
+        grandTotal = subtotal;  // Total is just the subtotal itself
+    } else {
+        grandTotal = subtotal + totalTax;  // Grand total = subtotal + tax for exclusive tax
+    }
+
+    // Update the subtotal and grand total displays
+    $('#totalSubAmount').text(subtotal.toFixed(2));  // Display subtotal
+    $('#totalTaxAmount').text(totalTax.toFixed(2));  // Display total tax
+    $('#totalAmount').text(grandTotal.toFixed(2));  // Display grand total
+}
 
   // Handle Delete button
   $('#editableTable tbody').on('click', '.delete-row', function() {
@@ -598,60 +675,57 @@ $('#editableTable').on('input', '.amount', function() {
 
   // Form submission
   $('#submitForm').on('click', function() {
-    var billForm = $("#billForm").serializeArray();
-    var expenseForm = $("#expenseForm").serializeArray();
-    
-    var itemList = table.rows().data().toArray();
-    var bill_header = {};
-    var bill_header2 = {};
-    // Convert the serialized array into a JSON object
-    $.each(billForm, function() {
-      bill_header[this.name] = this.value;
-    });
-    $.each(expenseForm, function() {
-      bill_header2[this.name] = this.value;
-    });
-    // Add items to the bill_header object
-    bill_header.items = itemList;
-    bill_header2.items = itemList;
-
-
-    Swal.fire({
-        title: "Do you want to save the changes?",
-        showDenyButton: true,
-        showCancelButton: true,
-        confirmButtonText: "Save",
-        denyButtonText: `Don't save`
-      }).then((result) => {
-        /* Read more about isConfirmed, isDenied below */
-        if (result.isConfirmed) {
-          Swal.fire("Saved!", "", "success");
-          console.log(JSON.stringify(bill_header, null, 2)); // Pretty-print JSON
-          // console.log(JSON.stringify(bill_header2, null, 2)); // Pretty-print JSON
-          // $("#transactionModal").modal('hide');
-        } else if (result.isDenied) {
-          Swal.fire("Changes are not saved", "", "error");
-          $("#transactionModal").modal('hide');
-        }
-    });
+  // Create a FormData object
+  var formData = new FormData();
+  
+  // Append data from the first form
+  var billForm = $("#billForm").serializeArray();
+  $.each(billForm, function() {
+    formData.append(this.name, this.value);
+  });
+  
+  // Append data from the second form
+  var additionalForm = $("#attachForm").serializeArray();
+  $.each(additionalForm, function() {
+    formData.append(this.name, this.value);
   });
 
-  // Calculate total amount
-  function updateTotalAmount() {
-    var total = 0;
-    table.rows().every(function() {
-      var data = this.data();
-      total += parseFloat(data.amount) || 0; // Sum the amount for subtotal
-    });
-    
-    // Update the subtotal display
-    $('#totalSubAmount').text(total.toFixed(2));
-
-    // If needed, calculate total including tax
-    var grandTotal = total; // Start with subtotal
-    // You can add additional logic for grand total calculation if required
-    $('#totalAmount').text(grandTotal.toFixed(2));
+  // Handle file input from the second form
+  var fileInput = document.getElementById("attach_File");
+  if (fileInput.files.length > 0) {
+    formData.append("attachment", fileInput.files[0]);
   }
+
+  Swal.fire({
+    title: "Do you want to save the changes?",
+    showDenyButton: true,
+    showCancelButton: true,
+    confirmButtonText: "Save",
+    denyButtonText: `Don't save`
+  }).then((result) => {
+    if (result.isConfirmed) {
+      Swal.fire("Saved!", "", "success");
+      
+      // Send the combined form data using AJAX
+      // $.ajax({
+      //   url: 'your_upload_script.php', // Replace with your PHP upload script
+      //   type: 'POST',
+      //   data: formData,
+      //   contentType: false, // Important for file upload
+      //   processData: false, // Important for file upload
+      //   success: function(response) {
+      //     console.log(response); // Handle the response from the server
+      //   },
+      //   error: function(jqXHR, textStatus, errorThrown) {
+      //     console.error(textStatus, errorThrown); // Handle errors
+      //   }
+      // });
+      console.log(formData);
+    } else if (result.isDenied) {
+      Swal.fire("Changes are not saved", "", "error");
+    }
+    });
+  });
 
   // Initialize table with 2 empty rows
   function addEmptyRows(numRows) {
