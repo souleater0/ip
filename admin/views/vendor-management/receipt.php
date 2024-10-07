@@ -1,4 +1,3 @@
-current code
 <?php 
 $productlists = getProductList($pdo);
 $supplierlists = getSupplierList($pdo);
@@ -58,7 +57,7 @@ foreach ($productlists as $productlist) {
             <div class="row">
               <div class="col-2">
                 <label for="supplier" class="form-label">Supplier</label >
-                <select class="selectpicker form-control" id="bill_supplier" name="bill_supplier" data-live-search="true">
+                <select class="selectpicker form-control" id="bill_supplier" name="bill_supplier" data-live-search="true" required>
                   <?php foreach ($supplierlists as $suplierlist):?>
                     <option value="<?php echo $suplierlist['id'];?>"><?php echo $suplierlist['vendor_name'];?></option>
                   <?php endforeach;?>
@@ -74,19 +73,19 @@ foreach ($productlists as $productlist) {
                 <div class="col-2">
                   <div>
                   <label for="bill_start_date" class="form-label">Bill Date</label>
-                  <input id="bill_start_date" name="bill_start_date" class="form-control" type="date" />
+                  <input id="bill_start_date" name="bill_start_date" class="form-control" type="date" required/>
                   </div>
                 </div>
                 <div class="col-2">
                   <div>
                   <label for="bill_end_date" class="form-label">Due Date</label>
-                  <input id="bill_end_date" name="bill_end_date" class="form-control" type="date" />
+                  <input id="bill_end_date" name="bill_end_date" class="form-control" type="date" required/>
                   </div>
                 </div>
                 <div class="col-2">
                   <div>
-                    <label for="exampleFormControlInput1" class="form-label">Bill No.</label>
-                    <input type="text" class="form-control" id="exampleFormControlInput1">
+                    <label for="billNo" class="form-label">Bill No.</label>
+                    <input type="text" class="form-control" id="billNo" required>
                   </div>
                 </div>
               </div>
@@ -111,7 +110,7 @@ foreach ($productlists as $productlist) {
                     </div>
                 </div>
                 <div class="col-2">
-                  <label for="expense_payment" class="form-label">Payee</label >
+                  <label for="expense_payment" class="form-label">Payment Method</label >
                   <select class="selectpicker form-control" id="expense_payment" name="expense_payment" data-live-search="true">
                     <option value="1">CASH</option>
                     <option value="2">GCASH</option>
@@ -196,13 +195,27 @@ foreach ($productlists as $productlist) {
 <script>
 $(document).ready(function() {
 
-  $('.dropdown-item').on('click', function() {
-    var formType = $(this).data('form');
-    $('.dynamic-form').hide();
-    $('#' + formType + 'Form').show();
-    var newTitle = $(this).text();
-    $('#transactionModalLabel').text(newTitle);
-  });
+
+$('[data-form]').on('click', function() {
+  var formType = $(this).data('form');
+  
+  if (formType === 'bill') {
+    $('#billForm').show();
+    $('#expenseForm').hide();
+    $('#transactionModalLabel').text('Bill');  // Set modal title for Bill
+  } else if (formType === 'expense') {
+    $('#billForm').hide();
+    $('#expenseForm').show();
+    $('#transactionModalLabel').text('Expense');  // Set modal title for Expense
+  }
+});
+  // $('.dropdown-item').on('click', function() {
+  //   var formType = $(this).data('form');
+  //   $('.dynamic-form').hide();
+  //   $('#' + formType + 'Form').show();
+  //   var newTitle = $(this).text();
+  //   $('#transactionModalLabel').text(newTitle);
+  // });
   
   var table = $('#editableTable').DataTable({
     columns: [
@@ -512,11 +525,7 @@ $(document).ready(function() {
 
   // Clear Rows button
   $('#clearRows').on('click', function() {
-    currentlyEditingRow = null; // Reset the editing state
-
-    table.clear().draw(false); // Clear all rows
-    addEmptyRows(2); // Add 2 default empty rows
-    updateTotalAmount();
+    clearRows();
   });
 
   $(document).on('changed.bs.select', '.selected-product', function (e, clickedIndex, isSelected, previousValue) {
@@ -675,58 +684,108 @@ function updateTotalAmount() {
 
   // Form submission
   $('#submitForm').on('click', function() {
-  // Create a FormData object
-  var formData = new FormData();
-  
-  // Append data from the first form
-  var billForm = $("#billForm").serializeArray();
-  $.each(billForm, function() {
-    formData.append(this.name, this.value);
-  });
-  
-  // Append data from the second form
-  var additionalForm = $("#attachForm").serializeArray();
-  $.each(additionalForm, function() {
-    formData.append(this.name, this.value);
-  });
-
-  // Handle file input from the second form
-  var fileInput = document.getElementById("attach_File");
-  if (fileInput.files.length > 0) {
-    formData.append("attachment", fileInput.files[0]);
-  }
-
-  Swal.fire({
-    title: "Do you want to save the changes?",
-    showDenyButton: true,
-    showCancelButton: true,
-    confirmButtonText: "Save",
-    denyButtonText: `Don't save`
-  }).then((result) => {
-    if (result.isConfirmed) {
-      Swal.fire("Saved!", "", "success");
-      
-      // Send the combined form data using AJAX
-      // $.ajax({
-      //   url: 'your_upload_script.php', // Replace with your PHP upload script
-      //   type: 'POST',
-      //   data: formData,
-      //   contentType: false, // Important for file upload
-      //   processData: false, // Important for file upload
-      //   success: function(response) {
-      //     console.log(response); // Handle the response from the server
-      //   },
-      //   error: function(jqXHR, textStatus, errorThrown) {
-      //     console.error(textStatus, errorThrown); // Handle errors
-      //   }
-      // });
-      console.log(formData);
-    } else if (result.isDenied) {
-      Swal.fire("Changes are not saved", "", "error");
+    // Determine which form is currently active (Bill or Expense)
+    var activeForm;
+    if ($('#billForm').is(':visible')) {
+      activeForm = 'bill';
+    } else if ($('#expenseForm').is(':visible')) {
+      activeForm = 'expense';
     }
+
+    var formData = new FormData();
+
+    // Based on the active form, capture the corresponding fields
+    if (activeForm === 'bill') {
+      formData.append('action', 'addTransaction');
+      formData.append('formType', 'bill');  // Pass form type to backend
+      formData.append('billSupplier', $('#bill_supplier').val());
+      formData.append('billEmail', $('#bill_address').val());
+      formData.append('billDate', $('#bill_start_date').val());
+      formData.append('billdueDate', $('#bill_end_date').val());
+      formData.append('billNo', $('#billNo').val());
+      // Get itemList from table and append it to FormData
+      var itemList = table.rows().data().toArray();
+      formData.append('items', JSON.stringify(itemList));
+    } else if (activeForm === 'expense') {
+      formData.append('formType', 'expense');  // Pass form type to backend
+      formData.append('payee', $('#payee').val());
+      formData.append('expenseBillDate', $('#expenseBillDate').val());
+      formData.append('paymentMethod', $('#paymentMethod').val());
+      formData.append('refNo', $('#refNo').val());
+    }
+
+    // Attach remarks and file from `attachForm`
+    formData.append('remarks', $('#attach_Remarks').val());
+    var attachmentFile = $('#attach_File')[0].files[0]; // Get the first file from attach_File input
+    if (attachmentFile) {
+      formData.append('attachment', attachmentFile);
+    }
+
+    // Debugging: Log form data before submitting
+    // console.log('Submitting form:', activeForm, formData);
+    // console.log('Submitting form:', activeForm);
+
+    // for (var pair of formData.entries()) {
+    //   console.log(pair[0] + ': ' + pair[1]);
+    // }
+
+
+    Swal.fire({
+      title: "Do you want to save the changes?",
+      showDenyButton: true,
+      showCancelButton: true,
+      confirmButtonText: "Save",
+      denyButtonText: `Don't save`
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // AJAX request
+        $.ajax({
+            url: 'admin/process/admin_action.php', // Update with your PHP script path
+            type: 'POST',
+            data: formData,
+            contentType: false, // Important for file uploads
+            processData: false, // Important for file uploads
+            success: function (response) {
+                // Handle success response
+                $('#responseMessage').html(response.message);
+                if (response.success) {
+                    // Reset the active form
+                    if (activeForm === 'bill') {
+                        $('#billForm')[0].reset(); // Reset the bill form
+                        Swal.fire("Saved!", response.message, "success");
+                        // toastr.success(response.message);
+                    } else if (activeForm === 'expense') {
+                        $('#expenseForm')[0].reset(); // Reset the expense form
+                        // toastr.success(response.message);
+                        Swal.fire("Saved!", response.message, "success");
+                    }
+                    clearRows();
+                } else {
+                    console.log(response.message);
+                    // toastr.error(response.message);
+                    Swal.fire("Error!", response.message, "error");
+                }
+            },
+            error: function (xhr, status, error) {
+                // Handle error response
+                console.log('An error occurred:', error);
+            }
+        });
+      } else if (result.isDenied) {
+        Swal.fire("Changes are not saved", "", "error");
+      }
     });
+
+
   });
 
+  function clearRows(){
+    currentlyEditingRow = null; // Reset the editing state
+
+    table.clear().draw(false); // Clear all rows
+    addEmptyRows(2); // Add 2 default empty rows
+    updateTotalAmount();
+  }
   // Initialize table with 2 empty rows
   function addEmptyRows(numRows) {
     for (var i = 0; i < numRows; i++) {
