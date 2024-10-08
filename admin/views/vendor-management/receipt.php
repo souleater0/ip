@@ -105,7 +105,7 @@ foreach ($productlists as $productlist) {
               <div class="row mb-3">
                 <div class="col-2">
                     <div>
-                    <label for="expense_date" class="form-label">Bill Date</label>
+                    <label for="expense_date" class="form-label">Payment Date</label>
                     <input id="expense_date" name="expense_date" class="form-control" type="date" />
                     </div>
                 </div>
