@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 07, 2024 at 02:00 PM
+-- Generation Time: Oct 21, 2024 at 12:55 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -80,26 +80,17 @@ INSERT INTO `category` (`category_id`, `parent_category_id`, `category_name`, `c
 -- --------------------------------------------------------
 
 --
--- Table structure for table `item`
+-- Table structure for table `customer`
 --
 
-CREATE TABLE `item` (
-  `item_id` int(11) NOT NULL,
-  `item_sku` varchar(255) DEFAULT NULL,
-  `item_barcode` varchar(255) DEFAULT NULL,
-  `item_qty` int(11) DEFAULT NULL,
-  `item_expiry` date DEFAULT NULL,
-  `product_sku` varchar(255) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp()
+CREATE TABLE `customer` (
+  `id` int(11) NOT NULL,
+  `customer_name` varchar(255) DEFAULT NULL,
+  `company_name` varchar(255) DEFAULT NULL,
+  `customer_phone_no` int(11) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `item`
---
-
-INSERT INTO `item` (`item_id`, `item_sku`, `item_barcode`, `item_qty`, `item_expiry`, `product_sku`, `created_at`) VALUES
-(1, 'ITM00001', 'NCHDWHDG', 10, '2024-09-30', 'SN00001', '2024-09-05 21:39:58'),
-(2, 'ITM00002', 'AWDASCAD', 5, '2024-09-30', 'BR00001', '2024-09-05 21:39:58');
 
 -- --------------------------------------------------------
 
@@ -506,8 +497,7 @@ INSERT INTO `supplier` (`id`, `vendor_company`, `vendor_name`, `vendor_address`,
 (2, 'Company B', 'Vendor B', 'Baliuag, Bulacan', '09123456789', 'company@gmail.com', 1, '2024-08-21 05:46:44', '2024-08-21 08:35:07'),
 (3, 'Company C', 'Vendor C', 'Sto. Cristo Pulilan, Bulacan', '09123456789', 'company@gmail.com', 1, '2024-08-21 05:46:51', '2024-08-21 08:34:57'),
 (4, 'Company D', 'Vendor D', 'Sto. Cristo Pulilan, Bulacan', '09123456789', 'company@gmail.com', 1, '2024-08-21 05:55:01', '2024-08-21 08:34:57'),
-(5, 'Company E', 'Vendor E', 'Sto. Cristo Pulilan, Bulacan', '09123456789', 'company@gmail.com', 0, '2024-08-21 05:58:47', '2024-08-21 08:34:57'),
-(6, 'test2s', 'test2s', 'test2s', '1234', 'test@gmail.com', 1, '2024-08-27 03:15:11', '2024-08-27 06:53:28');
+(5, 'Company E', 'Vendor E', 'Sto. Cristo Pulilan, Bulacan', '09123456789', 'company@gmail.com', 0, '2024-08-21 05:58:47', '2024-08-21 08:34:57');
 
 -- --------------------------------------------------------
 
@@ -553,6 +543,85 @@ INSERT INTO `tax` (`tax_id`, `tax_name`, `tax_percentage`) VALUES
 (4, '5% Tax', 5),
 (5, '10% Tax', 10),
 (6, '4% Tax', 4);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `trans_bill`
+--
+
+CREATE TABLE `trans_bill` (
+  `id` int(11) NOT NULL,
+  `supplier_id` int(11) NOT NULL,
+  `bill_address` varchar(255) DEFAULT NULL,
+  `bill_date` date DEFAULT NULL,
+  `bill_due_date` date DEFAULT NULL,
+  `bill_no` varchar(255) DEFAULT NULL,
+  `transaction_no` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `trans_expense`
+--
+
+CREATE TABLE `trans_expense` (
+  `id` int(11) NOT NULL,
+  `payee_id` int(11) DEFAULT NULL,
+  `expense_date` date DEFAULT NULL,
+  `expense_payment_method` varchar(255) DEFAULT NULL,
+  `expense_no` varchar(255) DEFAULT NULL,
+  `transaction_no` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `trans_invoice`
+--
+
+CREATE TABLE `trans_invoice` (
+  `id` int(11) NOT NULL,
+  `customer_id` int(11) NOT NULL,
+  `customer_email` varchar(255) DEFAULT NULL,
+  `invoice_no` varchar(255) DEFAULT NULL,
+  `invoice_bill_address` varchar(255) DEFAULT NULL,
+  `invoice_shipping_address` varchar(255) DEFAULT NULL,
+  `invoice_ship_via` varchar(255) DEFAULT NULL,
+  `invoice_date` date DEFAULT NULL,
+  `invoice_duedate` date DEFAULT NULL,
+  `invoice_track_no` varchar(255) DEFAULT NULL,
+  `transaction_no` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `trans_item`
+--
+
+CREATE TABLE `trans_item` (
+  `item_id` int(11) NOT NULL,
+  `transaction_no` varchar(255) DEFAULT NULL,
+  `product_sku` varchar(255) DEFAULT NULL,
+  `item_barcode` varchar(255) DEFAULT NULL,
+  `item_qty` int(11) DEFAULT NULL,
+  `item_rate` decimal(10,2) DEFAULT NULL,
+  `item_amount` decimal(10,2) DEFAULT NULL,
+  `transaction_type` enum('bill','expense','invoice','purchase_order') DEFAULT NULL,
+  `item_expiry` date DEFAULT NULL,
+  `customer_id` int(11) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `trans_item`
+--
+
+INSERT INTO `trans_item` (`item_id`, `transaction_no`, `product_sku`, `item_barcode`, `item_qty`, `item_rate`, `item_amount`, `transaction_type`, `item_expiry`, `customer_id`, `created_at`) VALUES
+(1, NULL, 'SN00001', 'NCHDWHDG', 10, NULL, NULL, 'bill', '2024-09-30', NULL, '2024-09-05 21:39:58'),
+(2, NULL, 'BR00001', 'AWDASCAD', 5, NULL, NULL, 'bill', '2024-09-30', NULL, '2024-09-05 21:39:58');
 
 -- --------------------------------------------------------
 
@@ -651,11 +720,10 @@ ALTER TABLE `category`
   ADD PRIMARY KEY (`category_id`);
 
 --
--- Indexes for table `item`
+-- Indexes for table `customer`
 --
-ALTER TABLE `item`
-  ADD PRIMARY KEY (`item_id`),
-  ADD KEY `fr_prod_sku` (`product_sku`);
+ALTER TABLE `customer`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `modules`
@@ -753,6 +821,31 @@ ALTER TABLE `tax`
   ADD PRIMARY KEY (`tax_id`);
 
 --
+-- Indexes for table `trans_bill`
+--
+ALTER TABLE `trans_bill`
+  ADD PRIMARY KEY (`id`) USING BTREE;
+
+--
+-- Indexes for table `trans_expense`
+--
+ALTER TABLE `trans_expense`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `trans_invoice`
+--
+ALTER TABLE `trans_invoice`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `trans_item`
+--
+ALTER TABLE `trans_item`
+  ADD PRIMARY KEY (`item_id`),
+  ADD KEY `fr_prod_sku` (`product_sku`);
+
+--
 -- Indexes for table `unit`
 --
 ALTER TABLE `unit`
@@ -786,12 +879,6 @@ ALTER TABLE `brand`
 --
 ALTER TABLE `category`
   MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
-
---
--- AUTO_INCREMENT for table `item`
---
-ALTER TABLE `item`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `modules`
@@ -858,6 +945,18 @@ ALTER TABLE `supplier`
 --
 ALTER TABLE `system_option`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `trans_bill`
+--
+ALTER TABLE `trans_bill`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `trans_item`
+--
+ALTER TABLE `trans_item`
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `users`

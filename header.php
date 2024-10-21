@@ -209,7 +209,7 @@ $route = $_GET['route'] ?? 'home';
             <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=manage-receipt" aria-expanded="false">
                 <iconify-icon icon="ic:baseline-receipt-long"></iconify-icon>
-                <span class="hide-menu">Receipt</span>
+                <span class="hide-menu">Transaction</span>
               </a>
             </li>
             <?php } ?>
