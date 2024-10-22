@@ -125,8 +125,6 @@ $items = getItembyID($product_id, $pdo);
             <table id="viewProductTable" class="table table-hover table-cs-color">
                     <thead>
                         <tr>
-                            
-                            <th>SKU</th>
                             <th class="text-start">Product Barcode</th>
                             <th class="text-center">Qty</th>
                             <th>Expiry Date</th>
@@ -138,14 +136,16 @@ $items = getItembyID($product_id, $pdo);
                         
                             <?php foreach($items as $item):?>
                             <tr>
-                            <td><span><?php echo "<img src='data:image/png;base64," . base64_encode(generateBarcode(!empty($item['item_sku']) ? $item['item_sku'] : 'none')) . "' width='180'>";?></span><br><span><?php echo !empty($item['item_sku']) ? $item['item_sku'] : 'none';?></span></td>
                             <td class="text-start"><span><?php echo "<img src='data:image/png;base64," . base64_encode(generateBarcode(!empty($item['item_barcode']) ? $item['item_barcode'] : 'none')) . "' width='180'>";?></span><br><span><?php echo !empty($item['item_barcode']) ? $item['item_barcode'] : 'none';?></span></td>
                             <td class="text-center"><span class="btn btn-secondary btn-sm"><?php echo $item['item_qty'];?></span></td>
-                            <td><?php echo $item['item_expiry'];?></td>
+                            <td><?php echo !empty($item['item_expiry']) ? $item['item_expiry'] : 'None'; ?></td>
                             <td class="text-center">
                                 <?php 
                                     $days_to_expiry = (int)$item['days_to_expiry'];
-                                    if ($days_to_expiry <= 0) {
+
+                                    if (is_null($item['days_to_expiry'])) {
+                                        echo '<span class="badge bg-warning">No Expiry</span>';
+                                    } elseif ($days_to_expiry <= 0) {
                                         echo '<span class="badge bg-danger">Expired</span>';
                                     } else {
                                         echo '<span class="badge bg-secondary">' . $days_to_expiry . '</span>';

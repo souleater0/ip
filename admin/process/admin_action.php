@@ -850,136 +850,121 @@ require_once 'function.php';
             $formType = $_POST['formType'];
             $response = array('success' => false, 'message' => '');
     
-            if ($formType === 'bill') {
-                // Validate bill form fields
-                if (empty($_POST['billSupplier'])) {
-                    $response['message'] = 'Please enter Supplier Name!';
-                } elseif (empty($_POST['billDate'])) {
-                    $response['message'] = 'Please enter Bill Date!';
-                } elseif (empty($_POST['billdueDate'])) {
-                    $response['message'] = 'Please enter Due Date!';
-                } elseif (empty($_POST['billNo'])) {
-                    $response['message'] = 'Please enter Bill No!';
-                } else {
-                    // Check if items are provided
-                    $items = isset($_POST['items']) ? json_decode($_POST['items'], true) : [];
-                    $validItems = [];
-                    
-                    // Validate items
-                    foreach ($items as $item) {
-                        if (!empty($item['product_name']) && !empty($item['sku']) && 
-                            !empty($item['qty']) && !empty($item['rate']) && 
-                            !empty($item['amount'])) {
-                            $validItems[] = $item;
-                        }
-                    }
+            // Common variables
+            $items = isset($_POST['items']) ? json_decode($_POST['items'], true) : [];
     
-                    // Check if there is at least one valid item
-                    if (count($validItems) === 0) {
-                        $response['message'] = 'Add atleast One Product!';
-                    } else {
-                        // Process the bill data (e.g., save to database)
-                        // Handle optional file attachment
-                        if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] !== UPLOAD_ERR_NO_FILE) {
-                            // Only validate if a file is uploaded
-                            if ($_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
-                                $fileTmpPath = $_FILES['attachment']['tmp_name'];
-                                $fileName = $_FILES['attachment']['name'];
-                                $fileSize = $_FILES['attachment']['size'];
-                                $fileType = $_FILES['attachment']['type'];
-    
-                                // Allowable file types
-                                $allowedTypes = array('application/pdf', 'image/jpeg', 'image/png');
-    
-                                // Validate file type
-                                if (!in_array($fileType, $allowedTypes)) {
-                                    $response['message'] = 'Invalid file type! Only PDF and image files (JPEG, PNG) are allowed.';
-                                } elseif ($fileSize > 5 * 1024 * 1024) { // 5 MB limit
-                                    $response['message'] = 'File size exceeds 5 MB limit!';
-                                } else {
-                                    // Define the directory to store the file
-                                    $uploadFileDir = 'uploads/';
-                                    $dest_path = $uploadFileDir . basename($fileName);
-    
-                                    // Move the uploaded file to the destination
-                                    if (move_uploaded_file($fileTmpPath, $dest_path)) {
-                                        // Optionally save the path to the database
-                                        // $result = processBillData($pdo, $dest_path);
-                                        $response['success'] = true;
-                                        $response['message'] = 'Bill submitted successfully!';
-                                    } else {
-                                        $response['message'] = 'Error moving the uploaded file!';
-                                    }
-                                }
-                            } else {
-                                $response['message'] = 'Error during file upload!';
-                            }
-                        } else {
-                            // No file uploaded, process without file
-                            $response['success'] = true;
-                            $response['message'] = 'Bill submitted successfully without an attachment.';
-                        }
-                    }
-                }
-            } elseif ($formType === 'expense') {
-                // Validate expense form fields
-                if (empty($_POST['payee'])) {
-                    $response['message'] = 'Please enter Payee!';
-                } elseif (empty($_POST['expenseBillDate'])) {
-                    $response['message'] = 'Please enter Bill Date!';
-                } elseif (empty($_POST['paymentMethod'])) {
-                    $response['message'] = 'Please enter Payment Method!';
-                } elseif (empty($_POST['refNo'])) {
-                    $response['message'] = 'Please enter Reference No!';
-                } else {
-                    // Process the expense data
-                    // Handle optional file attachment for expense (if any)
-                    if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] !== UPLOAD_ERR_NO_FILE) {
-                        // Only validate if a file is uploaded
-                        if ($_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
-                            $fileTmpPath = $_FILES['attachment']['tmp_name'];
-                            $fileName = $_FILES['attachment']['name'];
-                            $fileSize = $_FILES['attachment']['size'];
-                            $fileType = $_FILES['attachment']['type'];
-    
-                            // Allowable file types
-                            $allowedTypes = array('application/pdf', 'image/jpeg', 'image/png');
-    
-                            // Validate file type
-                            if (!in_array($fileType, $allowedTypes)) {
-                                $response['message'] = 'Invalid file type! Only PDF and image files (JPEG, PNG) are allowed.';
-                            } elseif ($fileSize > 5 * 1024 * 1024) { // 5 MB limit
-                                $response['message'] = 'File size exceeds 5 MB limit!';
-                            } else {
-                                // Define the directory to store the file
-                                $uploadFileDir = 'uploads/';
-                                $dest_path = $uploadFileDir . basename($fileName);
-    
-                                // Move the uploaded file to the destination
-                                if (move_uploaded_file($fileTmpPath, $dest_path)) {
-                                    // Optionally save the path to the database
-                                    // $result = processExpenseData($pdo, $dest_path);
-                                    $response['success'] = true;
-                                    $response['message'] = 'Expense submitted successfully!';
-                                } else {
-                                    $response['message'] = 'Error moving the uploaded file!';
-                                }
-                            }
-                        } else {
-                            $response['message'] = 'Error during file upload!';
-                        }
-                    } else {
-                        // No file uploaded, process without file
-                        $response['success'] = true;
-                        $response['message'] = 'Expense submitted successfully without an attachment.';
-                    }
+            // Validate items
+            $validItems = [];
+            foreach ($items as $item) {
+                if (!empty($item['product_name']) && !empty($item['sku']) &&
+                    !empty($item['qty']) && !empty($item['rate']) &&
+                    !empty($item['amount'])) {
+                    $validItems[] = $item;
                 }
             }
-            
+    
+            // Check if there is at least one valid item
+            if (count($validItems) === 0) {
+                $response['message'] = 'Add at least one product!';
+            } else {
+                try {
+                    // Prepare data based on form type
+                    $transactionData = [
+                        'items' => $validItems
+                    ];
+    
+                    if ($formType === 'bill') {
+                        // Validate bill form fields
+                        if (empty($_POST['billSupplier'])) {
+                            $response['message'] = 'Please enter Supplier Name!';
+                        } elseif (empty($_POST['billDate'])) {
+                            $response['message'] = 'Please enter Bill Date!';
+                        } elseif (empty($_POST['billdueDate'])) {
+                            $response['message'] = 'Please enter Due Date!';
+                        } elseif (empty($_POST['billNo'])) {
+                            $response['message'] = 'Please enter Bill No!';
+                        } else {
+                            // Assign bill-specific data to transactionData
+                            $transactionData = array_merge($transactionData, [
+                                'billSupplier' => $_POST['billSupplier'],
+                                'billAddress' => $_POST['billAddress'],
+                                'billDate' => $_POST['billDate'],
+                                'billdueDate' => $_POST['billdueDate'],
+                                'billNo' => $_POST['billNo'],
+                            ]);
+    
+                            // Call the addTransaction function
+                            $transactionResult = addTransaction($pdo, $transactionData, 'bill', $validItems);
+    
+                            if ($transactionResult['success']) {
+                                // Handle file upload for bill
+                                if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
+                                    handleFileUpload($_FILES['attachment']);
+                                }
+                                $response['success'] = true;
+                                $response['message'] = 'Bill submitted successfully!';
+                            } else {
+                                $response['message'] = $transactionResult['message'];
+                            }
+                        }
+                    } elseif ($formType === 'expense') {
+                        // Validate expense form fields
+                        if (empty($_POST['payee_id'])) {
+                            $response['message'] = 'Please enter Payee!';
+                        } elseif (empty($_POST['expenseDate'])) {
+                            $response['message'] = 'Please enter Bill Date!';
+                        } elseif (empty($_POST['expense_payment_method'])) {
+                            $response['message'] = 'Please enter Payment Method!';
+                        } elseif (empty($_POST['expenseNo'])) {
+                            $response['message'] = 'Please enter Reference No!';
+                        } else {
+                            // Assign expense-specific data to transactionData
+                            // $transactionData = array_merge($transactionData, [
+                            //     'payee_id' => $_POST['payee_id'],
+                            //     'expenseBillDate' => $_POST['expenseBillDate'],
+                            //     'paymentMethod' => $_POST['paymentMethod'],
+                            //     'refNo' => $_POST['refNo'],
+                            // ]);
+    
+                            // Call the addTransaction function
+                            $transactionResult = addTransaction($pdo, $transactionData, 'expense');
+    
+                            if ($transactionResult['success']) {
+                                // Handle file upload for expense
+                                if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
+                                    handleFileUpload($_FILES['attachment']);
+                                }
+                                $response['success'] = true;
+                                $response['message'] = 'Expense submitted successfully!';
+                            } else {
+                                $response['message'] = $transactionResult['message'];
+                            }
+                        }
+                    }
+                } catch (Exception $e) {
+                    // Handle any exceptions
+                    $response['message'] = 'Failed to submit transaction: ' . $e->getMessage();
+                }
+            }
+    
             // Send response
             header('Content-Type: application/json');
             echo json_encode($response);
             exit();
         }
     }
+    
+    function handleFileUpload($file) {
+        if (isset($file) && $file['error'] === UPLOAD_ERR_OK) {
+            $fileTmpPath = $file['tmp_name'];
+            $fileName = $file['name'];
+            $uploadFileDir = '../../assets/uploads/';
+            $dest_path = $uploadFileDir . basename($fileName);
+    
+            if (!move_uploaded_file($fileTmpPath, $dest_path)) {
+                throw new Exception('Error moving the uploaded file!');
+            }
+        }
+    }
+    
 ?>

@@ -746,7 +746,7 @@
             -- INNER JOIN status d
             INNER JOIN unit e ON e.unit_id = a.unit_id
             INNER JOIN tax f ON f.tax_id = a.tax_id
-            LEFT JOIN item g ON g.product_sku = a.product_sku
+            LEFT JOIN trans_item g ON g.product_sku = a.product_sku
             WHERE a.product_id = :product_id
             GROUP BY a.product_sku
             ";
@@ -840,8 +840,7 @@
     }
     function getItembyID($product_id, $pdo){
         try {
-            $query = "SELECT 
-                a.item_sku,
+            $query = "SELECT
                 a.item_barcode,
                 a.item_qty,
                 a.item_expiry,
@@ -850,12 +849,11 @@
                 b.expiry_notice,
                 DATEDIFF(a.item_expiry, NOW()) + 1 AS days_to_expiry
             FROM 
-                item a
+                trans_item a
             INNER JOIN 
                 product b ON b.product_sku = a.product_sku
             WHERE 
                 b.product_id = :product_id
-                AND a.item_expiry IS NOT NULL
             ORDER BY 
                 a.item_expiry ASC";
             $stmt = $pdo->prepare($query);
@@ -1802,7 +1800,167 @@
             return array('success' => false, 'message' => 'Failed to retrieve product: ' . $e->getMessage());
         }
     }
+
+    function addTransaction($pdo) {
+        // Get form data from $_POST
+        $formType = !empty($_POST['formType']) ? $_POST['formType'] : null;
+        $supplierID = null; // Adjust based on formType
+        $address = null; // Bill address or customer email based on formType
+        $date = null; // Date for bills, expenses, or invoices
+        $dueDate = null; // Due date for bills or invoices
+        $transactionNo = null; // To hold the generated transaction number
+        $items = !empty($_POST['items']) ? json_decode($_POST['items'], true) : [];
     
+        // Validate that items are provided
+        if (empty($items)) {
+            return array('success' => false, 'message' => 'No items provided for this transaction.');
+        }
+    
+        try {
+            // Start a PDO transaction
+            $pdo->beginTransaction();
+    
+            // Determine transaction details based on formType
+            switch ($formType) {
+                case 'bill':
+                    $supplierID = !empty($_POST['billSupplier']) ? $_POST['billSupplier'] : null;
+                    $address = !empty($_POST['billAddress']) ? $_POST['billAddress'] : null;
+                    $date = !empty($_POST['billDate']) ? $_POST['billDate'] : null;
+                    $dueDate = !empty($_POST['billdueDate']) ? $_POST['billdueDate'] : null;
+                    $transactionNo = generateTransactionNo($pdo, 'bill');
+    
+                    // Insert into the trans_bill table
+                    $sql = "
+                        INSERT INTO trans_bill (supplier_id, bill_address, bill_date, bill_due_date, bill_no, transaction_no) 
+                        VALUES (:supplier_id, :bill_address, :bill_date, :bill_due_date, :bill_no, :transaction_no)
+                    ";
+                    $stmtParams = [
+                        'supplier_id' => $supplierID,
+                        'bill_address' => $address,
+                        'bill_date' => $date,
+                        'bill_due_date' => $dueDate,
+                        'bill_no' => !empty($_POST['billNo']) ? $_POST['billNo'] : null,
+                        'transaction_no' => $transactionNo
+                    ];
+                    break;
+    
+                case 'expense':
+                    $supplierID = !empty($_POST['payee_id']) ? $_POST['payee_id'] : null;
+                    $date = !empty($_POST['expenseDate']) ? $_POST['expenseDate'] : null;
+                    $transactionNo = generateTransactionNo($pdo, 'expense');
+    
+                    // Insert into the trans_expense table
+                    $sql = "
+                        INSERT INTO trans_expense (payee_id, expense_date, expense_payment_method, expense_no, transaction_no) 
+                        VALUES (:payee_id, :expense_date, :expense_payment_method, :expense_no, :transaction_no)
+                    ";
+                    $stmtParams = [
+                        'payee_id' => $supplierID,
+                        'expense_date' => $date,
+                        'expense_payment_method' => isset($_POST['expense_payment_method']) ? $_POST['expense_payment_method'] : null,
+                        'expense_no' => isset($_POST['expenseNo']) ? $_POST['expenseNo'] : null,
+                        'transaction_no' => $transactionNo
+                    ];
+                    break;
+    
+                case 'invoice':
+                    // Logic for invoices (if applicable)
+                    // ...
+                    break;
+    
+                default:
+                    throw new Exception('Invalid form type');
+            }
+    
+            // Prepare and execute the main transaction SQL
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($stmtParams);
+    
+            // Prepare the SQL for inserting items into the trans_item table
+            $itemSql = "
+                INSERT INTO trans_item 
+                (transaction_no, product_sku, item_barcode, item_qty, item_rate, item_tax, item_amount, transaction_type, item_expiry, created_at) 
+                VALUES (:transaction_no, :product_sku, :item_barcode, :item_qty, :item_rate, :item_tax, :item_amount, :transaction_type, :item_expiry, NOW())
+            ";
+            $itemStmt = $pdo->prepare($itemSql);
+    
+            // Loop through each item and insert it
+            foreach ($items as $item) {
+                if (!empty($item['sku']) && !empty($item['qty']) && !empty($item['rate']) && !empty($item['amount'])) {
+                    $itemStmt->execute([
+                        'transaction_no' => $transactionNo,
+                        'product_sku' => $item['sku'],
+                        'item_barcode' => $item['barcode'] ?? null,
+                        'item_qty' => $item['qty'],
+                        'item_rate' => $item['rate'],
+                        'item_tax' => $item['tax'] ?? null,
+                        'item_amount' => $item['amount'],
+                        'transaction_type' => $formType,
+                        'item_expiry' => $item['expiry'] ?? null  // Optional expiry date
+                    ]);
+                } else {
+                    // Log or handle invalid item case if necessary
+                }
+            }
+    
+            // Commit the transaction
+            $pdo->commit();
+            return array('success' => true, 'message' => 'Transaction and items added successfully.');
+    
+        } catch (Exception $e) {
+            // Roll back the transaction if any error occurs
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            return array('success' => false, 'message' => 'Failed to add transaction: ' . $e->getMessage());
+        }
+    }
+    
+
+function generateTransactionNo($pdo, $transactionType) {
+    // Define the table and prefix for each transaction type
+    $table = '';
+    $prefix = '';
+    
+    switch ($transactionType) {
+        case 'bill':
+            $table = 'trans_bill';
+            $prefix = 'BILL';
+            break;
+        case 'expense':
+            $table = 'trans_expense';
+            $prefix = 'EXP';
+            break;
+        case 'invoice':
+            $table = 'trans_invoice';
+            $prefix = 'INV';
+            break;
+        default:
+            throw new Exception('Invalid transaction type');
+    }
+
+    // Get current date in the format YYYYMMDD
+    $currentDate = date('Ymd');
+
+    // Fetch the last transaction_no for the same type and day
+    $sql = "SELECT transaction_no FROM $table WHERE transaction_no LIKE :transaction_no ORDER BY transaction_no DESC LIMIT 1";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(['transaction_no' => "$prefix-$currentDate%"]);
+    $lastTransactionNo = $stmt->fetchColumn();
+
+    // If no previous transaction is found, start with 001
+    if (!$lastTransactionNo) {
+        $newTransactionNo = $prefix . '-' . $currentDate . '-001';
+    } else {
+        // Extract the last counter and increment it
+        $lastCounter = (int)substr($lastTransactionNo, -3);
+        $newCounter = str_pad($lastCounter + 1, 3, '0', STR_PAD_LEFT);
+        $newTransactionNo = $prefix . '-' . $currentDate . '-' . $newCounter;
+    }
+
+    return $newTransactionNo;
+}
+
 
     
 ?>

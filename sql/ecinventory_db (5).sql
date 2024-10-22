@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 21, 2024 at 12:55 PM
+-- Generation Time: Oct 22, 2024 at 12:37 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -547,6 +547,20 @@ INSERT INTO `tax` (`tax_id`, `tax_name`, `tax_percentage`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Stand-in structure for view `transaction_summary`
+-- (See below for the actual view)
+--
+CREATE TABLE `transaction_summary` (
+`Date` date
+,`Type` varchar(7)
+,`No` varchar(255)
+,`Payee` varchar(255)
+,`Total` decimal(32,2)
+);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `trans_bill`
 --
 
@@ -559,6 +573,14 @@ CREATE TABLE `trans_bill` (
   `bill_no` varchar(255) DEFAULT NULL,
   `transaction_no` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `trans_bill`
+--
+
+INSERT INTO `trans_bill` (`id`, `supplier_id`, `bill_address`, `bill_date`, `bill_due_date`, `bill_no`, `transaction_no`) VALUES
+(1, 1, 'test1', '2024-10-22', '2024-10-24', 'bill123', 'BILL-20241022-001'),
+(2, 2, 'test', '2024-10-23', '2024-10-24', 'test111', 'BILL-20241022-002');
 
 -- --------------------------------------------------------
 
@@ -574,6 +596,14 @@ CREATE TABLE `trans_expense` (
   `expense_no` varchar(255) DEFAULT NULL,
   `transaction_no` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `trans_expense`
+--
+
+INSERT INTO `trans_expense` (`id`, `payee_id`, `expense_date`, `expense_payment_method`, `expense_no`, `transaction_no`) VALUES
+(1, 1, '2024-10-25', 'CASH', 'exp123', 'EXP-20241022-001'),
+(2, 1, '2024-10-23', 'CASH', 'exp111', 'EXP-20241022-002');
 
 -- --------------------------------------------------------
 
@@ -608,6 +638,7 @@ CREATE TABLE `trans_item` (
   `item_barcode` varchar(255) DEFAULT NULL,
   `item_qty` int(11) DEFAULT NULL,
   `item_rate` decimal(10,2) DEFAULT NULL,
+  `item_tax` decimal(10,0) DEFAULT NULL,
   `item_amount` decimal(10,2) DEFAULT NULL,
   `transaction_type` enum('bill','expense','invoice','purchase_order') DEFAULT NULL,
   `item_expiry` date DEFAULT NULL,
@@ -619,9 +650,13 @@ CREATE TABLE `trans_item` (
 -- Dumping data for table `trans_item`
 --
 
-INSERT INTO `trans_item` (`item_id`, `transaction_no`, `product_sku`, `item_barcode`, `item_qty`, `item_rate`, `item_amount`, `transaction_type`, `item_expiry`, `customer_id`, `created_at`) VALUES
-(1, NULL, 'SN00001', 'NCHDWHDG', 10, NULL, NULL, 'bill', '2024-09-30', NULL, '2024-09-05 21:39:58'),
-(2, NULL, 'BR00001', 'AWDASCAD', 5, NULL, NULL, 'bill', '2024-09-30', NULL, '2024-09-05 21:39:58');
+INSERT INTO `trans_item` (`item_id`, `transaction_no`, `product_sku`, `item_barcode`, `item_qty`, `item_rate`, `item_tax`, `item_amount`, `transaction_type`, `item_expiry`, `customer_id`, `created_at`) VALUES
+(1, 'EXP-20241022-001', 'BR00002', '', 2, 15.00, NULL, 30.00, 'expense', NULL, NULL, '2024-10-22 08:34:34'),
+(2, 'EXP-20241022-001', 'SN00002', '', 3, 15.00, NULL, 45.00, 'expense', NULL, NULL, '2024-10-22 08:34:34'),
+(3, 'BILL-20241022-001', 'SN00001', '', 3, 30.00, NULL, 90.00, 'bill', '0000-00-00', NULL, '2024-10-22 08:35:49'),
+(4, 'BILL-20241022-001', 'BR00001', '', 3, 100.00, NULL, 300.00, 'bill', '0000-00-00', NULL, '2024-10-22 08:35:49'),
+(5, 'EXP-20241022-002', 'BR00002', '4089007265', 1, 15.00, NULL, 15.00, 'expense', '2024-10-25', NULL, '2024-10-22 08:37:52'),
+(6, 'BILL-20241022-002', 'BR00001', '', 3, 100.00, NULL, 300.00, 'bill', '2024-10-28', NULL, '2024-10-22 08:38:40');
 
 -- --------------------------------------------------------
 
@@ -702,6 +737,15 @@ CREATE TABLE `waste` (
 
 INSERT INTO `waste` (`waste_id`, `product_sku`, `product_name`, `product_pp`, `category_name`, `item_barcode`, `item_qty`, `item_expiry`, `waste_reason`, `created_at`) VALUES
 (1, 'SN00002', 'BREAD PAN CHEESE & ONION 24G', 15, 'Snacks', '4800194153225', 5, '2024-08-07', 'expired item', '2024-08-08 21:36:00');
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `transaction_summary`
+--
+DROP TABLE IF EXISTS `transaction_summary`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `transaction_summary`  AS SELECT CASE WHEN `b`.`bill_date` is not null THEN `b`.`bill_date` WHEN `e`.`expense_date` is not null THEN `e`.`expense_date` WHEN `i`.`invoice_date` is not null THEN `i`.`invoice_date` END AS `Date`, CASE WHEN `b`.`id` is not null THEN 'Bill' WHEN `e`.`id` is not null THEN 'Expense' WHEN `i`.`id` is not null THEN 'Invoice' END AS `Type`, CASE WHEN `b`.`bill_no` is not null THEN `b`.`bill_no` WHEN `e`.`expense_no` is not null THEN `e`.`expense_no` WHEN `i`.`invoice_no` is not null THEN `i`.`invoice_no` END AS `No`, CASE WHEN `b`.`supplier_id` is not null THEN `s`.`vendor_name` WHEN `e`.`payee_id` is not null THEN `s`.`vendor_name` WHEN `i`.`customer_id` is not null THEN `c`.`customer_name` END AS `Payee`, sum(`ti`.`item_amount`) AS `Total` FROM (((((`trans_item` `ti` left join `trans_bill` `b` on(`ti`.`transaction_no` = `b`.`transaction_no`)) left join `trans_expense` `e` on(`ti`.`transaction_no` = `e`.`transaction_no`)) left join `trans_invoice` `i` on(`ti`.`transaction_no` = `i`.`transaction_no`)) left join `supplier` `s` on(`b`.`supplier_id` = `s`.`id` or `e`.`payee_id` = `s`.`id`)) left join `customer` `c` on(`i`.`customer_id` = `c`.`id`)) GROUP BY CASE WHEN `b`.`bill_date` is not null THEN `b`.`bill_date` WHEN `e`.`expense_date` is not null THEN `e`.`expense_date` WHEN `i`.`invoice_date` is not null THEN `i`.`invoice_date` END, CASE WHEN `b`.`id` is not null THEN 'Bill' WHEN `e`.`id` is not null THEN 'Expense' WHEN `i`.`id` is not null THEN 'Invoice' END, CASE WHEN `b`.`bill_no` is not null THEN `b`.`bill_no` WHEN `e`.`expense_no` is not null THEN `e`.`expense_no` WHEN `i`.`invoice_no` is not null THEN `i`.`invoice_no` END, CASE WHEN `b`.`supplier_id` is not null THEN `s`.`vendor_name` WHEN `e`.`payee_id` is not null THEN `s`.`vendor_name` WHEN `i`.`customer_id` is not null THEN `c`.`customer_name` END ;
 
 --
 -- Indexes for dumped tables
@@ -950,13 +994,19 @@ ALTER TABLE `system_option`
 -- AUTO_INCREMENT for table `trans_bill`
 --
 ALTER TABLE `trans_bill`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `trans_expense`
+--
+ALTER TABLE `trans_expense`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `trans_item`
 --
 ALTER TABLE `trans_item`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `users`

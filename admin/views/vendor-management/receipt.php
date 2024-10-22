@@ -112,9 +112,9 @@ foreach ($productlists as $productlist) {
                 <div class="col-2">
                   <label for="expense_payment" class="form-label">Payment Method</label >
                   <select class="selectpicker form-control" id="expense_payment" name="expense_payment" data-live-search="true">
-                    <option value="1">CASH</option>
-                    <option value="2">GCASH</option>
-                    <option value="3">CREDIT CARD</option>
+                    <option value="CASH">CASH</option>
+                    <option value="GCASH">GCASH</option>
+                    <option value="CREDIT CARD">CREDIT CARD</option>
                   </select>
                 </div>
                 <div class="col-2">
@@ -699,7 +699,7 @@ function updateTotalAmount() {
       formData.append('action', 'addTransaction');
       formData.append('formType', 'bill');  // Pass form type to backend
       formData.append('billSupplier', $('#bill_supplier').val());
-      formData.append('billEmail', $('#bill_address').val());
+      formData.append('billAddress', $('#bill_address').val());
       formData.append('billDate', $('#bill_start_date').val());
       formData.append('billdueDate', $('#bill_end_date').val());
       formData.append('billNo', $('#billNo').val());
@@ -707,11 +707,14 @@ function updateTotalAmount() {
       var itemList = table.rows().data().toArray();
       formData.append('items', JSON.stringify(itemList));
     } else if (activeForm === 'expense') {
+      formData.append('action', 'addTransaction');
       formData.append('formType', 'expense');  // Pass form type to backend
-      formData.append('payee', $('#payee').val());
-      formData.append('expenseBillDate', $('#expenseBillDate').val());
-      formData.append('paymentMethod', $('#paymentMethod').val());
-      formData.append('refNo', $('#refNo').val());
+      formData.append('payee_id', $('#expense_supplier').val());
+      formData.append('expenseDate', $('#expense_date').val());
+      formData.append('expense_payment_method', $('#expense_payment').val());
+      formData.append('expenseNo', $('#expense_ref_no').val());
+      var itemList = table.rows().data().toArray();
+      formData.append('items', JSON.stringify(itemList));
     }
 
     // Attach remarks and file from `attachForm`

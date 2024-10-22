@@ -44,7 +44,7 @@
                 -- INNER JOIN status d
                 INNER JOIN unit e ON e.unit_id = a.unit_id
                 INNER JOIN tax f ON f.tax_id = a.tax_id
-                LEFT JOIN item g ON g.product_sku = a.product_sku
+                LEFT JOIN trans_item g ON g.product_sku = a.product_sku
                 GROUP BY a.product_sku';
                 break;
             case 'category':
