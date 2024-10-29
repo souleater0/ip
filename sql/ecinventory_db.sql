@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 22, 2024 at 12:37 PM
+-- Generation Time: Oct 29, 2024 at 11:00 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -123,6 +123,19 @@ INSERT INTO `modules` (`id`, `module_name`, `description`) VALUES
 (12, 'Waste Management', NULL),
 (13, 'User Management', NULL),
 (14, 'Role Management', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `payments`
+--
+
+CREATE TABLE `payments` (
+  `id` int(11) NOT NULL,
+  `transaction_no` int(11) DEFAULT NULL,
+  `payment_amount` varchar(255) DEFAULT NULL,
+  `payment_date` timestamp NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -256,8 +269,8 @@ CREATE TABLE `product` (
   `category_id` int(11) DEFAULT NULL,
   `status_id` int(11) DEFAULT NULL,
   `product_sku` varchar(255) DEFAULT NULL,
-  `product_pp` int(11) DEFAULT NULL,
-  `product_sp` int(11) DEFAULT NULL,
+  `product_pp` decimal(11,2) NOT NULL DEFAULT 0.00,
+  `product_sp` decimal(11,2) NOT NULL DEFAULT 0.00,
   `product_min` int(11) DEFAULT NULL,
   `product_max` int(11) DEFAULT NULL,
   `unit_id` int(11) DEFAULT NULL,
@@ -272,10 +285,10 @@ CREATE TABLE `product` (
 --
 
 INSERT INTO `product` (`product_id`, `product_name`, `product_description`, `brand_id`, `category_id`, `status_id`, `product_sku`, `product_pp`, `product_sp`, `product_min`, `product_max`, `unit_id`, `tax_id`, `expiry_notice`, `created_at`, `updated_at`) VALUES
-(1, 'OISHI PODS PEA SNACK 60G', 'OISHI PODS PEA SNACK 60G', 10, 8, NULL, 'SN00001', 30, NULL, 20, 30, 1, 1, 10, '2024-08-08 09:06:29', NULL),
-(2, 'LAURAS MANNA BUTTERED TOAST 200G', 'LAURAS MANNA BUTTERED TOAST 200G', 12, 9, NULL, 'BR00001', 100, NULL, 10, 20, 1, 1, 10, '2024-08-08 09:09:17', NULL),
-(3, 'BREAD PAN WHITE CHEDDAR 24G', 'BREAD PAN WHITE CHEDDAR 24G', 10, 9, NULL, 'BR00002', 15, NULL, 20, 50, 1, 1, 10, '2024-08-08 09:10:06', '2024-08-08 09:10:28'),
-(4, 'BREAD PAN CHEESE & ONION 24G', 'BREAD PAN CHEESE & ONION 24G', 10, 8, NULL, 'SN00002', 15, NULL, 20, 50, 1, 1, 10, '2024-08-08 09:12:50', '2024-08-08 09:13:19');
+(1, 'OISHI PODS PEA SNACK 60G', 'OISHI PODS PEA SNACK 60G', 10, 8, NULL, 'SN00001', 30.00, 40.00, 20, 30, 1, 1, 10, '2024-08-08 09:06:29', '2024-10-29 04:33:31'),
+(2, 'LAURAS MANNA BUTTERED TOAST 200G', 'LAURAS MANNA BUTTERED TOAST 200G', 12, 9, NULL, 'BR00001', 100.00, 0.00, 10, 20, 1, 1, 10, '2024-08-08 09:09:17', NULL),
+(3, 'BREAD PAN WHITE CHEDDAR 24G', 'BREAD PAN WHITE CHEDDAR 24G', 10, 9, NULL, 'BR00002', 15.00, 0.00, 20, 50, 1, 1, 10, '2024-08-08 09:10:06', '2024-08-08 09:10:28'),
+(4, 'BREAD PAN CHEESE & ONION 24G', 'BREAD PAN CHEESE & ONION 24G', 10, 8, NULL, 'SN00002', 15.00, 0.00, 20, 50, 1, 1, 10, '2024-08-08 09:12:50', '2024-08-08 09:13:19');
 
 -- --------------------------------------------------------
 
@@ -571,16 +584,23 @@ CREATE TABLE `trans_bill` (
   `bill_date` date DEFAULT NULL,
   `bill_due_date` date DEFAULT NULL,
   `bill_no` varchar(255) DEFAULT NULL,
-  `transaction_no` varchar(255) NOT NULL
+  `transaction_no` varchar(255) NOT NULL,
+  `total_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `sales_tax` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `grand_total` decimal(10,2) UNSIGNED NOT NULL DEFAULT 0.00,
+  `payment_status` enum('paid','unpaid','partial') NOT NULL DEFAULT 'unpaid',
+  `payment_balance` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `trans_bill`
 --
 
-INSERT INTO `trans_bill` (`id`, `supplier_id`, `bill_address`, `bill_date`, `bill_due_date`, `bill_no`, `transaction_no`) VALUES
-(1, 1, 'test1', '2024-10-22', '2024-10-24', 'bill123', 'BILL-20241022-001'),
-(2, 2, 'test', '2024-10-23', '2024-10-24', 'test111', 'BILL-20241022-002');
+INSERT INTO `trans_bill` (`id`, `supplier_id`, `bill_address`, `bill_date`, `bill_due_date`, `bill_no`, `transaction_no`, `total_amount`, `sales_tax`, `grand_total`, `payment_status`, `payment_balance`, `created_at`, `updated_at`) VALUES
+(1, 1, 'test1', '2024-10-22', '2024-10-24', 'bill123', 'BILL-20241022-001', 0.00, 0.00, 0.00, 'unpaid', 0.00, '2024-10-29 02:35:06', '2024-10-29 02:44:59'),
+(2, 2, 'test', '2024-10-23', '2024-10-24', 'test111', 'BILL-20241022-002', 0.00, 0.00, 0.00, 'unpaid', 0.00, '2024-10-29 02:35:06', '2024-10-29 02:44:59');
 
 -- --------------------------------------------------------
 
@@ -652,11 +672,9 @@ CREATE TABLE `trans_item` (
 
 INSERT INTO `trans_item` (`item_id`, `transaction_no`, `product_sku`, `item_barcode`, `item_qty`, `item_rate`, `item_tax`, `item_amount`, `transaction_type`, `item_expiry`, `customer_id`, `created_at`) VALUES
 (1, 'EXP-20241022-001', 'BR00002', '', 2, 15.00, NULL, 30.00, 'expense', NULL, NULL, '2024-10-22 08:34:34'),
-(2, 'EXP-20241022-001', 'SN00002', '', 3, 15.00, NULL, 45.00, 'expense', NULL, NULL, '2024-10-22 08:34:34'),
 (3, 'BILL-20241022-001', 'SN00001', '', 3, 30.00, NULL, 90.00, 'bill', '0000-00-00', NULL, '2024-10-22 08:35:49'),
 (4, 'BILL-20241022-001', 'BR00001', '', 3, 100.00, NULL, 300.00, 'bill', '0000-00-00', NULL, '2024-10-22 08:35:49'),
-(5, 'EXP-20241022-002', 'BR00002', '4089007265', 1, 15.00, NULL, 15.00, 'expense', '2024-10-25', NULL, '2024-10-22 08:37:52'),
-(6, 'BILL-20241022-002', 'BR00001', '', 3, 100.00, NULL, 300.00, 'bill', '2024-10-28', NULL, '2024-10-22 08:38:40');
+(5, 'EXP-20241022-002', 'BR00002', '4089007265', 1, 15.00, NULL, 15.00, 'expense', '2024-10-25', NULL, '2024-10-22 08:37:52');
 
 -- --------------------------------------------------------
 
@@ -773,6 +791,12 @@ ALTER TABLE `customer`
 -- Indexes for table `modules`
 --
 ALTER TABLE `modules`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `payments`
+--
+ALTER TABLE `payments`
   ADD PRIMARY KEY (`id`);
 
 --

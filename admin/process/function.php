@@ -661,7 +661,7 @@
             FROM 
                 product p
             LEFT JOIN 
-                item i ON p.product_sku = i.product_sku
+                trans_item i ON p.product_sku = i.product_sku
             GROUP BY 
                 p.product_id
             HAVING COALESCE(SUM(i.item_qty), 0) = 0";
@@ -684,7 +684,7 @@
                           FROM 
                               product p
                           LEFT JOIN 
-                              item i ON p.product_sku = i.product_sku
+                              trans_item i ON p.product_sku = i.product_sku
                           GROUP BY 
                               p.product_id, p.product_min
                           HAVING 
@@ -776,17 +776,17 @@
             FROM 
                 product p
             LEFT JOIN 
-                item i ON p.product_sku = i.product_sku
+                trans_item i ON p.product_sku = i.product_sku
             LEFT JOIN
                 category c ON p.category_id = c.category_id
             LEFT JOIN
                 category pc ON c.parent_category_id = pc.category_id
             GROUP BY 
-                p.product_id, 
-                p.product_name, 
+                p.product_id,
+                p.product_name,
                 p.product_description, 
-                p.product_sku, 
-                p.product_min, 
+                p.product_sku,
+                p.product_min,
                 c.category_name,
                 pc.category_name
             HAVING 
@@ -814,7 +814,7 @@
             FROM 
                 product p
             LEFT JOIN 
-                item i ON p.product_sku = i.product_sku
+                trans_item i ON p.product_sku = i.product_sku
             LEFT JOIN
                 category c ON p.category_id = c.category_id
             LEFT JOIN
@@ -1961,6 +1961,22 @@ function generateTransactionNo($pdo, $transactionType) {
     return $newTransactionNo;
 }
 
+    
+function handleFileUpload($file) {
+    if (isset($file) && $file['error'] === UPLOAD_ERR_OK) {
+        $fileTmpPath = $file['tmp_name'];
+        $fileName = $file['name'];
+        $uploadFileDir = '../../assets/uploads/';
+        $dest_path = $uploadFileDir . basename($fileName);
 
+        if (!move_uploaded_file($fileTmpPath, $dest_path)) {
+            throw new Exception('Error moving the uploaded file!');
+        }
+    }
+}
+
+function RetrieveBarcodeDetails(){
+    
+}
     
 ?>

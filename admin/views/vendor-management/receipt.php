@@ -3,7 +3,7 @@ $productlists = getProductList($pdo);
 $supplierlists = getSupplierList($pdo);
 $selectProduct = '';
 foreach ($productlists as $productlist) {
-  $selectProduct .= '<option value="' . htmlspecialchars($productlist['product_name']) . '" data-sku="' . htmlspecialchars($productlist['product_sku']) . '" data-rate="' . htmlspecialchars($productlist['product_pp']) . '">'.htmlspecialchars($productlist['product_name']) . '</option>';
+  $selectProduct .= '<option value="' . htmlspecialchars($productlist['product_name']) . '" data-sku="' . htmlspecialchars($productlist['product_sku']) . '" data-rate-purchase="' . htmlspecialchars($productlist['product_pp']) . '" data-rate-sell="' . htmlspecialchars($productlist['product_sp']) . '">'.htmlspecialchars($productlist['product_name']) . '</option>';
 }
 ?>
 <div class="body-wrapper-inner">
@@ -125,6 +125,18 @@ foreach ($productlists as $productlist) {
                 </div>
               </div>
             </form>
+            <form id="invoiceForm" class="dynamic-form" style="display:none;">
+              <div class="row">
+                <div class="col-2">
+                    <label for="supplier" class="form-label">Supplier</label >
+                    <select class="selectpicker form-control" id="invoice_supplier" name="invoice_supplier" data-live-search="true" required>
+                      <?php foreach ($supplierlists as $suplierlist):?>
+                        <option value="<?php echo $suplierlist['id'];?>"><?php echo $suplierlist['vendor_name'];?></option>
+                      <?php endforeach;?>
+                    </select>
+                </div>
+              </div>
+            </form>
             <!-- Table for items -->
              <!-- Dropdown for Tax Options -->
           <select id="taxOption">
@@ -198,16 +210,29 @@ $(document).ready(function() {
 
 $('[data-form]').on('click', function() {
   var formType = $(this).data('form');
-  
+
+  // Reset form inputs
+  $('#billForm')[0].reset();
+  $('#expenseForm')[0].reset();
+  clearRows();
   if (formType === 'bill') {
-    $('#billForm').show();
     $('#expenseForm').hide();
+    $('#invoiceForm').hide();
+    $('#billForm').show();
     $('#transactionModalLabel').text('Bill');  // Set modal title for Bill
   } else if (formType === 'expense') {
     $('#billForm').hide();
+    $('#invoiceForm').hide();
     $('#expenseForm').show();
     $('#transactionModalLabel').text('Expense');  // Set modal title for Expense
+  } else if (formType === 'invoice') {
+    $('#billForm').hide();
+    $('#expenseForm').hide();
+    $('#invoiceForm').show();
+    $('#transactionModalLabel').text('Invoice');  // Set modal title for Expense
   }
+  
+  
 });
   // $('.dropdown-item').on('click', function() {
   //   var formType = $(this).data('form');
@@ -414,7 +439,7 @@ $('[data-form]').on('click', function() {
             case 'number':
                 var value = field.val().trim();
                 const floatValue = parseFloat(value.replace(/,/g, ''));
-                if (isNaN(floatValue) || floatValue <= 0) {
+                if (isNaN(floatValue) || floatValue < 0) {
                     isValid = false;
                     errorMessages.push(fieldName + ' must be a positive number.'); // Add to Set
                     field.addClass('is-invalid');
@@ -531,8 +556,20 @@ $('[data-form]').on('click', function() {
   $(document).on('changed.bs.select', '.selected-product', function (e, clickedIndex, isSelected, previousValue) {
     var selectedOption = $(this).find('option:selected');
     var sku = selectedOption.data('sku');  // Get the SKU from the selected option
-    var rate = selectedOption.data('rate');  // Get the Rate from the selected option
 
+    // Determine the active form type
+    var formType = $('#billForm:visible').length ? 'bill' : $('#expenseForm:visible').length ? 'expense' : 'invoice';
+
+    console.log('Form Type:', formType);
+    // Choose the appropriate rate based on form type
+    var rate;
+    if (formType === 'bill' || formType === 'expense') {
+        rate = selectedOption.data('rate-purchase');  // For bill and expense, use purchase price
+    } else if (formType === 'invoice') {
+        rate = selectedOption.data('rate-sell');  // For invoice, use selling price
+    }
+
+    console.log(rate);
     var row = $(this).closest('tr');  // Get the closest row of the table
 
     // Populate the SKU and Rate fields in the current row
@@ -542,6 +579,24 @@ $('[data-form]').on('click', function() {
     row.find('.amount').val((1 * rate).toFixed(2));
     updateTotalAmount();
   });
+
+
+
+
+  // $(document).on('changed.bs.select', '.selected-product', function (e, clickedIndex, isSelected, previousValue) {
+  //   var selectedOption = $(this).find('option:selected');
+  //   var sku = selectedOption.data('sku');  // Get the SKU from the selected option
+  //   var rate = selectedOption.data('rate');  // Get the Rate from the selected option
+
+  //   var row = $(this).closest('tr');  // Get the closest row of the table
+
+  //   // Populate the SKU and Rate fields in the current row
+  //   row.find('.sku').val(sku);
+  //   row.find('.rate').val(rate);
+  //   row.find('.qty').val(1);
+  //   row.find('.amount').val((1 * rate).toFixed(2));
+  //   updateTotalAmount();
+  // });
 
 // Update the total amount after selecting a new tax value from the picker
 $(document).on('changed.bs.select', '.tax', function (e, clickedIndex, isSelected, previousValue) {

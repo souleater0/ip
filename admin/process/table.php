@@ -222,7 +222,6 @@
                 $sql = 'SELECT
                     p.product_id,
                     i.item_id,
-                    i.item_sku,
                     i.item_barcode,
                     i.item_qty,
                     i.item_expiry,
@@ -230,7 +229,7 @@
                     p.expiry_notice,
                     DATEDIFF(i.item_expiry, NOW()) + 1 AS days_to_expiry
                 FROM 
-                    item i
+                    trans_item i
                 JOIN 
                     product p ON i.product_sku = p.product_sku
                 WHERE 

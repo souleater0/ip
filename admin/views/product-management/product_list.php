@@ -179,12 +179,12 @@ $(document).ready( function () {
           {data: 'category_id', visible: false},
           {data: 'category', title: 'Category'},
           {data: 'product_sku', title: 'SKU'},
-          {data: 'product_pp', title: 'Purchase Price',className: 'text-center'},
+          {data: 'product_pp', title: 'Purchase Price', className: 'text-center'},
           {data: 'tax_id', visible: false},
           { 
                 "data": "product_sp",
                 "render": function(data, type, row, meta) {
-                  if (data === null || data === 0) {
+                  if (data === null || data === 0 || data <= 0) {
                       return '<span class="badge bg-danger">Pending Costing</span>';
                   } else {
                       return data;

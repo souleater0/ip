@@ -953,18 +953,11 @@ require_once 'function.php';
             exit();
         }
     }
-    
-    function handleFileUpload($file) {
-        if (isset($file) && $file['error'] === UPLOAD_ERR_OK) {
-            $fileTmpPath = $file['tmp_name'];
-            $fileName = $file['name'];
-            $uploadFileDir = '../../assets/uploads/';
-            $dest_path = $uploadFileDir . basename($fileName);
-    
-            if (!move_uploaded_file($fileTmpPath, $dest_path)) {
-                throw new Exception('Error moving the uploaded file!');
-            }
-        }
+    if (!empty($_POST['action']) && $_POST['action'] === 'checkBarcodeItemDetails') {
+
+        // Send response
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
     }
-    
 ?>

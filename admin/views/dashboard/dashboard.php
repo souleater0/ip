@@ -92,7 +92,7 @@
                         <tr>
                           <th scope="col" class="text-dark fw-normal ps-0">Product Name
                           </th>
-                          <th scope="col" class="text-dark fw-normal">Status</th>
+                          <th scope="col" class="text-dark fw-normal noExport">Status</th>
                           <th scope="col" class="text-dark fw-normal">Qty</th>
                         </tr>
                       </thead>
@@ -109,7 +109,7 @@
                                 </div>
                                 </td>
                                 <td><span class="badge text-white" style="background-color: #FFAF61;">Low Stock</span></td>
-                                <td><?php echo htmlspecialchars($row['product_sku']); ?></td>
+                                <td><?php echo htmlspecialchars($row['total_stock_qty']); ?></td>
                             </tr>
                         <?php endforeach; ?>
                       </tbody>
@@ -128,7 +128,7 @@
                         <tr>
                           <th scope="col" class="text-dark fw-normal ps-0">Product Name
                           </th>
-                          <th scope="col" class="text-dark fw-normal">Status</th>
+                          <th scope="col" class="text-dark fw-normal noExport">Status</th>
                           <th scope="col" class="text-dark fw-normal">Qty</th>
                         </tr>
                       </thead>
@@ -144,7 +144,7 @@
                                 </div>
                                 </td>
                                 <td><span class="badge text-white" style="background-color: #EC7063;">Out of Stock</span></td>
-                                <td><?php echo htmlspecialchars($row['product_sku']); ?></td>
+                                <td><?php echo htmlspecialchars($row['qty']); ?></td>
                             </tr>
                         <?php endforeach; ?>
                       </tbody>
@@ -223,7 +223,14 @@
         columns:[
           {data: 'item_id', visible: false, className: 'noExport'},
           {data: 'product_id', visible: false, className: 'noExport'},
-          {data: 'item_barcode', title: 'Barcode', className: 'noExport'},
+          {
+              data: 'item_barcode',
+              title: 'Barcode',
+              className: 'noExport',
+              render: function(data) {
+                  return data ? data : 'No Barcode';
+              }
+          },
           {data: 'product_name', title: 'Product Name'},
           {data: 'item_expiry', title: 'Expiry Date', className: 'text-center'},
           {data: 'expiry_notice', title: 'Expiry Notice', className: 'text-center'},
@@ -242,7 +249,7 @@
           { 
                 "data": "item_qty",
                 "render": function(data, type, row, meta) {
-                    return '<span class="badge bg-secondary">' + data + '</span>';
+                    return '<span class="badge bg-dark">' + data + '</span>';
                 },
                 "title": "QTY",
                 "className": "text-center"
@@ -296,11 +303,44 @@
     ]
     });
     $('#lowstockTable').DataTable({
-      layout: {
-                topStart: {
-                    buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
-                }
+      dom: 'Bfrtip',
+        buttons: [
+        {
+            extend: 'copy',
+			title: 'List of Product - Low Stock',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
             },
+        {
+            extend: 'csv',
+			title: 'List of Product - Low Stock',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'excel',
+			title: 'List of Product - Low Stock',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'pdf',
+			title: 'List of Product - Low Stock',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'print',
+			title: 'List of Product - Low Stock',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+            }
+        }
+    ],
         order: [[2, 'asc']],
         paging: true,
         scrollCollapse: true,
@@ -324,11 +364,44 @@
         ]
     });
     $('#outstockTable').DataTable({
-      layout: {
-                topStart: {
-                    buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
-                }
+      dom: 'Bfrtip',
+        buttons: [
+        {
+            extend: 'copy',
+			title: 'List of Product - Out of Stock',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
             },
+        {
+            extend: 'csv',
+			title: 'List of Product - Out of Stock',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'excel',
+			title: 'List of Product - Out of Stock',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'pdf',
+			title: 'List of Product - Out of Stock',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+                            }
+            },
+        {
+            extend: 'print',
+			title: 'List of Product - Out of Stock',
+            exportOptions: {
+            columns: ":visible:not(.noExport)"
+            }
+        }
+    ],
         order: [[1, 'asc']],
         paging: true,
         scrollCollapse: true,
@@ -364,7 +437,7 @@
               }, 1000); // Adjust delay as needed
             },
             error: function () {
-                alert('Failed to retrieve categories.');
+                alert('Failed to retrieve expiring products.');
             }
         });
     }
