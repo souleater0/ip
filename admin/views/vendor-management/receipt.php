@@ -1,6 +1,7 @@
 <?php 
 $productlists = getProductList($pdo);
 $supplierlists = getSupplierList($pdo);
+$customerlists = getCustomerList($pdo);
 $selectProduct = '';
 foreach ($productlists as $productlist) {
   $selectProduct .= '<option value="' . htmlspecialchars($productlist['product_name']) . '" data-sku="' . htmlspecialchars($productlist['product_sku']) . '" data-rate-purchase="' . htmlspecialchars($productlist['product_pp']) . '" data-rate-sell="' . htmlspecialchars($productlist['product_sp']) . '">'.htmlspecialchars($productlist['product_name']) . '</option>';
@@ -127,13 +128,74 @@ foreach ($productlists as $productlist) {
             </form>
             <form id="invoiceForm" class="dynamic-form" style="display:none;">
               <div class="row">
-                <div class="col-2">
-                    <label for="supplier" class="form-label">Supplier</label >
-                    <select class="selectpicker form-control" id="invoice_supplier" name="invoice_supplier" data-live-search="true" required>
-                      <?php foreach ($supplierlists as $suplierlist):?>
-                        <option value="<?php echo $suplierlist['id'];?>"><?php echo $suplierlist['vendor_name'];?></option>
-                      <?php endforeach;?>
-                    </select>
+                <div class="col-6">
+                  <div class="row mb-3">
+                  <div class="col-3">
+                      <label for="invoice_customer" class="form-label">Customer</label >
+                      <select class="select-customer selectpicker form-control" id="invoice_customer" name="invoice_customer" data-live-search="true" required>
+                        <?php foreach ($customerlists as $customerlist):?>
+                          <option value="<?php echo $customerlist['id'];?>" data-customer-email="<?php echo $customerlist['customer_email'];?>"><?php echo $customerlist['customer_name'];?></option>
+                        <?php endforeach;?>
+                      </select>
+                  </div>
+                  <div class="col-3">
+                      <label for="invoice_customer_email" class="form-label">Customer Email</label>
+                      <input type="text" class="form-control" id="invoice_customer_email" required>
+                  </div>
+                </div>
+                <div class="row mb-3">
+                  <div class="col-3">
+                    <label for="invoice_bill_address" class="form-label">Billing Address</label>
+                    <textarea class="form-control" id="invoice_bill_address" name="invoice_bill_address" rows="3"></textarea>
+                  </div>
+                  <div class="col-3">
+                    <label for="invoice_date" class="form-label">Invoice Date</label>
+                    <input id="invoice_date" name="invoice_date" class="form-control" type="date" value="<?php echo date('Y-m-d'); ?>"/>
+                  </div>
+                  <div class="col-3">
+                    <label for="invoice_duedate" class="form-label">Due Date</label>
+                    <input id="invoice_duedate" name="invoice_duedate" class="form-control" type="date" value="<?php echo date('Y-m-d', strtotime('+1 days')); ?>"/>
+                  </div>
+                </div>
+                <div class="row mb-3">
+                  <div class="col-3">
+                    <label for="invoice_ship_address" class="form-label">Shipping to</label>
+                    <textarea class="form-control" id="invoice_ship_address" name="invoice_ship_address" rows="3"></textarea>
+                  </div>
+                  <div class="col-3">
+                      <label for="invoice_via" class="form-label">Ship Via</label>
+                      <input type="text" class="form-control" id="invoice_via" required>
+                  </div>
+                  <div class="col-3">
+                    <label for="expense_date" class="form-label">Shipping Date</label>
+                    <input id="expense_date" name="expense_date" class="form-control" type="date" />
+                  </div>
+                  <div class="col-3">
+                      <label for="invoice_customer_email" class="form-label">Tracking No.</label>
+                      <input type="text" class="form-control" id="invoice_customer_email" required>
+                  </div>
+                </div>
+                </div>
+                <div class="col-6">
+                  <div class="row mt-3 mr-3">
+                    <div class="col-12">
+                      <h6 class="text-end">BALANCE DUE</h6>
+                    </div>
+                    <div class="col-12">
+                      <h1 class="text-end fw-bolder">₱0.00</h1>
+                    </div>
+                    <div class="col-12">
+                      <div class="float-end">
+                        <button type="button" class="btn btn-md btn-secondary rounded">Make Payment</button>
+                      </div>
+                    </div>
+                    <div class="col-12 mt-5">
+                      <div class="col-3 float-end">
+                        <label for="invoice_no" class="form-label">Invoice No.</label>
+                        <input type="text" class="form-control" id="invoice_no" required readonly>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </form>
@@ -597,7 +659,12 @@ $('[data-form]').on('click', function() {
   //   row.find('.amount').val((1 * rate).toFixed(2));
   //   updateTotalAmount();
   // });
+  $(document).on('changed.bs.select', '.select-customer', function (e, clickedIndex, isSelected, previousValue) {
+    var selectedOption = $(this).find('option:selected');
+    var customer_email = selectedOption.data('customer-email');
 
+    $('#invoice_customer_email').val(customer_email);
+  });
 // Update the total amount after selecting a new tax value from the picker
 $(document).on('changed.bs.select', '.tax', function (e, clickedIndex, isSelected, previousValue) {
     var row = $(this).closest('tr');  // Get the current row

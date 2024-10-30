@@ -201,6 +201,20 @@
             return array(); // Return an empty array if an error occurs
         }
     }
+    function getCustomerList($pdo){
+        try {
+            $query = "SELECT * FROM customer";
+            $stmt = $pdo->prepare($query);
+    
+            $stmt ->execute();
+            $customer = $stmt -> fetchAll(PDO::FETCH_ASSOC);
+            return $customer;
+        }catch(PDOException $e){
+                    // Handle database connection error
+            echo "Error: " . $e->getMessage();
+            return array(); // Return an empty array if an error occurs
+        }
+    }
     function getCategory($pdo){
         // require_once 'config.php';
         try {
