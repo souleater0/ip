@@ -226,15 +226,15 @@ foreach ($productlists as $productlist) {
               
               <tr>
                 <td colspan="9" class="text-dark text-end fw-bolder">Sub Total:</td>
-                <td id="totalSubAmount" class="text-dark fw-bold">0.00</td>
+                <td id="totalSubAmount" class="text-dark fw-bold" data-sub-total="0.00">0.00</td>
               </tr>
               <tr>
                 <td colspan="9" class="text-dark text-end fw-bolder">Tax:</td>
-                <td id="totalTaxAmount" class="text-dark fw-bold">0.00</td>
+                <td id="totalTaxAmount" class="text-dark fw-bold" data-total-tax="0.00">0.00</td>
               </tr>
               <tr>
                 <td colspan="9" class="text-dark text-end fw-bolder">Total:</td>
-                <td id="totalAmount" class="text-dark fw-bold">0.00</td>
+                <td id="totalAmount" class="text-dark fw-bold" data-grand-total="0.00">0.00</td>
               </tr>
             </tfoot>
             </table>
@@ -825,6 +825,10 @@ function updateTotalAmount() {
       formData.append('billDate', $('#bill_start_date').val());
       formData.append('billdueDate', $('#bill_end_date').val());
       formData.append('billNo', $('#billNo').val());
+      //totals
+      formData.append('sub_total', $('#totalSubAmount').val());
+      formData.append('total_tax', $('#totalTaxAmount').val());
+      formData.append('grand_total', $('#totalAmount').val());
       // Get itemList from table and append it to FormData
       var itemList = table.rows().data().toArray();
       formData.append('items', JSON.stringify(itemList));

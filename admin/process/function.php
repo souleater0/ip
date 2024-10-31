@@ -1822,6 +1822,9 @@
         $address = null; // Bill address or customer email based on formType
         $date = null; // Date for bills, expenses, or invoices
         $dueDate = null; // Due date for bills or invoices
+        $subTotal = null;
+        $total_tax = null;
+        $grand_total = null;
         $transactionNo = null; // To hold the generated transaction number
         $items = !empty($_POST['items']) ? json_decode($_POST['items'], true) : [];
     
@@ -1841,12 +1844,15 @@
                     $address = !empty($_POST['billAddress']) ? $_POST['billAddress'] : null;
                     $date = !empty($_POST['billDate']) ? $_POST['billDate'] : null;
                     $dueDate = !empty($_POST['billdueDate']) ? $_POST['billdueDate'] : null;
+                    $subTotal = !empty($_POST['sub_total']) ? $_POST['sub_total'] : null;
+                    $total_tax = !empty($_POST['total_tax']) ? $_POST['total_tax'] : null;
+                    $grand_total = !empty($_POST['grand_total']) ? $_POST['grand_total'] : null;
                     $transactionNo = generateTransactionNo($pdo, 'bill');
     
                     // Insert into the trans_bill table
                     $sql = "
-                        INSERT INTO trans_bill (supplier_id, bill_address, bill_date, bill_due_date, bill_no, transaction_no) 
-                        VALUES (:supplier_id, :bill_address, :bill_date, :bill_due_date, :bill_no, :transaction_no)
+                        INSERT INTO trans_bill (supplier_id, bill_address, bill_date, bill_due_date, bill_no, total_amount, sales_tax, grand_total, transaction_no) 
+                        VALUES (:supplier_id, :bill_address, :bill_date, :bill_due_date, :bill_no, :total_amount, :sales_tax, :grand_total, :transaction_no)
                     ";
                     $stmtParams = [
                         'supplier_id' => $supplierID,
@@ -1854,6 +1860,9 @@
                         'bill_date' => $date,
                         'bill_due_date' => $dueDate,
                         'bill_no' => !empty($_POST['billNo']) ? $_POST['billNo'] : null,
+                        'total_amount' => $subTotal,
+                        'sales_tax' => $total_tax,
+                        'grand_total' => $grand_total,
                         'transaction_no' => $transactionNo
                     ];
                     break;
@@ -1991,6 +2000,27 @@ function handleFileUpload($file) {
 
 function RetrieveBarcodeDetails(){
     
+}
+
+// Define the generatePaymentRefNo function
+function generatePaymentRefNo($pdo) {
+    $prefix = 'PAY';
+    $currentDate = date('Ymd');
+
+    $sql = "SELECT payment_refno FROM payments WHERE payment_refno LIKE :payment_refno ORDER BY payment_refno DESC LIMIT 1";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute(['payment_refno' => "$prefix-$currentDate%"]);
+    $lastPaymentRefNo = $stmt->fetchColumn();
+
+    if (!$lastPaymentRefNo) {
+        $newPaymentRefNo = $prefix . '-' . $currentDate . '-001';
+    } else {
+        $lastCounter = (int)substr($lastPaymentRefNo, -3);
+        $newCounter = str_pad($lastCounter + 1, 3, '0', STR_PAD_LEFT);
+        $newPaymentRefNo = $prefix . '-' . $currentDate . '-' . $newCounter;
+    }
+
+    return $newPaymentRefNo;
 }
     
 ?>

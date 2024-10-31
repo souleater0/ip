@@ -869,9 +869,9 @@ require_once 'function.php';
             } else {
                 try {
                     // Prepare data based on form type
-                    $transactionData = [
-                        'items' => $validItems
-                    ];
+                    // $transactionData = [
+                    //     'items' => $validItems
+                    // ];
     
                     if ($formType === 'bill') {
                         // Validate bill form fields
@@ -885,16 +885,16 @@ require_once 'function.php';
                             $response['message'] = 'Please enter Bill No!';
                         } else {
                             // Assign bill-specific data to transactionData
-                            $transactionData = array_merge($transactionData, [
-                                'billSupplier' => $_POST['billSupplier'],
-                                'billAddress' => $_POST['billAddress'],
-                                'billDate' => $_POST['billDate'],
-                                'billdueDate' => $_POST['billdueDate'],
-                                'billNo' => $_POST['billNo'],
-                            ]);
+                            // $transactionData = array_merge($transactionData, [
+                            //     'billSupplier' => $_POST['billSupplier'],
+                            //     'billAddress' => $_POST['billAddress'],
+                            //     'billDate' => $_POST['billDate'],
+                            //     'billdueDate' => $_POST['billdueDate'],
+                            //     'billNo' => $_POST['billNo'],
+                            // ]);
     
                             // Call the addTransaction function
-                            $transactionResult = addTransaction($pdo, $transactionData, 'bill', $validItems);
+                            $transactionResult = addTransaction($pdo);
     
                             if ($transactionResult['success']) {
                                 // Handle file upload for bill
@@ -956,6 +956,30 @@ require_once 'function.php';
     if (!empty($_POST['action']) && $_POST['action'] === 'checkBarcodeItemDetails') {
 
         // Send response
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
+    if (!empty($_POST['action']) && $_POST['action'] === 'generatePaymentRefNo') {
+        try {
+            // Generate the payment reference number
+            $paymentRefNo = generatePaymentRefNo($pdo);
+    
+            // Prepare success response
+            $response = array(
+                'success' => true,
+                'payment_refno' => $paymentRefNo,
+                'message' => 'Payment reference number generated successfully.'
+            );
+        } catch (Exception $e) {
+            // Prepare error response
+            $response = array(
+                'success' => false,
+                'message' => 'Error generating payment reference number: ' . $e->getMessage()
+            );
+        }
+    
+        // Send response as JSON
         header('Content-Type: application/json');
         echo json_encode($response);
         exit();

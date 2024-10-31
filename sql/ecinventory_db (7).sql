@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 29, 2024 at 11:00 AM
+-- Generation Time: Oct 31, 2024 at 11:59 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -86,11 +86,25 @@ INSERT INTO `category` (`category_id`, `parent_category_id`, `category_name`, `c
 CREATE TABLE `customer` (
   `id` int(11) NOT NULL,
   `customer_name` varchar(255) DEFAULT NULL,
+  `customer_email` varchar(255) DEFAULT NULL,
   `company_name` varchar(255) DEFAULT NULL,
-  `customer_phone_no` int(11) DEFAULT NULL,
+  `customer_phone_no` varchar(13) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `customer`
+--
+
+INSERT INTO `customer` (`id`, `customer_name`, `customer_email`, `company_name`, `customer_phone_no`, `created_at`, `updated_at`) VALUES
+(1, 'ESKINA', 'ecxdev03@gmail.com', NULL, NULL, '2024-10-30 04:44:44', '2024-10-30 10:13:34'),
+(2, 'EC CAFE BALIUAG', 'test1@gmail.com', NULL, NULL, '2024-10-30 04:45:32', '2024-10-30 10:13:48'),
+(3, 'ECSTATICS', 'test2@gmail.com', NULL, NULL, '2024-10-30 04:45:38', '2024-10-30 10:14:04'),
+(4, 'ECXPERIENCE', 'test3@gmail.com', NULL, NULL, '2024-10-30 04:46:56', '2024-10-30 10:14:04'),
+(5, 'MATS DONUT FOOD HOUSE', 'test4@gmail.com', NULL, NULL, '2024-10-30 04:47:18', '2024-10-30 10:14:04'),
+(6, 'EC SOLUTIONS BPO', 'test5@gmail.com', NULL, NULL, '2024-10-30 04:47:28', '2024-10-30 10:14:04'),
+(7, 'BAZAAR & EVENTS', 'test6@gmail.com', NULL, NULL, '2024-10-30 04:47:40', '2024-10-30 10:14:04');
 
 -- --------------------------------------------------------
 
@@ -132,9 +146,14 @@ INSERT INTO `modules` (`id`, `module_name`, `description`) VALUES
 
 CREATE TABLE `payments` (
   `id` int(11) NOT NULL,
-  `transaction_no` int(11) DEFAULT NULL,
-  `payment_amount` varchar(255) DEFAULT NULL,
-  `payment_date` timestamp NULL DEFAULT current_timestamp()
+  `transaction_no` varchar(255) DEFAULT NULL,
+  `payment_refno` varchar(255) DEFAULT NULL,
+  `payment_account` int(11) DEFAULT NULL,
+  `payment_type` int(11) DEFAULT NULL,
+  `payment_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `payment_date` date DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -589,18 +608,9 @@ CREATE TABLE `trans_bill` (
   `sales_tax` decimal(10,2) NOT NULL DEFAULT 0.00,
   `grand_total` decimal(10,2) UNSIGNED NOT NULL DEFAULT 0.00,
   `payment_status` enum('paid','unpaid','partial') NOT NULL DEFAULT 'unpaid',
-  `payment_balance` decimal(10,2) NOT NULL DEFAULT 0.00,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `trans_bill`
---
-
-INSERT INTO `trans_bill` (`id`, `supplier_id`, `bill_address`, `bill_date`, `bill_due_date`, `bill_no`, `transaction_no`, `total_amount`, `sales_tax`, `grand_total`, `payment_status`, `payment_balance`, `created_at`, `updated_at`) VALUES
-(1, 1, 'test1', '2024-10-22', '2024-10-24', 'bill123', 'BILL-20241022-001', 0.00, 0.00, 0.00, 'unpaid', 0.00, '2024-10-29 02:35:06', '2024-10-29 02:44:59'),
-(2, 2, 'test', '2024-10-23', '2024-10-24', 'test111', 'BILL-20241022-002', 0.00, 0.00, 0.00, 'unpaid', 0.00, '2024-10-29 02:35:06', '2024-10-29 02:44:59');
 
 -- --------------------------------------------------------
 
@@ -635,14 +645,19 @@ CREATE TABLE `trans_invoice` (
   `id` int(11) NOT NULL,
   `customer_id` int(11) NOT NULL,
   `customer_email` varchar(255) DEFAULT NULL,
-  `invoice_no` varchar(255) DEFAULT NULL,
   `invoice_bill_address` varchar(255) DEFAULT NULL,
   `invoice_shipping_address` varchar(255) DEFAULT NULL,
   `invoice_ship_via` varchar(255) DEFAULT NULL,
+  `invoice_ship_date` date DEFAULT NULL,
   `invoice_date` date DEFAULT NULL,
   `invoice_duedate` date DEFAULT NULL,
   `invoice_track_no` varchar(255) DEFAULT NULL,
-  `transaction_no` varchar(255) DEFAULT NULL
+  `invoice_no` varchar(255) DEFAULT NULL,
+  `transaction_no` varchar(255) DEFAULT NULL,
+  `payment_status` enum('paid','notdeposited','deposited') DEFAULT NULL,
+  `total_amount` decimal(10,2) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -665,16 +680,6 @@ CREATE TABLE `trans_item` (
   `customer_id` int(11) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `trans_item`
---
-
-INSERT INTO `trans_item` (`item_id`, `transaction_no`, `product_sku`, `item_barcode`, `item_qty`, `item_rate`, `item_tax`, `item_amount`, `transaction_type`, `item_expiry`, `customer_id`, `created_at`) VALUES
-(1, 'EXP-20241022-001', 'BR00002', '', 2, 15.00, NULL, 30.00, 'expense', NULL, NULL, '2024-10-22 08:34:34'),
-(3, 'BILL-20241022-001', 'SN00001', '', 3, 30.00, NULL, 90.00, 'bill', '0000-00-00', NULL, '2024-10-22 08:35:49'),
-(4, 'BILL-20241022-001', 'BR00001', '', 3, 100.00, NULL, 300.00, 'bill', '0000-00-00', NULL, '2024-10-22 08:35:49'),
-(5, 'EXP-20241022-002', 'BR00002', '4089007265', 1, 15.00, NULL, 15.00, 'expense', '2024-10-25', NULL, '2024-10-22 08:37:52');
 
 -- --------------------------------------------------------
 
@@ -949,10 +954,22 @@ ALTER TABLE `category`
   MODIFY `category_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
+-- AUTO_INCREMENT for table `customer`
+--
+ALTER TABLE `customer`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
 -- AUTO_INCREMENT for table `modules`
 --
 ALTER TABLE `modules`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+
+--
+-- AUTO_INCREMENT for table `payments`
+--
+ALTER TABLE `payments`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `pending_item`
@@ -1018,7 +1035,7 @@ ALTER TABLE `system_option`
 -- AUTO_INCREMENT for table `trans_bill`
 --
 ALTER TABLE `trans_bill`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `trans_expense`
@@ -1030,7 +1047,7 @@ ALTER TABLE `trans_expense`
 -- AUTO_INCREMENT for table `trans_item`
 --
 ALTER TABLE `trans_item`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `users`
