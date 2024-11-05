@@ -223,19 +223,22 @@ foreach ($productlists as $productlist) {
               </thead>
               <tbody></tbody>
               <tfoot>
-              
               <tr>
                 <td colspan="9" class="text-dark text-end fw-bolder">Sub Total:</td>
-                <td id="totalSubAmount" class="text-dark fw-bold" data-sub-total="0.00">0.00</td>
+                <td id="lblSubAmount" class="text-dark fw-bold" data-sub-total="0.00">0.00</td>
               </tr>
               <tr>
                 <td colspan="9" class="text-dark text-end fw-bolder">Tax:</td>
-                <td id="totalTaxAmount" class="text-dark fw-bold" data-total-tax="0.00">0.00</td>
+                <td id="lblTaxAmount" class="text-dark fw-bold" data-total-tax="0.00">0.00</td>
               </tr>
               <tr>
                 <td colspan="9" class="text-dark text-end fw-bolder">Total:</td>
-                <td id="totalAmount" class="text-dark fw-bold" data-grand-total="0.00">0.00</td>
+                <td id="lblAmount" class="text-dark fw-bold" data-grand-total="0.00">0.00</td>
               </tr>
+              <input type="hidden" id="totalSubAmount" value="0">
+              <input type="hidden" id="totalTaxAmount" value="0">
+              <input type="hidden" id="totalAmount" value="0">
+
             </tfoot>
             </table>
             <!-- Buttons to add and clear rows -->
@@ -769,9 +772,14 @@ function updateTotalAmount() {
     }
 
     // Update the subtotal and grand total displays
-    $('#totalSubAmount').text(subtotal.toFixed(2));  // Display subtotal
-    $('#totalTaxAmount').text(totalTax.toFixed(2));  // Display total tax
-    $('#totalAmount').text(grandTotal.toFixed(2));  // Display grand total
+    $('#lblSubAmount').text(subtotal.toFixed(2));  // Display subtotal
+    $('#lblTaxAmount').text(totalTax.toFixed(2));  // Display total tax
+    $('#lblAmount').text(grandTotal.toFixed(2));  // Display grand total
+
+    //update val
+    $('#totalSubAmount').val(subtotal.toFixed(2));
+    $('#totalTaxAmount').val(totalTax.toFixed(2));
+    $('#totalAmount').val(grandTotal.toFixed(2));
 }
 
   // Handle Delete button

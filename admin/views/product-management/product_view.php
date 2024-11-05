@@ -144,7 +144,7 @@ $items = getItembyID($product_id, $pdo);
                                     $days_to_expiry = (int)$item['days_to_expiry'];
 
                                     if (is_null($item['days_to_expiry'])) {
-                                        echo '<span class="badge bg-warning">No Expiry</span>';
+                                        echo '<span class="badge bg-warning text-dark">No Expiry</span>';
                                     } elseif ($days_to_expiry <= 0) {
                                         echo '<span class="badge bg-danger">Expired</span>';
                                     } else {
