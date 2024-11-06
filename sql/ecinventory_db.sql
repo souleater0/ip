@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 05, 2024 at 11:51 AM
+-- Generation Time: Nov 06, 2024 at 11:57 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -630,6 +630,9 @@ CREATE TABLE `trans_expense` (
   `payee_id` int(11) DEFAULT NULL,
   `expense_date` date DEFAULT NULL,
   `expense_payment_method` varchar(255) DEFAULT NULL,
+  `total_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `sales_tax` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `grand_total` decimal(10,2) UNSIGNED NOT NULL DEFAULT 0.00,
   `expense_no` varchar(255) DEFAULT NULL,
   `transaction_no` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -638,9 +641,11 @@ CREATE TABLE `trans_expense` (
 -- Dumping data for table `trans_expense`
 --
 
-INSERT INTO `trans_expense` (`id`, `payee_id`, `expense_date`, `expense_payment_method`, `expense_no`, `transaction_no`) VALUES
-(1, 1, '2024-10-25', 'CASH', 'exp123', 'EXP-20241022-001'),
-(2, 1, '2024-10-23', 'CASH', 'exp111', 'EXP-20241022-002');
+INSERT INTO `trans_expense` (`id`, `payee_id`, `expense_date`, `expense_payment_method`, `total_amount`, `sales_tax`, `grand_total`, `expense_no`, `transaction_no`) VALUES
+(1, 1, '2024-10-25', 'CASH', 0.00, 0.00, 0.00, 'exp123', 'EXP-20241022-001'),
+(2, 1, '2024-10-23', 'CASH', 0.00, 0.00, 0.00, 'exp111', 'EXP-20241022-002'),
+(3, 1, '2024-11-06', 'CASH', 0.00, 0.00, 0.00, 'exp001', 'EXP-20241106-001'),
+(4, 1, '2024-11-06', 'CASH', 0.00, 0.00, 0.00, 'exp001', 'INV-20241106-001');
 
 -- --------------------------------------------------------
 
@@ -662,7 +667,9 @@ CREATE TABLE `trans_invoice` (
   `invoice_no` varchar(255) DEFAULT NULL,
   `transaction_no` varchar(255) DEFAULT NULL,
   `payment_status` enum('paid','notdeposited','deposited') DEFAULT NULL,
-  `total_amount` decimal(10,2) DEFAULT NULL,
+  `total_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `sales_tax` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `grand_total` decimal(10,2) UNSIGNED NOT NULL DEFAULT 0.00,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -694,7 +701,9 @@ CREATE TABLE `trans_item` (
 
 INSERT INTO `trans_item` (`item_id`, `transaction_no`, `product_sku`, `item_barcode`, `item_qty`, `item_rate`, `item_tax`, `item_amount`, `transaction_type`, `item_expiry`, `customer_id`, `created_at`) VALUES
 (1, 'BILL-20241105-001', 'SN00001', '', 3, 30.00, NULL, 90.00, 'bill', '0000-00-00', NULL, '2024-11-05 10:04:27'),
-(2, 'BILL-20241105-001', 'BR00001', '', 2, 100.00, NULL, 200.00, 'bill', '0000-00-00', NULL, '2024-11-05 10:04:27');
+(2, 'BILL-20241105-001', 'BR00001', '', 2, 100.00, NULL, 200.00, 'bill', '0000-00-00', NULL, '2024-11-05 10:04:27'),
+(3, 'EXP-20241106-001', 'SN00001', '', 2, 30.00, 12, 60.00, 'expense', '0000-00-00', NULL, '2024-11-06 10:12:23'),
+(4, 'INV-20241106-001', 'SN00001', '', 2, 30.00, 12, 60.00, 'invoice', '0000-00-00', NULL, '2024-11-06 10:12:23');
 
 -- --------------------------------------------------------
 
@@ -1056,13 +1065,13 @@ ALTER TABLE `trans_bill`
 -- AUTO_INCREMENT for table `trans_expense`
 --
 ALTER TABLE `trans_expense`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `trans_item`
 --
 ALTER TABLE `trans_item`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `users`

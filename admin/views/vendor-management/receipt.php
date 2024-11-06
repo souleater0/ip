@@ -849,6 +849,10 @@ function updateTotalAmount() {
       formData.append('expenseNo', $('#expense_ref_no').val());
       var itemList = table.rows().data().toArray();
       formData.append('items', JSON.stringify(itemList));
+      //totals
+      formData.append('sub_total', $('#totalSubAmount').val());
+      formData.append('total_tax', $('#totalTaxAmount').val());
+      formData.append('grand_total', $('#totalAmount').val());
     }
 
     // Attach remarks and file from `attachForm`
