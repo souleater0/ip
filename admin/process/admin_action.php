@@ -884,15 +884,6 @@ require_once 'function.php';
                         } elseif (empty($_POST['billNo'])) {
                             $response['message'] = 'Please enter Bill No!';
                         } else {
-                            // Assign bill-specific data to transactionData
-                            // $transactionData = array_merge($transactionData, [
-                            //     'billSupplier' => $_POST['billSupplier'],
-                            //     'billAddress' => $_POST['billAddress'],
-                            //     'billDate' => $_POST['billDate'],
-                            //     'billdueDate' => $_POST['billdueDate'],
-                            //     'billNo' => $_POST['billNo'],
-                            // ]);
-    
                             // Call the addTransaction function
                             $transactionResult = addTransaction($pdo);
     
@@ -918,16 +909,8 @@ require_once 'function.php';
                         } elseif (empty($_POST['expenseNo'])) {
                             $response['message'] = 'Please enter Reference No!';
                         } else {
-                            // Assign expense-specific data to transactionData
-                            // $transactionData = array_merge($transactionData, [
-                            //     'payee_id' => $_POST['payee_id'],
-                            //     'expenseBillDate' => $_POST['expenseBillDate'],
-                            //     'paymentMethod' => $_POST['paymentMethod'],
-                            //     'refNo' => $_POST['refNo'],
-                            // ]);
-    
                             // Call the addTransaction function
-                            $transactionResult = addTransaction($pdo, $transactionData, 'expense');
+                            $transactionResult = addTransaction($pdo);
     
                             if ($transactionResult['success']) {
                                 // Handle file upload for expense
@@ -936,6 +919,31 @@ require_once 'function.php';
                                 }
                                 $response['success'] = true;
                                 $response['message'] = 'Expense submitted successfully!';
+                            } else {
+                                $response['message'] = $transactionResult['message'];
+                            }
+                        }
+                    } elseif ($formType === 'invoice') {
+                        // Validate invoice form fields
+                        if (empty($_POST['customer_id'])) {
+                            $response['message'] = 'Please enter Customer ID!';
+                        } elseif (empty($_POST['invoice_date'])) {
+                            $response['message'] = 'Please enter Invoice Date!';
+                        } elseif (empty($_POST['invoice_duedate'])) {
+                            $response['message'] = 'Please enter Due Date!';
+                        } elseif (empty($_POST['invoice_bill_address'])) {
+                            $response['message'] = 'Please enter Billing Address!';
+                        } else {
+                            // Call the addTransaction function
+                            $transactionResult = addTransaction($pdo);
+    
+                            if ($transactionResult['success']) {
+                                // Handle file upload for invoice
+                                if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
+                                    handleFileUpload($_FILES['attachment']);
+                                }
+                                $response['success'] = true;
+                                $response['message'] = 'Invoice submitted successfully!';
                             } else {
                                 $response['message'] = $transactionResult['message'];
                             }

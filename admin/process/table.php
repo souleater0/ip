@@ -253,6 +253,48 @@
                 $sql ='SELECT * FROM waste
                 ORDER BY created_at ASC';
                 break;
+            case 'transaction-list':
+                $sql='SELECT 
+                        bill_date AS Date,
+                        "bill" AS Type,
+                        transaction_no AS `Transaction No`,
+                        bill_no AS No,
+                        supplier_id AS Payee,
+                        total_amount AS `Total Before Sales`,
+                        sales_tax AS `Sales Tax`,
+                        grand_total AS Total,
+                        payment_status AS Status
+                    FROM trans_bill
+
+                    UNION ALL
+
+                    SELECT 
+                        expense_date AS Date,
+                        "expense" AS Type,
+                        transaction_no AS `Transaction No`,
+                        expense_no AS No,
+                        payee_id AS Payee,
+                        total_amount AS `Total Before Sales`,
+                        sales_tax AS `Sales Tax`,
+                        grand_total AS Total,
+                        NULL AS Status -- Status not applicable for expenses
+                    FROM trans_expense
+
+                    UNION ALL
+
+                    SELECT 
+                        invoice_date AS Date,
+                        "invoice" AS Type,
+                        transaction_no AS `Transaction No`,
+                        invoice_no AS No,
+                        customer_id AS Payee,
+                        total_amount AS `Total Before Sales`,
+                        sales_tax AS `Sales Tax`,
+                        grand_total AS Total,
+                        payment_status AS Status
+                    FROM trans_invoice;
+                ';
+                break;
             // If an invalid or unsupported table type is provided, return an error
             echo json_encode(['error' => 'Unsupported table type']);
             exit;

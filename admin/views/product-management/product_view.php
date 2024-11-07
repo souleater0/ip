@@ -137,7 +137,7 @@ $items = getItembyID($product_id, $pdo);
                             <?php foreach($items as $item):?>
                             <tr>
                             <td class="text-start"><span><?php echo "<img src='data:image/png;base64," . base64_encode(generateBarcode(!empty($item['item_barcode']) ? $item['item_barcode'] : 'none')) . "' width='180'>";?></span><br><span><?php echo !empty($item['item_barcode']) ? $item['item_barcode'] : 'none';?></span></td>
-                            <td class="text-center"><span class="btn btn-secondary btn-sm"><?php echo $item['item_qty'];?></span></td>
+                            <td class="text-center"><span class="btn btn-secondary btn-sm"><?php echo $item['available_qty'];?></span></td>
                             <td><?php echo !empty($item['item_expiry']) ? $item['item_expiry'] : 'None'; ?></td>
                             <td class="text-center">
                                 <?php 
@@ -152,7 +152,7 @@ $items = getItembyID($product_id, $pdo);
                                     }
                                 ?>
                             </td>
-                            <td class="text-center"><button class="btn btn-danger btn-sm btn-waste" data-sku="<?php echo !empty($product['product_sku']) ? $product['product_sku'] : 'none' ?>" data-item-barcode="<?php echo !empty($item['item_barcode']) ? $item['item_barcode'] : 'none';?>" data-item-qty="<?php echo $item['item_qty']; ?>">Move to Waste</button></td>
+                            <td class="text-center"><button class="btn btn-danger btn-sm btn-waste" data-sku="<?php echo !empty($product['product_sku']) ? $product['product_sku'] : 'none' ?>" data-item-barcode="<?php echo !empty($item['item_barcode']) ? $item['item_barcode'] : 'none';?>" data-item-qty="<?php echo $item['available_qty']; ?>">Move to Waste</button></td>
                             </tr>
                             <?php endforeach;?>
                         

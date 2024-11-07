@@ -16,7 +16,7 @@
                   </div>
                 </div>
                 <div class="card-body">
-                <table id="productTable" class="table table-hover table-cs-color">
+                <table id="costingTable" class="table table-hover table-cs-color">
                 </table>
                 </div>
         </div>
@@ -71,7 +71,7 @@ $(document).ready( function () {
   $('#costForm').on('submit', function(event){
       event.preventDefault();
   });
-  var table = $('#productTable').DataTable({
+  var table = $('#costingTable').DataTable({
         order: [[4, 'asc']],
         paging: true,
         scrollCollapse: true,
@@ -243,7 +243,7 @@ $(document).ready( function () {
             }
         });
     });
-    $('#productTable').on('click', 'button.btn-edit', function () {
+    $('#costingTable').on('click', 'button.btn-edit', function () {
       var data = table.row($(this).parents('tr')).data();
       // // Populate modal with data
       

@@ -36,7 +36,7 @@ foreach ($productlists as $productlist) {
         </div>
       </div>
       <div class="card-body">
-
+        <table id="transactionTable" class="table table-hover table-cs-color"></table>
       </div>
     </div>
   </div>
@@ -176,27 +176,6 @@ foreach ($productlists as $productlist) {
                   </div>
                 </div>
                 </div>
-                <div class="col-6">
-                  <div class="row mt-3 mr-3">
-                    <div class="col-12">
-                      <h6 class="text-end">BALANCE DUE</h6>
-                    </div>
-                    <div class="col-12">
-                      <h1 class="text-end fw-bolder">₱0.00</h1>
-                    </div>
-                    <div class="col-12">
-                      <div class="float-end">
-                        <button type="button" class="btn btn-md btn-secondary rounded">Make Payment</button>
-                      </div>
-                    </div>
-                    <div class="col-12 mt-5">
-                      <div class="col-3 float-end">
-                        <label for="invoice_no" class="form-label">Invoice No.</label>
-                        <input type="text" class="form-control" id="invoice_no" required readonly>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
             </form>
             <!-- Table for items -->
@@ -271,42 +250,94 @@ foreach ($productlists as $productlist) {
 
 <script>
 $(document).ready(function() {
+  var tableTransaction = $('#transactionTable').DataTable({
+        order: [[1, 'desc']],
+        paging: true,
+        scrollCollapse: true,
+        scrollX: true,
+        scrollY: 300,
+        responsive: true,
+        autoWidth: false,
+        ajax:{
+          url: 'admin/process/table.php?table_type=transaction-list',
+          dataSrc: 'data'
+        },
+        columns:[
+          {data: 'Date', title: 'Date', className: 'text-start'},
+          {
+      data: 'Type', 
+      title: 'Type',
+      render: function (data, type, row) {
+        if (data) {
+          // Capitalize the first letter
+          return data.charAt(0).toUpperCase() + data.slice(1);
+        }
+        return data;
+      }
+    },
+          {data: 'Transaction No', title: 'Transaction No'},
+          {data: 'No', title: 'Receipt No'},
+          {data: 'Payee', title: 'Payee'},
+          {data: 'Total Before Sales', title: 'Total Before Sales'},
+          {data: 'Sales Tax', title: 'Sales Tax'},
+          {data: 'Total', title: 'Total'},
+          {
+            title: "Actions", 
+            data: null,
+            defaultContent: `
+              <button type="button" class="btn btn-primary btn-sm btn-view">View</button>
+              <button type="button" class="btn btn-danger btn-sm btn-voide">Void</button>
+              `
+          }
+    ]});
+
+    $('#transactionTable').on('click', 'button.btn-view', function () {
+      var data = tableTransaction.row($(this).parents('tr')).data();
+
+      // Extract the Transaction No and Type
+      var transactionNo = data['Transaction No'];
+      var type = data['Type'];
+
+      // Create the new URL with parameters
+      const params = new URLSearchParams(window.location.search);
+      params.set('transacNo', transactionNo);
+      params.set('type', type);
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+      
+      // Update the URL without reloading the page
+      history.pushState(null, '', newUrl);
+
+      alert(`Transaction No: ${transactionNo}, Type: ${type}`);
+    });
+
+  $('[data-form]').on('click', function() {
+    var formType = $(this).data('form');
+    $('.select-customer').trigger('changed.bs.select');
+    
+    // Reset form inputs
+    $('#billForm')[0].reset();
+    $('#expenseForm')[0].reset();
+    clearRows();
+    if (formType === 'bill') {
+      $('#expenseForm').hide();
+      $('#invoiceForm').hide();
+      $('#billForm').show();
+      $('#transactionModalLabel').text('Bill');  // Set modal title for Bill
+    } else if (formType === 'expense') {
+      $('#billForm').hide();
+      $('#invoiceForm').hide();
+      $('#expenseForm').show();
+      $('#transactionModalLabel').text('Expense');  // Set modal title for Expense
+    } else if (formType === 'invoice') {
+      $('#billForm').hide();
+      $('#expenseForm').hide();
+      $('#invoiceForm').show();
+      $('#transactionModalLabel').text('Invoice');  // Set modal title for Expense
+    }
+    
+  });
 
 
-$('[data-form]').on('click', function() {
-  var formType = $(this).data('form');
-
-  // Reset form inputs
-  $('#billForm')[0].reset();
-  $('#expenseForm')[0].reset();
-  clearRows();
-  if (formType === 'bill') {
-    $('#expenseForm').hide();
-    $('#invoiceForm').hide();
-    $('#billForm').show();
-    $('#transactionModalLabel').text('Bill');  // Set modal title for Bill
-  } else if (formType === 'expense') {
-    $('#billForm').hide();
-    $('#invoiceForm').hide();
-    $('#expenseForm').show();
-    $('#transactionModalLabel').text('Expense');  // Set modal title for Expense
-  } else if (formType === 'invoice') {
-    $('#billForm').hide();
-    $('#expenseForm').hide();
-    $('#invoiceForm').show();
-    $('#transactionModalLabel').text('Invoice');  // Set modal title for Expense
-  }
-  
-  
-});
-  // $('.dropdown-item').on('click', function() {
-  //   var formType = $(this).data('form');
-  //   $('.dynamic-form').hide();
-  //   $('#' + formType + 'Form').show();
-  //   var newTitle = $(this).text();
-  //   $('#transactionModalLabel').text(newTitle);
-  // });
-  
   var table = $('#editableTable').DataTable({
     columns: [
       { title: "Product Name", data: "product_name", className: "text-dark" },
@@ -645,23 +676,6 @@ $('[data-form]').on('click', function() {
     updateTotalAmount();
   });
 
-
-
-
-  // $(document).on('changed.bs.select', '.selected-product', function (e, clickedIndex, isSelected, previousValue) {
-  //   var selectedOption = $(this).find('option:selected');
-  //   var sku = selectedOption.data('sku');  // Get the SKU from the selected option
-  //   var rate = selectedOption.data('rate');  // Get the Rate from the selected option
-
-  //   var row = $(this).closest('tr');  // Get the closest row of the table
-
-  //   // Populate the SKU and Rate fields in the current row
-  //   row.find('.sku').val(sku);
-  //   row.find('.rate').val(rate);
-  //   row.find('.qty').val(1);
-  //   row.find('.amount').val((1 * rate).toFixed(2));
-  //   updateTotalAmount();
-  // });
   $(document).on('changed.bs.select', '.select-customer', function (e, clickedIndex, isSelected, previousValue) {
     var selectedOption = $(this).find('option:selected');
     var customer_email = selectedOption.data('customer-email');
@@ -820,6 +834,8 @@ function updateTotalAmount() {
       activeForm = 'bill';
     } else if ($('#expenseForm').is(':visible')) {
       activeForm = 'expense';
+    } else if ($('#invoiceForm').is(':visible')) {
+      activeForm = 'invoice';
     }
 
     var formData = new FormData();
@@ -853,6 +869,27 @@ function updateTotalAmount() {
       formData.append('sub_total', $('#totalSubAmount').val());
       formData.append('total_tax', $('#totalTaxAmount').val());
       formData.append('grand_total', $('#totalAmount').val());
+    } else if (activeForm === 'invoice') {
+      formData.append('action', 'addTransaction');
+      formData.append('formType', 'invoice');
+      formData.append('customer_id', $('#invoice_customer').val());
+      formData.append('customer_email', $('#invoice_customer_email').val());
+      formData.append('invoice_bill_address', $('#invoice_bill_address').val());
+      formData.append('invoice_date', $('#invoice_date').val());
+      formData.append('invoice_duedate', $('#invoice_duedate').val());
+      formData.append('invoice_ship_address', $('#invoice_ship_address').val());
+      formData.append('invoice_ship_via', $('#invoice_via').val());
+      formData.append('invoice_ship_date', $('#expense_date').val());
+      formData.append('invoice_track_no', $('#invoice_customer_email').val());
+
+      // Item details
+      var itemList = table.rows().data().toArray();
+      formData.append('items', JSON.stringify(itemList));
+
+      // Totals
+      formData.append('sub_total', $('#totalSubAmount').val());
+      formData.append('total_tax', $('#totalTaxAmount').val());
+      formData.append('grand_total', $('#totalAmount').val());
     }
 
     // Attach remarks and file from `attachForm`
@@ -861,16 +898,6 @@ function updateTotalAmount() {
     if (attachmentFile) {
       formData.append('attachment', attachmentFile);
     }
-
-    // Debugging: Log form data before submitting
-    // console.log('Submitting form:', activeForm, formData);
-    // console.log('Submitting form:', activeForm);
-
-    // for (var pair of formData.entries()) {
-    //   console.log(pair[0] + ': ' + pair[1]);
-    // }
-
-
     Swal.fire({
       title: "Do you want to save the changes?",
       showDenyButton: true,
@@ -897,6 +924,11 @@ function updateTotalAmount() {
                         // toastr.success(response.message);
                     } else if (activeForm === 'expense') {
                         $('#expenseForm')[0].reset(); // Reset the expense form
+                        // toastr.success(response.message);
+                        Swal.fire("Saved!", response.message, "success");
+                    }
+                    else if (activeForm === 'invoice') {
+                        $('#invoiceForm')[0].reset(); // Reset the expense form
                         // toastr.success(response.message);
                         Swal.fire("Saved!", response.message, "success");
                     }

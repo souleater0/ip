@@ -170,7 +170,6 @@ $(document).ready( function () {
           dataSrc: 'data'
         },
         columns:[
-          // {data: null},
           {data: 'product_id', visible: false},
           {data: 'product_name', title: 'Product Name'},
           {data: 'product_description', visible: false},

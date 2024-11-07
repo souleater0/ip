@@ -852,35 +852,53 @@
             return array(); // Return an empty array if an error occurs
         }
     }
-    function getItembyID($product_id, $pdo){
+    function getItembyID($product_id, $pdo) {
         try {
-            $query = "SELECT
-                a.item_barcode,
-                a.item_qty,
-                a.item_expiry,
-                b.product_id,
-                b.product_name,
-                b.expiry_notice,
-                DATEDIFF(a.item_expiry, NOW()) + 1 AS days_to_expiry
-            FROM 
-                trans_item a
-            INNER JOIN 
-                product b ON b.product_sku = a.product_sku
-            WHERE 
-                b.product_id = :product_id
-            ORDER BY 
-                a.item_expiry ASC";
+            $query = "
+                SELECT
+                    a.item_barcode,
+                    a.item_expiry,
+                    b.product_id,
+                    b.product_name,
+                    b.expiry_notice,
+                    DATEDIFF(a.item_expiry, NOW()) + 1 AS days_to_expiry,
+                    (
+                        SELECT COALESCE(SUM(item_qty), 0)
+                        FROM trans_item
+                        WHERE product_sku = a.product_sku 
+                        AND transaction_type IN ('bill', 'expense')
+                    ) - (
+                        SELECT COALESCE(SUM(item_qty), 0)
+                        FROM trans_item
+                        WHERE product_sku = a.product_sku 
+                        AND transaction_type = 'invoice'
+                    ) AS available_qty
+                FROM 
+                    trans_item a
+                INNER JOIN 
+                    product b ON b.product_sku = a.product_sku
+                WHERE 
+                    b.product_id = :product_id
+                GROUP BY 
+                    a.item_barcode, a.item_expiry, b.product_id, b.product_name, b.expiry_notice
+                HAVING 
+                    available_qty > 0
+                ORDER BY 
+                    a.item_expiry ASC";
+            
             $stmt = $pdo->prepare($query);
             $stmt->bindParam(':product_id', $product_id, PDO::PARAM_INT);
-            $stmt ->execute();
-            $brands = $stmt -> fetchAll(PDO::FETCH_ASSOC);
-            return $brands;
-        }catch(PDOException $e){
+            $stmt->execute();
+            $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            return $items;
+        } catch (PDOException $e) {
             // Handle database connection error
             echo "Error: " . $e->getMessage();
             return array(); // Return an empty array if an error occurs
         }
     }
+    
     function addProduct($pdo){
         try {
             $sku_id = $_POST['sku_id'];
@@ -1818,14 +1836,6 @@
     function addTransaction($pdo) {
         // Get form data from $_POST
         $formType = !empty($_POST['formType']) ? $_POST['formType'] : null;
-        $supplierID = null; // Adjust based on formType
-        $address = null; // Bill address or customer email based on formType
-        $date = null; // Date for bills, expenses, or invoices
-        $dueDate = null; // Due date for bills or invoices
-        $subTotal = null;
-        $total_tax = null;
-        $grand_total = null;
-        $transactionNo = null; // To hold the generated transaction number
         $items = !empty($_POST['items']) ? json_decode($_POST['items'], true) : [];
     
         // Validate that items are provided
@@ -1870,25 +1880,67 @@
                 case 'expense':
                     $supplierID = !empty($_POST['payee_id']) ? $_POST['payee_id'] : null;
                     $date = !empty($_POST['expenseDate']) ? $_POST['expenseDate'] : null;
+                    $paymentMethod = !empty($_POST['expense_payment_method']) ? $_POST['expense_payment_method'] : null;
+                    $expenseNo = !empty($_POST['expenseNo']) ? $_POST['expenseNo'] : null;
+                    $subTotal = !empty($_POST['sub_total']) ? $_POST['sub_total'] : 0;
+                    $totalTax = !empty($_POST['total_tax']) ? $_POST['total_tax'] : 0;
+                    $grandTotal = !empty($_POST['grand_total']) ? $_POST['grand_total'] : 0;
                     $transactionNo = generateTransactionNo($pdo, 'expense');
     
                     // Insert into the trans_expense table
                     $sql = "
-                        INSERT INTO trans_expense (payee_id, expense_date, expense_payment_method, expense_no, transaction_no) 
-                        VALUES (:payee_id, :expense_date, :expense_payment_method, :expense_no, :transaction_no)
+                        INSERT INTO trans_expense (payee_id, expense_date, expense_payment_method, expense_no, transaction_no, total_amount, sales_tax, grand_total) 
+                        VALUES (:payee_id, :expense_date, :expense_payment_method, :expense_no, :transaction_no, :total_amount, :sales_tax, :grand_total)
                     ";
                     $stmtParams = [
                         'payee_id' => $supplierID,
                         'expense_date' => $date,
-                        'expense_payment_method' => isset($_POST['expense_payment_method']) ? $_POST['expense_payment_method'] : null,
-                        'expense_no' => isset($_POST['expenseNo']) ? $_POST['expenseNo'] : null,
-                        'transaction_no' => $transactionNo
+                        'expense_payment_method' => $paymentMethod,
+                        'expense_no' => $expenseNo,
+                        'transaction_no' => $transactionNo,
+                        'total_amount' => $subTotal,
+                        'sales_tax' => $totalTax,
+                        'grand_total' => $grandTotal
                     ];
                     break;
     
                 case 'invoice':
-                    // Logic for invoices (if applicable)
-                    // ...
+                    $customerID = !empty($_POST['customer_id']) ? $_POST['customer_id'] : null;
+                    $customerEmail = !empty($_POST['customer_email']) ? $_POST['customer_email'] : null;
+                    $billingAddress = !empty($_POST['invoice_bill_address']) ? $_POST['invoice_bill_address'] : null;
+                    $invoiceDate = !empty($_POST['invoice_date']) ? $_POST['invoice_date'] : null;
+                    $dueDate = !empty($_POST['invoice_duedate']) ? $_POST['invoice_duedate'] : null;
+                    $shippingAddress = !empty($_POST['invoice_ship_address']) ? $_POST['invoice_ship_address'] : null;
+                    $shipVia = !empty($_POST['invoice_ship_via']) ? $_POST['invoice_ship_via'] : null;
+                    $shipDate = !empty($_POST['invoice_ship_date']) ? $_POST['invoice_ship_date'] : null;
+                    $trackNo = !empty($_POST['invoice_track_no']) ? $_POST['invoice_track_no'] : null;
+                    $subTotal = !empty($_POST['sub_total']) ? $_POST['sub_total'] : null;
+                    $totalTax = !empty($_POST['total_tax']) ? $_POST['total_tax'] : null;
+                    $grandTotal = !empty($_POST['grand_total']) ? $_POST['grand_total'] : null;
+                    $transactionNo = generateTransactionNo($pdo, 'invoice');
+                
+                    // Insert into trans_invoice table
+                    $sql = "
+                        INSERT INTO trans_invoice (customer_id, customer_email, invoice_bill_address, invoice_date, invoice_duedate, invoice_shipping_address, 
+                                                    invoice_ship_via, invoice_ship_date, invoice_track_no, total_amount, sales_tax, grand_total, transaction_no) 
+                        VALUES (:customer_id, :customer_email, :invoice_bill_address, :invoice_date, :invoice_duedate, :invoice_shipping_address, 
+                                :invoice_ship_via, :invoice_ship_date, :invoice_track_no, :total_amount, :sales_tax, :grand_total, :transaction_no)
+                    ";
+                    $stmtParams = [
+                        'customer_id' => $customerID,
+                        'customer_email' => $customerEmail,
+                        'invoice_bill_address' => $billingAddress,
+                        'invoice_date' => $invoiceDate,
+                        'invoice_duedate' => $dueDate,
+                        'invoice_shipping_address' => $shippingAddress,
+                        'invoice_ship_via' => $shipVia,
+                        'invoice_ship_date' => $shipDate,
+                        'invoice_track_no' => $trackNo,
+                        'total_amount' => $subTotal,
+                        'sales_tax' => $totalTax,
+                        'grand_total' => $grandTotal,
+                        'transaction_no' => $transactionNo
+                    ];
                     break;
     
                 default:
