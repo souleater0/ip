@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 07, 2024 at 11:56 AM
+-- Generation Time: Nov 11, 2024 at 12:00 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -155,6 +155,36 @@ CREATE TABLE `payments` (
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `payments`
+--
+
+INSERT INTO `payments` (`id`, `transaction_no`, `payment_refno`, `payment_account`, `payment_type`, `payment_amount`, `payment_date`, `created_at`, `updated_at`) VALUES
+(1, 'BILL-20241107-001', 'P0001', 1, 1, 200.00, '2024-11-11', '2024-11-11 07:04:15', '2024-11-11 07:04:31');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `payment_account`
+--
+
+CREATE TABLE `payment_account` (
+  `id` int(11) NOT NULL,
+  `pay_account_name` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `payment_account`
+--
+
+INSERT INTO `payment_account` (`id`, `pay_account_name`) VALUES
+(1, 'Cash in Bank-Unionbank'),
+(2, 'Cash in Bank-Metro Bank'),
+(3, 'Cash on Hand'),
+(4, 'Petty Cash Fund'),
+(5, 'Change Fund'),
+(6, 'Gcash');
 
 -- --------------------------------------------------------
 
@@ -604,6 +634,7 @@ CREATE TABLE `trans_bill` (
   `bill_due_date` date DEFAULT NULL,
   `bill_no` varchar(255) DEFAULT NULL,
   `transaction_no` varchar(255) NOT NULL,
+  `tax_type` int(11) NOT NULL DEFAULT 3,
   `total_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
   `sales_tax` decimal(10,2) NOT NULL DEFAULT 0.00,
   `grand_total` decimal(10,2) UNSIGNED NOT NULL DEFAULT 0.00,
@@ -616,8 +647,10 @@ CREATE TABLE `trans_bill` (
 -- Dumping data for table `trans_bill`
 --
 
-INSERT INTO `trans_bill` (`id`, `supplier_id`, `bill_address`, `bill_date`, `bill_due_date`, `bill_no`, `transaction_no`, `total_amount`, `sales_tax`, `grand_total`, `payment_status`, `created_at`, `updated_at`) VALUES
-(2, 1, 'test', '2024-11-07', '2024-11-08', 'bill001', 'BILL-20241107-001', 290.00, 31.06, 290.00, 'unpaid', '2024-11-07 03:55:20', '2024-11-07 06:36:26');
+INSERT INTO `trans_bill` (`id`, `supplier_id`, `bill_address`, `bill_date`, `bill_due_date`, `bill_no`, `transaction_no`, `tax_type`, `total_amount`, `sales_tax`, `grand_total`, `payment_status`, `created_at`, `updated_at`) VALUES
+(2, 1, 'test', '2024-11-07', '2024-11-08', 'bill001', 'BILL-20241107-001', 3, 290.00, 31.06, 290.00, 'unpaid', '2024-11-07 03:55:20', '2024-11-11 05:08:12'),
+(3, 1, 'test', '2024-11-13', '2024-11-15', 'bill002', 'BILL-20241111-001', 3, 60.00, 0.00, 60.00, 'unpaid', '2024-11-11 05:50:31', '2024-11-11 05:50:31'),
+(4, 1, 'test', '2024-11-11', '2024-11-11', 'bill003', 'BILL-20241111-002', 3, 90.00, 0.00, 90.00, 'unpaid', '2024-11-11 07:00:24', '2024-11-11 07:00:24');
 
 -- --------------------------------------------------------
 
@@ -644,7 +677,8 @@ CREATE TABLE `trans_expense` (
 --
 
 INSERT INTO `trans_expense` (`id`, `payee_id`, `expense_date`, `expense_payment_method`, `total_amount`, `sales_tax`, `grand_total`, `expense_no`, `transaction_no`, `created_at`, `updated_at`) VALUES
-(1, 1, '2024-11-07', 'CASH', 90.00, 9.64, 90.00, 'exp001', 'EXP-20241107-001', '2024-11-07 04:21:20', NULL);
+(1, 1, '2024-11-07', 'CASH', 90.00, 9.64, 90.00, 'exp001', 'EXP-20241107-001', '2024-11-07 04:21:20', NULL),
+(2, 1, '2024-11-11', 'GCASH', 90.00, 0.00, 90.00, 'exp003', 'EXP-20241111-001', '2024-11-11 07:00:50', NULL);
 
 -- --------------------------------------------------------
 
@@ -678,7 +712,9 @@ CREATE TABLE `trans_invoice` (
 --
 
 INSERT INTO `trans_invoice` (`id`, `customer_id`, `customer_email`, `invoice_bill_address`, `invoice_shipping_address`, `invoice_ship_via`, `invoice_ship_date`, `invoice_date`, `invoice_duedate`, `invoice_track_no`, `invoice_no`, `transaction_no`, `payment_status`, `total_amount`, `sales_tax`, `grand_total`, `created_at`, `updated_at`) VALUES
-(1, 1, 'ecxdev03@gmail.com', 'test1', 'test2', 'test3', NULL, '2024-11-07', '2024-11-08', 'ecxdev03@gmail.com', NULL, 'INV-20241107-001', NULL, 120.00, 12.85, 120.00, '2024-11-07 06:33:42', '2024-11-07 06:52:09');
+(1, 1, 'ecxdev03@gmail.com', 'test1', 'test2', 'test3', NULL, '2024-11-07', '2024-11-08', 'ecxdev03@gmail.com', NULL, 'INV-20241107-001', NULL, 120.00, 12.85, 120.00, '2024-11-07 06:33:42', '2024-11-07 06:52:09'),
+(2, 1, 'ecxdev03@gmail.com', 'test', 'test', NULL, NULL, '2024-11-11', '2024-11-12', 'ecxdev03@gmail.com', NULL, 'INV-20241111-001', NULL, 80.00, 0.00, 80.00, '2024-11-11 05:51:01', NULL),
+(3, 2, 'test1@gmail.com', 'test', 'test', 'test', NULL, '2024-11-11', '2024-11-12', 'test1@gmail.com', NULL, 'INV-20241111-002', NULL, 120.00, 0.00, 120.00, '2024-11-11 07:01:54', NULL);
 
 -- --------------------------------------------------------
 
@@ -709,7 +745,12 @@ INSERT INTO `trans_item` (`item_id`, `transaction_no`, `product_sku`, `item_barc
 (1, 'BILL-20241107-001', 'SN00001', '', 3, 30.00, 12, 90.00, 'bill', '0000-00-00', NULL, '2024-11-07 03:55:20'),
 (2, 'BILL-20241107-001', 'BR00001', '', 2, 100.00, 12, 200.00, 'bill', '0000-00-00', NULL, '2024-11-07 03:55:20'),
 (3, 'EXP-20241107-001', 'SN00001', '', 3, 30.00, 12, 90.00, 'expense', '0000-00-00', NULL, '2024-11-07 04:21:20'),
-(4, 'INV-20241107-001', 'SN00001', '', 3, 40.00, 12, 120.00, 'invoice', '0000-00-00', NULL, '2024-11-07 06:33:42');
+(4, 'INV-20241107-001', 'SN00001', '', 3, 40.00, 12, 120.00, 'invoice', '0000-00-00', NULL, '2024-11-07 06:33:42'),
+(5, 'BILL-20241111-001', 'SN00001', '', 2, 30.00, NULL, 60.00, 'bill', '0000-00-00', NULL, '2024-11-11 05:50:31'),
+(6, 'INV-20241111-001', 'SN00001', '', 2, 40.00, NULL, 80.00, 'invoice', '0000-00-00', NULL, '2024-11-11 05:51:01'),
+(7, 'BILL-20241111-002', 'SN00001', '', 3, 30.00, NULL, 90.00, 'bill', '0000-00-00', NULL, '2024-11-11 07:00:24'),
+(8, 'EXP-20241111-001', 'SN00001', '', 3, 30.00, NULL, 90.00, 'expense', '0000-00-00', NULL, '2024-11-11 07:00:50'),
+(9, 'INV-20241111-002', 'SN00001', '', 3, 40.00, NULL, 120.00, 'invoice', '0000-00-00', NULL, '2024-11-11 07:01:54');
 
 -- --------------------------------------------------------
 
@@ -835,6 +876,12 @@ ALTER TABLE `payments`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `payment_account`
+--
+ALTER TABLE `payment_account`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `pending_item`
 --
 ALTER TABLE `pending_item`
@@ -927,7 +974,7 @@ ALTER TABLE `tax`
 -- Indexes for table `trans_bill`
 --
 ALTER TABLE `trans_bill`
-  ADD PRIMARY KEY (`id`) USING BTREE;
+  ADD PRIMARY KEY (`id`,`grand_total`) USING BTREE;
 
 --
 -- Indexes for table `trans_expense`
@@ -999,7 +1046,13 @@ ALTER TABLE `modules`
 -- AUTO_INCREMENT for table `payments`
 --
 ALTER TABLE `payments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `payment_account`
+--
+ALTER TABLE `payment_account`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `pending_item`
@@ -1065,25 +1118,25 @@ ALTER TABLE `system_option`
 -- AUTO_INCREMENT for table `trans_bill`
 --
 ALTER TABLE `trans_bill`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `trans_expense`
 --
 ALTER TABLE `trans_expense`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `trans_invoice`
 --
 ALTER TABLE `trans_invoice`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `trans_item`
 --
 ALTER TABLE `trans_item`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `users`

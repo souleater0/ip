@@ -259,12 +259,13 @@
                         "bill" AS Type,
                         transaction_no AS `Transaction No`,
                         bill_no AS No,
-                        supplier_id AS Payee,
+                        s.vendor_name AS Payee,
                         total_amount AS `Total Before Sales`,
                         sales_tax AS `Sales Tax`,
                         grand_total AS Total,
                         payment_status AS Status
                     FROM trans_bill
+                    JOIN supplier s ON trans_bill.supplier_id = s.id
 
                     UNION ALL
 
@@ -273,12 +274,13 @@
                         "expense" AS Type,
                         transaction_no AS `Transaction No`,
                         expense_no AS No,
-                        payee_id AS Payee,
+                        s.vendor_name AS Payee,
                         total_amount AS `Total Before Sales`,
                         sales_tax AS `Sales Tax`,
                         grand_total AS Total,
                         NULL AS Status -- Status not applicable for expenses
                     FROM trans_expense
+                    JOIN supplier s ON trans_expense.payee_id = s.id
 
                     UNION ALL
 
@@ -287,12 +289,14 @@
                         "invoice" AS Type,
                         transaction_no AS `Transaction No`,
                         invoice_no AS No,
-                        customer_id AS Payee,
+                        c.customer_name AS Payee,
                         total_amount AS `Total Before Sales`,
                         sales_tax AS `Sales Tax`,
                         grand_total AS Total,
                         payment_status AS Status
-                    FROM trans_invoice;
+                    FROM trans_invoice
+                    JOIN customer c ON trans_invoice.customer_id = c.id;
+                    ;
                 ';
                 break;
             // If an invalid or unsupported table type is provided, return an error

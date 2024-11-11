@@ -27,6 +27,20 @@
             return array(); // Return an empty array if an error occurs
         }
     }
+    function getPaymentAccount($pdo){
+        try {
+            $query = "SELECT * FROM payment_account";
+            $stmt = $pdo->prepare($query);
+    
+            $stmt ->execute();
+            $payment_account = $stmt -> fetchAll(PDO::FETCH_ASSOC);
+            return $payment_account;
+        }catch(PDOException $e){
+                    // Handle database connection error
+            echo "Error: " . $e->getMessage();
+            return array(); // Return an empty array if an error occurs
+        }
+    }
     function getModulePermissions($pdo , $moduleID){
         try {
             $query = "SELECT * FROM permissions WHERE module_id = :module_id";
@@ -2074,5 +2088,61 @@ function generatePaymentRefNo($pdo) {
 
     return $newPaymentRefNo;
 }
-    
+
+function getTransactionDetails($pdo, $transactionType, $transactionNo) {
+    try {
+        // Initialize an empty array to hold the transaction details
+        $transactionDetails = [];
+
+        // Determine which tables to query based on the transaction type
+        switch ($transactionType) {
+            case 'bill':
+                $transactionTable = 'trans_bill';
+                $transactionQuery = "SELECT * FROM $transactionTable WHERE transaction_no = :transactionNo";
+                break;
+
+            case 'expense':
+                $transactionTable = 'trans_expense';
+                $transactionQuery = "SELECT * FROM $transactionTable WHERE transaction_no = :transactionNo";
+                break;
+
+            case 'invoice':
+                $transactionTable = 'trans_invoice';
+                $transactionQuery = "SELECT * FROM $transactionTable WHERE transaction_no = :transactionNo";
+                break;
+
+            default:
+                throw new Exception("Invalid transaction type");
+        }
+
+        // Prepare and execute the main transaction query
+        $stmt = $pdo->prepare($transactionQuery);
+        $stmt->execute(['transactionNo' => $transactionNo]);
+        $transactionDetails['transaction'] = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        // If no transaction was found, return an empty result
+        if (!$transactionDetails['transaction']) {
+            return array("message" => "Transaction not found.");
+        }
+
+        // Retrieve associated items from trans_item table
+        $itemsQuery = "SELECT * FROM trans_item WHERE transaction_no = :transactionNo";
+        $stmt = $pdo->prepare($itemsQuery);
+        $stmt->execute(['transactionNo' => $transactionNo]);
+        $transactionDetails['items'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        return $transactionDetails;
+
+    } catch (PDOException $e) {
+        // Handle database errors
+        echo "Error: " . $e->getMessage();
+        return array(); // Return an empty array if an error occurs
+    } catch (Exception $e) {
+        // Handle other errors (like invalid transaction type)
+        echo "Error: " . $e->getMessage();
+        return array();
+    }
+}
+
+
 ?>

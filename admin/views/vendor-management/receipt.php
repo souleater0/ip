@@ -2,6 +2,7 @@
 $productlists = getProductList($pdo);
 $supplierlists = getSupplierList($pdo);
 $customerlists = getCustomerList($pdo);
+$paymentaccountlists = getPaymentAccount($pdo);
 $selectProduct = '';
 foreach ($productlists as $productlist) {
   $selectProduct .= '<option value="' . htmlspecialchars($productlist['product_name']) . '" data-sku="' . htmlspecialchars($productlist['product_sku']) . '" data-rate-purchase="' . htmlspecialchars($productlist['product_pp']) . '" data-rate-sell="' . htmlspecialchars($productlist['product_sp']) . '">'.htmlspecialchars($productlist['product_name']) . '</option>';
@@ -15,6 +16,7 @@ foreach ($productlists as $productlist) {
       </div>
       <div class="col">
         <div class="dropdown float-end">
+          <button class="btn btn-light btn btn-outline-dark" type="button" data-bs-toggle="modal" data-bs-target="#payModal">Pay Bills</button>
           <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
             New Transaction
           </button>
@@ -74,13 +76,13 @@ foreach ($productlists as $productlist) {
                 <div class="col-2">
                   <div>
                   <label for="bill_start_date" class="form-label">Bill Date</label>
-                  <input id="bill_start_date" name="bill_start_date" class="form-control" type="date" required/>
+                  <input id="bill_start_date" name="bill_start_date" class="form-control" value="<?php echo date('Y-m-d'); ?>" type="date" required/>
                   </div>
                 </div>
                 <div class="col-2">
                   <div>
                   <label for="bill_end_date" class="form-label">Due Date</label>
-                  <input id="bill_end_date" name="bill_end_date" class="form-control" type="date" required/>
+                  <input id="bill_end_date" name="bill_end_date" class="form-control" value="<?php echo date('Y-m-d'); ?>" type="date" required/>
                   </div>
                 </div>
                 <div class="col-2">
@@ -247,15 +249,71 @@ foreach ($productlists as $productlist) {
     </div>
   </div>
 </div>
+<!-- Modal END-->
 
+<!-- Modal START-->
+<div class="modal fade" id="payModal" tabindex="-1" aria-labelledby="payModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-fullscreen">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="payModalLabel">Pay Bills</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body border">
+      <div class="row">
+        <div class="d-flex">
+          <div class="col-3 px-2">
+          <label for="payment_account" class="form-label">Payment Accounts</label >
+          <select class="selectpicker form-control" id="payment_account" name="payment_account" data-live-search="true" required>
+            <?php foreach ($paymentaccountlists as $accountlist):?>
+              <option value="<?php echo $accountlist['id'];?>"><?php echo $accountlist['pay_account_name'];?></option>
+            <?php endforeach;?>
+          </select>
+          </div>
+          <div class="col-1 px-2">
+            <label for="payment_date" class="form-label">Payment Date</label>
+            <input id="payment_date" name="payment_date" class="form-control" type="date" value="<?php echo date('Y-m-d'); ?>"/>
+          </div>
+          <div class="col-1 px-2">
+            <label for="payment_ref_no" class="form-label">Ref No.</label>
+            <input type="text" class="form-control" id="payment_ref_no" required>
+          </div>
+        </div>
+      </div>
+      <div class="row mt-3">
+        <div class="col-12">
+          <table id="editableTable" class="table table-hover table-bordered w-100">
+                  <thead>
+                    <tr>
+                      <th>PAYEE</th>
+                      <th>REF No.</th>
+                      <th>Due Date</th>
+                      <th>OPEN BALANCE</th>
+                      <th>CREDIT APPLIED</th>
+                      <th>PAYMENT</th>
+                      <th>TOTAL AMOUNT</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal END-->
 <script>
 $(document).ready(function() {
   var tableTransaction = $('#transactionTable').DataTable({
-        order: [[1, 'desc']],
+        order: [[0, 'desc']],
         paging: true,
         scrollCollapse: true,
         scrollX: true,
-        scrollY: 300,
+        scrollY: true,
         responsive: true,
         autoWidth: false,
         ajax:{
@@ -656,7 +714,7 @@ $(document).ready(function() {
     // Determine the active form type
     var formType = $('#billForm:visible').length ? 'bill' : $('#expenseForm:visible').length ? 'expense' : 'invoice';
 
-    console.log('Form Type:', formType);
+    // console.log('Form Type:', formType);
     // Choose the appropriate rate based on form type
     var rate;
     if (formType === 'bill' || formType === 'expense') {
@@ -665,7 +723,7 @@ $(document).ready(function() {
         rate = selectedOption.data('rate-sell');  // For invoice, use selling price
     }
 
-    console.log(rate);
+    // console.log(rate);
     var row = $(this).closest('tr');  // Get the closest row of the table
 
     // Populate the SKU and Rate fields in the current row
@@ -906,44 +964,47 @@ function updateTotalAmount() {
       denyButtonText: `Don't save`
     }).then((result) => {
       if (result.isConfirmed) {
+        for (const [key, value] of formData.entries()) {
+            console.log(`${key}: ${value}`);
+        }
         // AJAX request
-        $.ajax({
-            url: 'admin/process/admin_action.php', // Update with your PHP script path
-            type: 'POST',
-            data: formData,
-            contentType: false, // Important for file uploads
-            processData: false, // Important for file uploads
-            success: function (response) {
-                // Handle success response
-                $('#responseMessage').html(response.message);
-                if (response.success) {
-                    // Reset the active form
-                    if (activeForm === 'bill') {
-                        $('#billForm')[0].reset(); // Reset the bill form
-                        Swal.fire("Saved!", response.message, "success");
-                        // toastr.success(response.message);
-                    } else if (activeForm === 'expense') {
-                        $('#expenseForm')[0].reset(); // Reset the expense form
-                        // toastr.success(response.message);
-                        Swal.fire("Saved!", response.message, "success");
-                    }
-                    else if (activeForm === 'invoice') {
-                        $('#invoiceForm')[0].reset(); // Reset the expense form
-                        // toastr.success(response.message);
-                        Swal.fire("Saved!", response.message, "success");
-                    }
-                    clearRows();
-                } else {
-                    console.log(response.message);
-                    // toastr.error(response.message);
-                    Swal.fire("Error!", response.message, "error");
-                }
-            },
-            error: function (xhr, status, error) {
-                // Handle error response
-                console.log('An error occurred:', error);
-            }
-        });
+        // $.ajax({
+        //     url: 'admin/process/admin_action.php', // Update with your PHP script path
+        //     type: 'POST',
+        //     data: formData,
+        //     contentType: false, // Important for file uploads
+        //     processData: false, // Important for file uploads
+        //     success: function (response) {
+        //         // Handle success response
+        //         $('#responseMessage').html(response.message);
+        //         if (response.success) {
+        //             // Reset the active form
+        //             if (activeForm === 'bill') {
+        //                 $('#billForm')[0].reset(); // Reset the bill form
+        //                 Swal.fire("Saved!", response.message, "success");
+        //                 // toastr.success(response.message);
+        //             } else if (activeForm === 'expense') {
+        //                 $('#expenseForm')[0].reset(); // Reset the expense form
+        //                 // toastr.success(response.message);
+        //                 Swal.fire("Saved!", response.message, "success");
+        //             }
+        //             else if (activeForm === 'invoice') {
+        //                 $('#invoiceForm')[0].reset(); // Reset the expense form
+        //                 // toastr.success(response.message);
+        //                 Swal.fire("Saved!", response.message, "success");
+        //             }
+        //             clearRows();
+        //         } else {
+        //             console.log(response.message);
+        //             // toastr.error(response.message);
+        //             Swal.fire("Error!", response.message, "error");
+        //         }
+        //     },
+        //     error: function (xhr, status, error) {
+        //         // Handle error response
+        //         console.log('An error occurred:', error);
+        //     }
+        // });
       } else if (result.isDenied) {
         Swal.fire("Changes are not saved", "", "error");
       }
