@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 11, 2024 at 12:00 PM
+-- Generation Time: Nov 12, 2024 at 12:00 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -648,7 +648,7 @@ CREATE TABLE `trans_bill` (
 --
 
 INSERT INTO `trans_bill` (`id`, `supplier_id`, `bill_address`, `bill_date`, `bill_due_date`, `bill_no`, `transaction_no`, `tax_type`, `total_amount`, `sales_tax`, `grand_total`, `payment_status`, `created_at`, `updated_at`) VALUES
-(2, 1, 'test', '2024-11-07', '2024-11-08', 'bill001', 'BILL-20241107-001', 3, 290.00, 31.06, 290.00, 'unpaid', '2024-11-07 03:55:20', '2024-11-11 05:08:12'),
+(2, 1, 'test', '2024-11-07', '2024-11-08', 'bill001', 'BILL-20241107-001', 1, 290.00, 31.06, 290.00, 'unpaid', '2024-11-07 03:55:20', '2024-11-12 06:43:08'),
 (3, 1, 'test', '2024-11-13', '2024-11-15', 'bill002', 'BILL-20241111-001', 3, 60.00, 0.00, 60.00, 'unpaid', '2024-11-11 05:50:31', '2024-11-11 05:50:31'),
 (4, 1, 'test', '2024-11-11', '2024-11-11', 'bill003', 'BILL-20241111-002', 3, 90.00, 0.00, 90.00, 'unpaid', '2024-11-11 07:00:24', '2024-11-11 07:00:24');
 

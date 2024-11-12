@@ -138,13 +138,13 @@ $items = getItembyID($product_id, $pdo);
                             <tr>
                             <td class="text-start"><span><?php echo "<img src='data:image/png;base64," . base64_encode(generateBarcode(!empty($item['item_barcode']) ? $item['item_barcode'] : 'none')) . "' width='180'>";?></span><br><span><?php echo !empty($item['item_barcode']) ? $item['item_barcode'] : 'none';?></span></td>
                             <td class="text-center"><span class="btn btn-secondary btn-sm"><?php echo $item['available_qty'];?></span></td>
-                            <td><?php echo !empty($item['item_expiry']) ? $item['item_expiry'] : 'None'; ?></td>
+                            <td><?php echo (!empty($item['item_expiry']) && $item['item_expiry'] !== '0000-00-00') ? $item['item_expiry'] : '<span class="badge bg-warning text-dark">None</span>'; ?></td>
                             <td class="text-center">
                                 <?php 
                                     $days_to_expiry = (int)$item['days_to_expiry'];
 
                                     if (is_null($item['days_to_expiry'])) {
-                                        echo '<span class="badge bg-warning text-dark">No Expiry</span>';
+                                        echo '<span class="badge bg-warning text-dark">None</span>';
                                     } elseif ($days_to_expiry <= 0) {
                                         echo '<span class="badge bg-danger">Expired</span>';
                                     } else {

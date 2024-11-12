@@ -992,4 +992,24 @@ require_once 'function.php';
         echo json_encode($response);
         exit();
     }
+
+    // Check if the request is a POST and if the action is 'getTransactionDetails'
+    if (!empty($_POST['action']) && $_POST['action'] == 'getTransactionDetails') {
+        $transactionType = $_POST['transactionType'] ?? '';
+        $transactionNo = $_POST['transactionNo'] ?? '';
+
+        if (empty($transactionType) || empty($transactionNo)) {
+            $response = array(
+                'success' => false,
+                'message' => 'Please provide both transaction type and transaction number.'
+            );
+        } else {
+            // Call the getTransactionDetails function
+            $response = getTransactionDetails($pdo);
+        }
+
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
 ?>

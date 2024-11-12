@@ -2089,8 +2089,10 @@ function generatePaymentRefNo($pdo) {
     return $newPaymentRefNo;
 }
 
-function getTransactionDetails($pdo, $transactionType, $transactionNo) {
+function getTransactionDetails($pdo) {
     try {
+        $transactionType = !empty($_POST['transactionType']) ? $_POST['transactionType'] : null;
+        $transactionNo = !empty($_POST['transactionNo']) ? $_POST['transactionNo'] : null;
         // Initialize an empty array to hold the transaction details
         $transactionDetails = [];
 
