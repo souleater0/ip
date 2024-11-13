@@ -356,6 +356,30 @@ $(document).ready(function() {
       var transactionNo = data['Transaction No'];
       var type = data['Type'];
 
+      // Reset form inputs
+      $('#billForm')[0].reset();
+      $('#expenseForm')[0].reset();
+      $('#invoiceForm')[0].reset();
+      console.log('Type:', type);
+      clearRows();
+      if (type === 'bill') {
+        $('#expenseForm').hide();
+        $('#invoiceForm').hide();
+        $('#billForm').show();
+        $('#transactionModalLabel').text('Bill');  // Set modal title for Bill
+      } else if (type === 'expense') {
+        $('#billForm').hide();
+        $('#invoiceForm').hide();
+        $('#expenseForm').show();
+        $('#transactionModalLabel').text('Expense');  // Set modal title for Expense
+      } else if (type === 'invoice') {
+        $('#billForm').hide();
+        $('#expenseForm').hide();
+        $('#invoiceForm').show();
+        $('#transactionModalLabel').text('Invoice');  // Set modal title for Expense
+      }
+      // Show the modal
+      $('#transactionModal').modal('show');
       // Create the new URL with parameters
       const params = new URLSearchParams(window.location.search);
       params.set('transacNo', transactionNo);
@@ -365,8 +389,80 @@ $(document).ready(function() {
       // Update the URL without reloading the page
       history.pushState(null, '', newUrl);
 
-      alert(`Transaction No: ${transactionNo}, Type: ${type}`);
+      // alert(`Transaction No: ${transactionNo}, Type: ${type}`);
+        $.ajax({
+          url: 'admin/process/admin_action.php',
+          type: 'POST',
+          dataType: 'json',
+          data: {
+              action: 'getTransactionDetails',
+              transactionType: type,
+              transactionNo: transactionNo
+          },
+          success: function(response) {
+              if (response.transaction) {
+                  // console.log("Transaction Details:", response.transaction);
+                  // console.log("Associated Items:", response.items);
+                  // You can also display these details in a modal or on the page
+                  populateTransactionDetails(response, type);
+                  
+              } else {
+                  alert(response.message || "Transaction not found.");
+              }
+          },
+          error: function(xhr, status, error) {
+              console.error("AJAX Error:", error);
+          }
+        });
     });
+    function populateTransactionDetails(data, transactionType) {
+      // Clear main form fields before populating
+      console.log(data.transaction.supplier_id);
+      // $('#supplier, #bill_supplier, #payee_id, #customer_id').val(''); 
+      // $('#bill_address, #invoice_bill_address, #expense_date, #invoice_date').val('');
+      // $('#billNo, #expense_no, #invoice_no').val('');
+      
+      // Populate main fields based on transaction type
+      if (transactionType === 'bill') {
+          $('#bill_supplier').val(data.transaction.supplier_id).selectpicker('refresh');
+          $('#bill_address').val(data.transaction.bill_address);
+          $('#bill_start_date').val(data.transaction.bill_date);
+          $('#bill_end_date').val(data.transaction.bill_due_date);
+          $('#billNo').val(data.transaction.bill_no);
+      }
+      //else if (transactionType === 'expense') {
+      //     $('#payee_id').val(data.payee_id);
+      //     $('#expense_date').val(data.expenseDate);
+      //     $('#expense_no').val(data.expense_no);
+      // } else if (transactionType === 'invoice') {
+      //     $('#customer_id').val(data.customer_id);
+      //     $('#invoice_bill_address').val(data.invoice_bill_address);
+      //     $('#invoice_shipping_address').val(data.invoice_shipping_address);
+      //     $('#invoice_date').val(data.invoice_date);
+      //     $('#invoice_duedate').val(data.invoice_duedate);
+      //     $('#invoice_no').val(data.invoice_no);
+      // }
+
+      // Clear existing items in the table
+      table.clear();
+
+      data.items.forEach(item => {
+        table.row.add({
+        product_name: item.product_name,
+        sku: item.product_sku,
+        barcode: item.item_barcode,
+        expiry: item.item_expiry,
+        qty: item.item_qty,
+        rate: item.item_rate,
+        amount: item.item_amount,
+        tax: item.item_tax,
+        customer: item.customer_id
+      }).draw(false);
+    });
+    $('.selected-product').selectpicker('refresh');
+      // Update total amount or any other summary fields based on the retrieved data
+      updateTotalAmount();
+  }
 
   $('[data-form]').on('click', function() {
     var formType = $(this).data('form');
@@ -375,6 +471,7 @@ $(document).ready(function() {
     // Reset form inputs
     $('#billForm')[0].reset();
     $('#expenseForm')[0].reset();
+    $('#invoiceForm')[0].reset();
     clearRows();
     if (formType === 'bill') {
       $('#expenseForm').hide();
@@ -942,6 +1039,7 @@ function updateTotalAmount() {
 
       // Item details
       var itemList = table.rows().data().toArray();
+      console.log(itemList);
       formData.append('items', JSON.stringify(itemList));
 
       // Totals

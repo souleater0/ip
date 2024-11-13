@@ -2128,7 +2128,12 @@ function getTransactionDetails($pdo) {
         }
 
         // Retrieve associated items from trans_item table
-        $itemsQuery = "SELECT * FROM trans_item WHERE transaction_no = :transactionNo";
+        $itemsQuery = "
+            SELECT ti.*, p.product_name 
+            FROM trans_item AS ti
+            JOIN product AS p ON ti.product_sku = p.product_sku
+            WHERE ti.transaction_no = :transactionNo
+        ";
         $stmt = $pdo->prepare($itemsQuery);
         $stmt->execute(['transactionNo' => $transactionNo]);
         $transactionDetails['items'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -2139,10 +2144,6 @@ function getTransactionDetails($pdo) {
         // Handle database errors
         echo "Error: " . $e->getMessage();
         return array(); // Return an empty array if an error occurs
-    } catch (Exception $e) {
-        // Handle other errors (like invalid transaction type)
-        echo "Error: " . $e->getMessage();
-        return array();
     }
 }
 
