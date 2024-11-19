@@ -180,7 +180,7 @@
           {
               data: 'item_barcode',
               title: 'Barcode',
-              className: 'noExport',
+              className: '',
               render: function(data) {
                   return data ? data : 'No Barcode';
               }

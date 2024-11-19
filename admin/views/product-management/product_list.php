@@ -234,7 +234,7 @@ $(document).ready( function () {
             "title": "Action",
             "className" : "text-center noExport",
             "render": function(data, type, row) {
-                return '<?php if(userHasPermission($pdo, $_SESSION["user_id"], 'show_product')){?><a class="btn btn-info btn-sm" href="index.php?route=view-product&product=' + row.product_id + '"><i class="fa-solid fa-eye"></i></a>&nbsp;<?php } ?><?php if(userHasPermission($pdo, $_SESSION["user_id"], 'update_product')){?><button class="btn btn-primary btn-sm btn-edit"><i class="fa-regular fa-pen-to-square"></i></button>&nbsp;<?php } ?><?php if(userHasPermission($pdo, $_SESSION["user_id"], 'delete_product')){?><button class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button><?php } ?>';
+                return '<?php if(userHasPermission($pdo, $_SESSION["user_id"], 'show_product')){?><a class="btn btn-info btn-sm" href="index.php?route=view-product&product=' + row.product_sku + '"><i class="fa-solid fa-eye"></i></a>&nbsp;<?php } ?><?php if(userHasPermission($pdo, $_SESSION["user_id"], 'update_product')){?><button class="btn btn-primary btn-sm btn-edit"><i class="fa-regular fa-pen-to-square"></i></button>&nbsp;<?php } ?><?php if(userHasPermission($pdo, $_SESSION["user_id"], 'delete_product')){?><button class="btn btn-danger btn-sm"><i class="fa-solid fa-trash"></i></button><?php } ?>';
             } 
           }
           <?php } ?>

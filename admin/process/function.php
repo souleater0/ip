@@ -73,23 +73,43 @@
             return array(); // Return an empty array if an error occurs
         }
     }
-    function loginProcess($pdo){
-            $username = $_POST['username'];
-            $password = $_POST['password'];
+    function loginProcess($pdo) {
+        $username = $_POST['username'];
+        $password = $_POST['password'];
     
-            $stmt = $pdo->prepare("SELECT * FROM users WHERE username= ?");
-            $stmt ->execute([$username]);
-            $user = $stmt ->fetch();
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE username= ?");
+        $stmt->execute([$username]);
+        $user = $stmt->fetch(); 
     
-            if($user && password_verify($password, $user["password"])){
-                //login success
-                // session_start();
-                $_SESSION["user_id"] = $user["id"];
-                $_SESSION["username"] = $user["username"];
-                return true;
-            }else{
-                return false;
-            }
+    
+        if(!$user) {
+            return array(
+                'success' => false,
+                'message' => 'No User Found!'
+            );
+        } elseif (!$user['isEnabled']) {
+            return array(
+                'success' => false,
+                'message' => 'Account is disabled.'
+            );
+        }
+    
+        if (password_verify($password, $user["password"])) {
+            // Login successful
+            // session_start();
+            $_SESSION["user_id"] = $user["id"];
+            $_SESSION["username"] = $user["username"];
+            return array(
+                'success' => true,
+                'message' => 'Login successful.',
+                'redirectUrl' => '../index.php?route=dashboard'
+            );
+        } else {
+            return array(
+                'success' => false,
+                'message' => 'Invalid Credentials!'
+            );
+        }
     }
     function addUser($pdo){
         try {
