@@ -227,22 +227,27 @@
             case 'expiring_soon':
                 $sql = 'SELECT
                     p.product_id,
-                    i.item_id,
-                    i.item_barcode,
-                    i.item_qty,
-                    i.item_expiry,
                     p.product_name,
-                    p.expiry_notice,
-                    DATEDIFF(i.item_expiry, NOW()) + 1 AS days_to_expiry
+                    t.product_sku, 
+                    t.item_barcode, 
+                    t.item_expiry, 
+                    p.expiry_notice, 
+                    DATEDIFF(t.item_expiry, NOW()) + 1 AS days_to_expiry, 
+                    SUM(CASE 
+                            WHEN t.transaction_type IN ("bill", "expense") THEN t.item_qty 
+                            WHEN t.transaction_type = "invoice" THEN -t.item_qty 
+                            ELSE 0 
+                        END) AS available_qty
                 FROM 
-                    trans_item i
+                    trans_item t
                 JOIN 
-                    product p ON i.product_sku = p.product_sku
-                WHERE 
-                    DATEDIFF(i.item_expiry, NOW()) + 1 <= p.expiry_notice
-                    AND i.item_expiry IS NOT NULL
+                    product p ON t.product_sku = p.product_sku
+                GROUP BY 
+                    t.product_sku, t.item_barcode, t.item_expiry, p.expiry_notice
+                HAVING 
+                    available_qty > 0
                 ORDER BY 
-                    i.item_expiry ASC';
+                    t.item_expiry ASC, t.item_barcode ASC';
                 break;
             case 'supplier-list':
                 $sql = 'SELECT * FROM supplier
@@ -298,6 +303,27 @@
                     JOIN customer c ON trans_invoice.customer_id = c.id;
                     ;
                 ';
+                break;
+            case 'paybill-table':
+                $sql=
+                "SELECT
+                    s.vendor_name AS payee,   -- Replace payee_id with vendor_name from supplier table
+                    tb.transaction_no as transaction_no,
+                    tb.bill_no AS ref_no,
+                    tb.bill_due_date AS due_date,
+                    tb.grand_total AS bill_amount,
+                    (tb.grand_total - COALESCE(SUM(p.payment_amount), 0)) AS open_balance,
+                    COALESCE(SUM(p.payment_amount), 0) AS total_payments,
+                    tb.payment_status AS status
+                FROM 
+                    trans_bill tb
+                LEFT JOIN 
+                    payments p ON tb.transaction_no = p.transaction_no
+                LEFT JOIN 
+                    supplier s ON tb.supplier_id = s.id  -- Join with the supplier table to get vendor_name
+                GROUP BY 
+                    tb.transaction_no, s.vendor_name
+                ";
                 break;
             // If an invalid or unsupported table type is provided, return an error
             echo json_encode(['error' => 'Unsupported table type']);

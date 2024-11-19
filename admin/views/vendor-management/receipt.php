@@ -3,6 +3,7 @@ $productlists = getProductList($pdo);
 $supplierlists = getSupplierList($pdo);
 $customerlists = getCustomerList($pdo);
 $paymentaccountlists = getPaymentAccount($pdo);
+$payment_ref = generatePaymentReference($pdo);
 $selectProduct = '';
 foreach ($productlists as $productlist) {
   $selectProduct .= '<option value="' . htmlspecialchars($productlist['product_name']) . '" data-sku="' . htmlspecialchars($productlist['product_sku']) . '" data-rate-purchase="' . htmlspecialchars($productlist['product_pp']) . '" data-rate-sell="' . htmlspecialchars($productlist['product_sp']) . '">'.htmlspecialchars($productlist['product_name']) . '</option>';
@@ -16,7 +17,7 @@ foreach ($productlists as $productlist) {
       </div>
       <div class="col">
         <div class="dropdown float-end">
-          <button class="btn btn-light btn btn-outline-dark" type="button" data-bs-toggle="modal" data-bs-target="#payModal">Pay Bills</button>
+          <button class="btn btn-light btn btn-outline-dark" id="payBillbtn" type="button" data-bs-toggle="modal" data-bs-target="#payModal">Pay Bills</button>
           <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
             New Transaction
           </button>
@@ -276,31 +277,19 @@ foreach ($productlists as $productlist) {
           </div>
           <div class="col-1 px-2">
             <label for="payment_ref_no" class="form-label">Ref No.</label>
-            <input type="text" class="form-control" id="payment_ref_no" required>
+            <input type="text" class="form-control" id="payment_ref_no" readonly>
           </div>
         </div>
       </div>
       <div class="row mt-3">
         <div class="col-12">
-          <table id="editableTable" class="table table-hover table-bordered w-100">
-                  <thead>
-                    <tr>
-                      <th>PAYEE</th>
-                      <th>REF No.</th>
-                      <th>Due Date</th>
-                      <th>OPEN BALANCE</th>
-                      <th>CREDIT APPLIED</th>
-                      <th>PAYMENT</th>
-                      <th>TOTAL AMOUNT</th>
-                    </tr>
-                  </thead>
-                  <tbody></tbody>
+          <table id="payBillsTable" class="table table-hover table-bordered w-100">
           </table>
         </div>
       </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-primary">Save changes</button>
+        <button type="button" id="savePayBill" class="btn btn-primary">Save Changes & Close</button>
       </div>
     </div>
   </div>
@@ -308,6 +297,118 @@ foreach ($productlists as $productlist) {
 <!-- Modal END-->
 <script>
 $(document).ready(function() {
+
+  $('#payBillsTable').on('input', '.payment-input', function() {
+        let value = $(this).val().replace(/\D/g, ''); // Remove non-digit characters
+        let maxPay = $(this).attr('max'); // Get the max attribute value
+        value = Math.max(1, Math.min(maxPay, value)); // Ensure the value is between 1 and maxQty
+        $(this).val(value);
+  });
+  $('#savePayBill').on('click', function() {
+    var paymentRefNo = $('#payment_ref_no').val();
+    var paymentAccount = $('#payment_account').val();
+    var paymentDate = $('#payment_date').val();
+    var paymentAmounts = [];
+
+    // Collect payment amounts from the table inputs
+    $('.payment-input').each(function() {
+        var amount = $(this).val();
+        if (amount) {
+            paymentAmounts.push({
+                transaction_no: $(this).closest('tr').find('td').eq(1).text(), // Assuming transaction number is in second column
+                amount: amount
+            });
+        }
+    });
+    $.ajax({
+        url: 'admin/process/admin_action.php', // PHP script to handle the transaction
+        type: 'POST',
+        data: {
+            action: 'createPaymentTransaction', // Your custom action name
+            payment_ref_no: paymentRefNo,
+            payment_account: paymentAccount,
+            payment_date: paymentDate,
+            payment_amounts: paymentAmounts
+        },
+        success: function(response) {
+            if (response.success) {
+                alert('Payment transaction created successfully!');
+                // Optionally, close the modal and refresh the table
+                $('#payModal').modal('hide');
+                tablePaymentList.ajax.reload(); // Reload the table to reflect the changes
+            } else {
+                alert('Error: ' + response.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            alert('An error occurred while creating the payment transaction.');
+        }
+    });
+    console.log(paymentAmounts);
+  });
+
+  var tablePaymentList = $('#payBillsTable').DataTable({
+    order: [[0, 'desc']], // Default sorting on the first column in descending order
+    paging: true, // Enable pagination
+    scrollCollapse: true, // Allow scroll to collapse
+    scrollX: true, // Enable horizontal scrolling
+    scrollY: true, // Enable vertical scrolling
+    responsive: true, // Make the table responsive
+    autoWidth: false, // Disable auto width calculation
+    ajax: {
+        url: 'admin/process/table.php?table_type=paybill-table', // AJAX URL
+        dataSrc: 'data', // Assuming your response returns an object with a 'data' key
+        error: function(xhr, error, thrown) {
+            console.error('Error fetching data: ', error);
+            alert('Error fetching data. Please try again.');
+        }
+    },
+    columns: [
+        { data: 'payee', title: 'PAYEE', className:'text-dark'},
+        { data: 'transaction_no', title: 'TRANSACTION NO.', className:'text-dark' },
+        { data: 'ref_no', title: 'REF NO.', className:'text-dark' },
+        { data: 'due_date', title: 'Due Date', className:'text-dark' },
+        { data: 'bill_amount', title: 'BILL AMOUNT', className:'text-dark' },
+        { data: 'total_payments', title: 'PAID AMOUNT', className:'text-dark' },
+        { data: 'open_balance', title: 'OPEN BALANCE', className:'text-dark' },
+        {
+            data: null, // Make sure this matches the key in your response
+            title: 'PAYMENT',
+            render: function(data, type, row) {
+                return `<input type="number" class="form-control payment-input" name="payment[]" min="1" max="${data.open_balance}" />`;
+            }
+        }
+    ],
+    drawCallback: function(settings) {
+        // Optional: If you need to do something after the table is drawn (e.g., handle event listeners for the inputs)
+        $('.payment-input').on('change', function() {
+            var paymentValue = $(this).val();
+            var rowIndex = $(this).closest('tr').index();
+            console.log('Payment value changed for row ' + rowIndex + ': ' + paymentValue);
+            // You can do further processing here like updating the total or making an AJAX call to save the value.
+        });
+    }
+  });
+  $('#payBillbtn').on('click', function() {
+    $.ajax({
+            url: 'admin/process/admin_action.php',
+            type: 'POST',
+            data: { action: 'generatePaymentReference' },
+            success: function(response) {
+                if (response.success) {
+                    // Update the input field with the new reference
+                    $('#payment_ref_no').val(response.reference);
+                } else {
+                    alert('Error: ' + response.message);
+                }
+                tablePaymentList.columns.adjust().responsive.recalc();
+            },
+            error: function() {
+                tablePaymentList.columns.adjust().responsive.recalc();
+                alert('An error occurred while generating the payment reference.');
+            }
+        });
+  });
   var tableTransaction = $('#transactionTable').DataTable({
         order: [[0, 'desc']],
         paging: true,
@@ -315,6 +416,7 @@ $(document).ready(function() {
         scrollX: true,
         scrollY: true,
         responsive: true,
+        searching: true,
         autoWidth: false,
         ajax:{
           url: 'admin/process/table.php?table_type=transaction-list',
@@ -1066,43 +1168,43 @@ function updateTotalAmount() {
             console.log(`${key}: ${value}`);
         }
         // AJAX request
-        // $.ajax({
-        //     url: 'admin/process/admin_action.php', // Update with your PHP script path
-        //     type: 'POST',
-        //     data: formData,
-        //     contentType: false, // Important for file uploads
-        //     processData: false, // Important for file uploads
-        //     success: function (response) {
-        //         // Handle success response
-        //         $('#responseMessage').html(response.message);
-        //         if (response.success) {
-        //             // Reset the active form
-        //             if (activeForm === 'bill') {
-        //                 $('#billForm')[0].reset(); // Reset the bill form
-        //                 Swal.fire("Saved!", response.message, "success");
-        //                 // toastr.success(response.message);
-        //             } else if (activeForm === 'expense') {
-        //                 $('#expenseForm')[0].reset(); // Reset the expense form
-        //                 // toastr.success(response.message);
-        //                 Swal.fire("Saved!", response.message, "success");
-        //             }
-        //             else if (activeForm === 'invoice') {
-        //                 $('#invoiceForm')[0].reset(); // Reset the expense form
-        //                 // toastr.success(response.message);
-        //                 Swal.fire("Saved!", response.message, "success");
-        //             }
-        //             clearRows();
-        //         } else {
-        //             console.log(response.message);
-        //             // toastr.error(response.message);
-        //             Swal.fire("Error!", response.message, "error");
-        //         }
-        //     },
-        //     error: function (xhr, status, error) {
-        //         // Handle error response
-        //         console.log('An error occurred:', error);
-        //     }
-        // });
+        $.ajax({
+            url: 'admin/process/admin_action.php', // Update with your PHP script path
+            type: 'POST',
+            data: formData,
+            contentType: false, // Important for file uploads
+            processData: false, // Important for file uploads
+            success: function (response) {
+                // Handle success response
+                $('#responseMessage').html(response.message);
+                if (response.success) {
+                    // Reset the active form
+                    if (activeForm === 'bill') {
+                        $('#billForm')[0].reset(); // Reset the bill form
+                        Swal.fire("Saved!", response.message, "success");
+                        // toastr.success(response.message);
+                    } else if (activeForm === 'expense') {
+                        $('#expenseForm')[0].reset(); // Reset the expense form
+                        // toastr.success(response.message);
+                        Swal.fire("Saved!", response.message, "success");
+                    }
+                    else if (activeForm === 'invoice') {
+                        $('#invoiceForm')[0].reset(); // Reset the expense form
+                        // toastr.success(response.message);
+                        Swal.fire("Saved!", response.message, "success");
+                    }
+                    clearRows();
+                } else {
+                    console.log(response.message);
+                    // toastr.error(response.message);
+                    Swal.fire("Error!", response.message, "error");
+                }
+            },
+            error: function (xhr, status, error) {
+                // Handle error response
+                console.log('An error occurred:', error);
+            }
+        });
       } else if (result.isDenied) {
         Swal.fire("Changes are not saved", "", "error");
       }

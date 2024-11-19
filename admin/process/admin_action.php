@@ -1012,4 +1012,39 @@ require_once 'function.php';
         echo json_encode($response);
         exit();
     }
+    if (!empty($_POST['action']) && $_POST['action'] == 'generatePaymentReference') {
+        try {
+            $reference = generatePaymentReference($pdo);
+            
+            if (!empty($reference)) {
+                $response = array(
+                    'success' => true,
+                    'reference' => $reference
+                );
+            } else {
+                $response = array(
+                    'success' => false,
+                    'message' => 'Failed to generate payment reference.'
+                );
+            }
+        } catch (Exception $e) {
+            $response = array(
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            );
+        }
+        
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
+    if (!empty($_POST['action']) && $_POST['action'] == 'createPaymentTransaction') {
+        // Call the function to create the payment transaction
+        $result = createPaymentTransaction($pdo);
+    
+        // Send response as JSON
+        header('Content-Type: application/json');
+        echo json_encode($result);
+        exit();
+    }
 ?>

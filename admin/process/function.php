@@ -685,18 +685,26 @@
     }
     function getCount_OutofStock($pdo){
         try {
-            $query = "SELECT COUNT(*) AS count
-            FROM 
-                product p
-            LEFT JOIN 
-                trans_item i ON p.product_sku = i.product_sku
-            GROUP BY 
-                p.product_id
-            HAVING COALESCE(SUM(i.item_qty), 0) = 0";
+            $query = "SELECT COUNT(*) AS out_of_stock_count
+            FROM (
+                SELECT 
+                    a.product_sku,
+                    a.product_min,
+                    COALESCE(SUM(CASE WHEN g.transaction_type IN ('bill', 'expense') THEN g.item_qty ELSE 0 END)
+                            - SUM(CASE WHEN g.transaction_type = 'invoice' THEN g.item_qty ELSE 0 END), 0) AS stocks
+                FROM 
+                    product a
+                LEFT JOIN 
+                    trans_item g ON g.product_sku = a.product_sku
+                GROUP BY 
+                    a.product_sku, a.product_min
+                HAVING 
+                    stocks = 0
+            ) AS out_of_stock_count";
             $stmt = $pdo->prepare($query);
             $stmt->execute();
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $result['count'];
+            return $result['out_of_stock_count'];
         }catch(PDOException $e){
             // Handle database connection error
             echo "Error: " . $e->getMessage();
@@ -705,24 +713,27 @@
     }
     function getCount_LowofStock($pdo) {
         try {
-            $query = "SELECT COUNT(*) AS count
-                      FROM (
-                          SELECT 
-                              p.product_id
-                          FROM 
-                              product p
-                          LEFT JOIN 
-                              trans_item i ON p.product_sku = i.product_sku
-                          GROUP BY 
-                              p.product_id, p.product_min
-                          HAVING 
-                              COALESCE(SUM(i.item_qty), 0) < p.product_min
-                              AND COALESCE(SUM(i.item_qty), 0) > 0
-                      ) AS subquery";
+            $query = "SELECT COUNT(*) AS low_stock_count
+            FROM (
+                SELECT 
+                    a.product_sku,
+                    a.product_min,
+                    COALESCE(SUM(CASE WHEN g.transaction_type IN ('bill', 'expense') THEN g.item_qty ELSE 0 END)
+                            - SUM(CASE WHEN g.transaction_type = 'invoice' THEN g.item_qty ELSE 0 END), 0) AS stocks
+                FROM 
+                    product a
+                LEFT JOIN 
+                    trans_item g ON g.product_sku = a.product_sku
+                GROUP BY 
+                    a.product_sku, a.product_min
+                HAVING 
+                    stocks < a.product_min 
+                    AND stocks > 0
+            ) AS low_stock_count";
             $stmt = $pdo->prepare($query);
             $stmt->execute();
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $result['count'];
+            return $result['low_stock_count'];
         } catch (PDOException $e) {
             // Handle database connection error
             echo "Error: " . $e->getMessage();
@@ -744,42 +755,61 @@
             return array(); // Return an empty array if an error occurs
         }
     }
-    function getProductSummary($product_id, $pdo){
+    function getProductSummary($product_no, $pdo){
         try {
             $query = "SELECT
-            a.product_name,
-            a.product_description,
-            c.brand_name,
-            CASE
-                WHEN b2.category_name IS NULL then b.category_name
-                ELSE CONCAT(b2.category_name,'/', b.category_name)
-            END AS category,
-            a.product_sku,
-            a.product_pp,
-            a.product_sp,
-            CASE
-                WHEN COALESCE(SUM(g.item_qty), 0) >= a.product_min THEN 1
-                WHEN COALESCE(SUM(g.item_qty), 0) < a.product_min AND COALESCE(SUM(g.item_qty), 0) !=0  THEN 2
-                ELSE 3
-            END AS status_id,
-            f.tax_name,
-            a.product_min,
-            a.product_max,
-            COALESCE(SUM(g.item_qty), 0) AS stocks,
-            e.short_name AS unit
-            FROM product a
-            INNER JOIN category b ON b.category_id = a.category_id
-            LEFT JOIN category b2 ON b.parent_category_id = b2.category_id
-            INNER JOIN brand c ON c.brand_id = a.brand_id
-            -- INNER JOIN status d
-            INNER JOIN unit e ON e.unit_id = a.unit_id
-            INNER JOIN tax f ON f.tax_id = a.tax_id
-            LEFT JOIN trans_item g ON g.product_sku = a.product_sku
-            WHERE a.product_id = :product_id
-            GROUP BY a.product_sku
-            ";
+                a.product_name,
+                a.product_description,
+                c.brand_name,
+                CASE
+                    WHEN b2.category_name IS NULL THEN b.category_name
+                    ELSE CONCAT(b2.category_name, '/', b.category_name)
+                END AS category,
+                a.product_sku,
+                a.product_pp,
+                a.product_sp,
+                CASE
+                    WHEN COALESCE(
+                        SUM(CASE WHEN g.transaction_type IN ('bill', 'expense') THEN g.item_qty ELSE 0 END)
+                        - SUM(CASE WHEN g.transaction_type = 'invoice' THEN g.item_qty ELSE 0 END), 0
+                    ) >= a.product_min THEN 1
+                    WHEN COALESCE(
+                        SUM(CASE WHEN g.transaction_type IN ('bill', 'expense') THEN g.item_qty ELSE 0 END)
+                        - SUM(CASE WHEN g.transaction_type = 'invoice' THEN g.item_qty ELSE 0 END), 0
+                    ) < a.product_min AND COALESCE(
+                        SUM(CASE WHEN g.transaction_type IN ('bill', 'expense') THEN g.item_qty ELSE 0 END)
+                        - SUM(CASE WHEN g.transaction_type = 'invoice' THEN g.item_qty ELSE 0 END), 0
+                    ) != 0 THEN 2
+                    ELSE 3
+                END AS status_id,
+                f.tax_name,
+                a.product_min,
+                a.product_max,
+                COALESCE(
+                    SUM(CASE WHEN g.transaction_type IN ('bill', 'expense') THEN g.item_qty ELSE 0 END)
+                    - SUM(CASE WHEN g.transaction_type = 'invoice' THEN g.item_qty ELSE 0 END), 0
+                ) AS stocks,
+                e.short_name AS unit
+            FROM 
+                product a
+            INNER JOIN 
+                category b ON b.category_id = a.category_id
+            LEFT JOIN 
+                category b2 ON b.parent_category_id = b2.category_id
+            INNER JOIN 
+                brand c ON c.brand_id = a.brand_id
+            INNER JOIN 
+                unit e ON e.unit_id = a.unit_id
+            INNER JOIN 
+                tax f ON f.tax_id = a.tax_id
+            LEFT JOIN 
+                trans_item g ON g.product_sku = a.product_sku
+            WHERE 
+                a.product_sku = :product_no
+            GROUP BY 
+                a.product_sku";
             $stmt = $pdo->prepare($query);
-            $stmt->bindParam(':product_id', $product_id, PDO::PARAM_INT);
+            $stmt->bindParam(':product_no', $product_no);
     
             $stmt ->execute();
             $product = $stmt -> fetch(PDO::FETCH_ASSOC);
@@ -792,33 +822,32 @@
     }
     function getLowofStock($pdo){
         try {
-            $query = "SELECT 
-                p.product_id, 
-                p.product_name, 
-                p.product_description, 
-                p.product_sku, 
-                p.product_min, 
-                c.category_name,
-                pc.category_name AS parent_category_name,
-                COALESCE(SUM(i.item_qty), 0) AS total_stock_qty
-            FROM 
-                product p
-            LEFT JOIN 
-                trans_item i ON p.product_sku = i.product_sku
-            LEFT JOIN
-                category c ON p.category_id = c.category_id
-            LEFT JOIN
-                category pc ON c.parent_category_id = pc.category_id
-            GROUP BY 
-                p.product_id,
-                p.product_name,
-                p.product_description, 
-                p.product_sku,
-                p.product_min,
-                c.category_name,
-                pc.category_name
-            HAVING 
-                total_stock_qty < p.product_min AND total_stock_qty > 0";
+            $query = "SELECT
+                a.product_id,
+                a.product_name,
+                CASE
+                    WHEN b2.category_name IS NULL THEN b.category_name
+                    ELSE CONCAT(b2.category_name, ' / ', b.category_name)
+                END AS category,
+                a.product_sku,
+                a.product_min,
+                a.product_max,
+                COALESCE(SUM(CASE WHEN g.transaction_type IN ('bill', 'expense') THEN g.item_qty ELSE 0 END) 
+                            - SUM(CASE WHEN g.transaction_type = 'invoice' THEN g.item_qty ELSE 0 END), 0) AS stocks,
+                e.short_name AS unit
+                FROM 
+                    product a
+                INNER JOIN 
+                    category b ON b.category_id = a.category_id
+                LEFT JOIN 
+                    category b2 ON b.parent_category_id = b2.category_id
+                INNER JOIN 
+                    unit e ON e.unit_id = a.unit_id
+                LEFT JOIN 
+                    trans_item g ON g.product_sku = a.product_sku
+                GROUP BY 
+                    a.product_sku
+                HAVING stocks < a.product_min AND stocks > 0";
             $stmt = $pdo->prepare($query);
             $stmt ->execute();
             $lowStock = $stmt ->fetchAll(PDO::FETCH_ASSOC);
@@ -831,31 +860,32 @@
     }
     function getOutofStock($pdo){
         try {
-            $query = "SELECT 
-                p.product_id, 
-                p.product_sku, 
-                p.product_name, 
-                p.product_description, 
-                c.category_name,
-                pc.category_name AS parent_category_name,
-                COALESCE(SUM(i.item_qty), 0) AS qty
-            FROM 
-                product p
-            LEFT JOIN 
-                trans_item i ON p.product_sku = i.product_sku
-            LEFT JOIN
-                category c ON p.category_id = c.category_id
-            LEFT JOIN
-                category pc ON c.parent_category_id = pc.category_id
-            GROUP BY 
-                p.product_id, 
-                p.product_name, 
-                p.product_description, 
-                p.product_sku, 
-                p.product_min, 
-                c.category_name,
-                pc.category_name
-            HAVING qty = 0";
+            $query = "SELECT
+                a.product_id,
+                a.product_name,
+                CASE
+                    WHEN b2.category_name IS NULL THEN b.category_name
+                    ELSE CONCAT(b2.category_name, ' / ', b.category_name)
+                END AS category,
+                a.product_sku,
+                a.product_min,
+                a.product_max,
+                COALESCE(SUM(CASE WHEN g.transaction_type IN ('bill', 'expense') THEN g.item_qty ELSE 0 END) 
+                            - SUM(CASE WHEN g.transaction_type = 'invoice' THEN g.item_qty ELSE 0 END), 0) AS stocks,
+                e.short_name AS unit
+                FROM 
+                    product a
+                INNER JOIN 
+                    category b ON b.category_id = a.category_id
+                LEFT JOIN 
+                    category b2 ON b.parent_category_id = b2.category_id
+                INNER JOIN 
+                    unit e ON e.unit_id = a.unit_id
+                LEFT JOIN 
+                    trans_item g ON g.product_sku = a.product_sku
+                GROUP BY 
+                    a.product_sku
+                HAVING stocks = 0";
             $stmt = $pdo->prepare($query);
             $stmt ->execute();
             $outOfStock = $stmt ->fetchAll(PDO::FETCH_ASSOC);
@@ -866,42 +896,37 @@
             return array(); // Return an empty array if an error occurs
         }
     }
-    function getItembyID($product_id, $pdo) {
+    function getItembyID($product_no, $pdo) {
         try {
-            $query = "
-                SELECT
-                    a.item_barcode,
-                    a.item_expiry,
-                    b.product_id,
-                    b.product_name,
-                    b.expiry_notice,
-                    DATEDIFF(a.item_expiry, NOW()) + 1 AS days_to_expiry,
-                    (
-                        SELECT COALESCE(SUM(item_qty), 0)
-                        FROM trans_item
-                        WHERE product_sku = a.product_sku 
-                        AND transaction_type IN ('bill', 'expense')
-                    ) - (
-                        SELECT COALESCE(SUM(item_qty), 0)
-                        FROM trans_item
-                        WHERE product_sku = a.product_sku 
-                        AND transaction_type = 'invoice'
-                    ) AS available_qty
-                FROM 
-                    trans_item a
-                INNER JOIN 
-                    product b ON b.product_sku = a.product_sku
-                WHERE 
-                    b.product_id = :product_id
-                GROUP BY 
-                    a.item_barcode, a.item_expiry, b.product_id, b.product_name, b.expiry_notice
-                HAVING 
-                    available_qty > 0
-                ORDER BY 
-                    a.item_expiry ASC";
+            $query = 
+            "SELECT
+                a.product_sku, 
+                a.item_barcode, 
+                a.item_expiry, 
+                SUM(CASE 
+                        WHEN a.transaction_type IN ('bill', 'expense') THEN a.item_qty 
+                        WHEN a.transaction_type = 'invoice' THEN -a.item_qty 
+                        ELSE 0 
+                    END) AS available_qty,
+                b.product_id,
+                b.product_name,
+                b.expiry_notice,
+                DATEDIFF(a.item_expiry, NOW()) + 1 AS days_to_expiry
+            FROM 
+                trans_item a
+            INNER JOIN 
+                product b ON b.product_sku = a.product_sku
+            WHERE 
+                b.product_sku = :product_no
+            GROUP BY 
+                a.product_sku, a.item_barcode, a.item_expiry, b.product_id, b.product_name, b.expiry_notice
+            HAVING 
+                available_qty > 0
+            ORDER BY 
+                a.item_expiry ASC, a.item_barcode ASC";
             
             $stmt = $pdo->prepare($query);
-            $stmt->bindParam(':product_id', $product_id, PDO::PARAM_INT);
+            $stmt->bindParam(':product_no', $product_no, PDO::PARAM_INT);
             $stmt->execute();
             $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
@@ -1964,34 +1989,105 @@
             // Prepare and execute the main transaction SQL
             $stmt = $pdo->prepare($sql);
             $stmt->execute($stmtParams);
+
+            if($formType == 'invoice'){
+                $itemSQL = "
+                    INSERT INTO trans_item (
+                        transaction_no, product_sku, item_barcode, item_qty, 
+                        item_rate, item_tax, item_amount, transaction_type, 
+                        item_expiry, created_at
+                    ) 
+                    VALUES (
+                        :transaction_no, :product_sku, :item_barcode, :item_qty, 
+                        :item_rate, :item_tax, :item_amount, :transaction_type, 
+                        :item_expiry, NOW()
+                    )
+                ";
+                $itemStmt = $pdo->prepare($itemSQL);
+                // Handle each item in the invoice
+                foreach ($items as $item) {
+                    $sku = $item['sku'];
+                    $requestedQty = $item['qty'];
+                    $rate = $item['rate'];
+                    $amount = $item['amount'];
+                    $tax = $item['tax'] ?? null;
     
-            // Prepare the SQL for inserting items into the trans_item table
-            $itemSql = "
-                INSERT INTO trans_item 
-                (transaction_no, product_sku, item_barcode, item_qty, item_rate, item_tax, item_amount, transaction_type, item_expiry, created_at) 
-                VALUES (:transaction_no, :product_sku, :item_barcode, :item_qty, :item_rate, :item_tax, :item_amount, :transaction_type, :item_expiry, NOW())
-            ";
-            $itemStmt = $pdo->prepare($itemSql);
+                    // Fetch available items prioritized by expiry
+                    $availabilitySQL = "
+                        SELECT product_sku, item_barcode, item_expiry, 
+                               SUM(CASE 
+                                   WHEN transaction_type IN ('bill', 'expense') THEN item_qty 
+                                   WHEN transaction_type = 'invoice' THEN -item_qty 
+                                   ELSE 0 
+                               END) AS available_qty
+                        FROM trans_item
+                        WHERE product_sku = :sku
+                        GROUP BY product_sku, item_barcode, item_expiry
+                        HAVING available_qty > 0
+                        ORDER BY item_expiry ASC, item_barcode ASC
+                    ";
+                    $availabilityStmt = $pdo->prepare($availabilitySQL);
+                    $availabilityStmt->execute(['sku' => $sku]);
+                    $availableItems = $availabilityStmt->fetchAll(PDO::FETCH_ASSOC);
     
-            // Loop through each item and insert it
-            foreach ($items as $item) {
-                if (!empty($item['sku']) && !empty($item['qty']) && !empty($item['rate']) && !empty($item['amount'])) {
-                    $itemStmt->execute([
-                        'transaction_no' => $transactionNo,
-                        'product_sku' => $item['sku'],
-                        'item_barcode' => $item['barcode'] ?? null,
-                        'item_qty' => $item['qty'],
-                        'item_rate' => $item['rate'],
-                        'item_tax' => $item['tax'] ?? null,
-                        'item_amount' => $item['amount'],
-                        'transaction_type' => $formType,
-                        'item_expiry' => $item['expiry'] ?? null  // Optional expiry date
-                    ]);
-                } else {
-                    // Log or handle invalid item case if necessary
+                    $remainingQty = $requestedQty;
+    
+                    // Suggest items from available stock
+                    foreach ($availableItems as $stock) {
+                        if ($remainingQty <= 0) {
+                            break;
+                        }
+    
+                        $suggestedQty = min($remainingQty, $stock['available_qty']);
+                        $itemStmt->execute([
+                            'transaction_no' => $transactionNo,
+                            'product_sku' => $sku,
+                            'item_barcode' => $stock['item_barcode'],
+                            'item_qty' => $suggestedQty,
+                            'item_rate' => $rate,
+                            'item_tax' => $tax,
+                            'item_amount' => ($rate * $suggestedQty),
+                            'transaction_type' => $formType,
+                            'item_expiry' => $stock['item_expiry'],
+                        ]);
+    
+                        $remainingQty -= $suggestedQty;
+                    }
+    
+                    // Handle case where requested quantity exceeds available stock
+                    if ($remainingQty > 0) {
+                        throw new Exception("Insufficient stock for product SKU: $sku. Requested: $requestedQty, Available: " . ($requestedQty - $remainingQty));
+                    }
+                }
+            }else{
+                // Prepare the SQL for inserting items into the trans_item table
+                    $itemSql = "
+                    INSERT INTO trans_item 
+                    (transaction_no, product_sku, item_barcode, item_qty, item_rate, item_tax, item_amount, transaction_type, item_expiry, created_at) 
+                    VALUES (:transaction_no, :product_sku, :item_barcode, :item_qty, :item_rate, :item_tax, :item_amount, :transaction_type, :item_expiry, NOW())
+                ";
+                $itemStmt = $pdo->prepare($itemSql);
+
+                // Loop through each item and insert it
+                foreach ($items as $item) {
+                    if (!empty($item['sku']) && !empty($item['qty']) && !empty($item['rate']) && !empty($item['amount'])) {
+                        $itemStmt->execute([
+                            'transaction_no' => $transactionNo,
+                            'product_sku' => $item['sku'],
+                            'item_barcode' => $item['barcode'] ?? null,
+                            'item_qty' => $item['qty'],
+                            'item_rate' => $item['rate'],
+                            'item_tax' => $item['tax'] ?? null,
+                            'item_amount' => $item['amount'],
+                            'transaction_type' => $formType,
+                            'item_expiry' => $item['expiry'] ?? null  // Optional expiry date
+                        ]);
+                    } else {
+                        // Log or handle invalid item case if necessary
+                    }
                 }
             }
-    
+
             // Commit the transaction
             $pdo->commit();
             return array('success' => true, 'message' => 'Transaction and items added successfully.');
@@ -2003,8 +2099,7 @@
             }
             return array('success' => false, 'message' => 'Failed to add transaction: ' . $e->getMessage());
         }
-    }
-    
+}
 
 function generateTransactionNo($pdo, $transactionType) {
     // Define the table and prefix for each transaction type
@@ -2146,6 +2241,72 @@ function getTransactionDetails($pdo) {
         return array(); // Return an empty array if an error occurs
     }
 }
+function generatePaymentReference($pdo) {
+    try {
+        // Define the prefix with current date in "YYYYMMDD" format
+        $prefix = "P" . date("Ymd");
+        
+        // Query to find the highest reference number for today's date
+        $query = "SELECT MAX(payment_refno) AS max_reference FROM payments WHERE payment_refno LIKE :prefix";
+        $stmt = $pdo->prepare($query);
+        $stmt->execute([':prefix' => $prefix . '%']);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        // Determine the new reference number
+        if ($result && $result['max_reference']) {
+            // Extract the last numeric part and increment by 1
+            $lastNumber = (int)substr($result['max_reference'], -4) + 1;
+        } else {
+            $lastNumber = 1; // Start from 1 if no references exist for today
+        }
+        
+        // Pad the number to ensure it’s always four digits (e.g., "0001")
+        $reference = $prefix . str_pad($lastNumber, 4, "0", STR_PAD_LEFT);
+        
+        return $reference;
+    } catch (PDOException $e) {
+        // Handle database connection error
+        echo "Error: " . $e->getMessage();
+        return ""; // Return an empty string if an error occurs
+    }
+}
+function createPaymentTransaction($pdo) {
+    try {
+        // Retrieve POST data
+        $paymentRefNo = $_POST['payment_ref_no'];
+        $paymentAccount = $_POST['payment_account'];
+        $paymentDate = $_POST['payment_date'];
+        $paymentAmounts = $_POST['payment_amounts']; // Array of amounts
+
+        // Start a transaction
+        $pdo->beginTransaction();
+
+        // Prepare the SQL statement for inserting payment transactions
+        $stmt = $pdo->prepare("INSERT INTO payments (transaction_no, payment_refno, payment_account, payment_amount, payment_date) 
+                               VALUES (:transaction_no, :payment_refno, :payment_account, :payment_amount, :payment_date)");
+
+        // Loop through each payment amount and insert a row into the payments table
+        foreach ($paymentAmounts as $payment) {
+            $stmt->execute([
+                'transaction_no' => $payment['transaction_no'],
+                'payment_refno' => $paymentRefNo,
+                'payment_account' => $paymentAccount,
+                'payment_amount' => $payment['amount'],
+                'payment_date' => $paymentDate
+            ]);
+        }
+
+        // Commit the transaction
+        $pdo->commit();
+
+        return array('success' => true, 'message' => 'Payment transaction created successfully!');
+    } catch (Exception $e) {
+        // Roll back the transaction if an error occurs
+        $pdo->rollBack();
+        return array('success' => false, 'message' => 'Error: ' . $e->getMessage());
+    }
+}
+
 
 
 ?>

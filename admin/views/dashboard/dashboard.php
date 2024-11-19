@@ -98,18 +98,17 @@
                       </thead>
                       <tbody>
                         <?php foreach ($lowStockList as $row): ?>
-                          
-                            <tr onclick="location.href='index.php?route=view-product&amp;product=<?php echo $row['product_id']?>'" style="cursor: pointer;">
+                            <tr onclick="location.href='index.php?route=view-product&amp;product=<?php echo $row['product_sku']?>'" style="cursor: pointer;">
                                 <td>
                                 <div class="d-flex align-items-center gap-6">
                                   <div>
                                     <h6 class="mb-0 text-primary"><?php echo htmlspecialchars($row['product_name']); ?></h6>
-                                    <span><?php echo htmlspecialchars($row['parent_category_name']).' / '. htmlspecialchars($row['category_name'])?></span>
+                                    <span><?php echo htmlspecialchars($row['category'])?></span>
                                   </div>
                                 </div>
                                 </td>
                                 <td><span class="badge text-white" style="background-color: #FFAF61;">Low Stock</span></td>
-                                <td><?php echo htmlspecialchars($row['total_stock_qty']); ?></td>
+                                <td><?php echo htmlspecialchars($row['stocks']); ?></td>
                             </tr>
                         <?php endforeach; ?>
                       </tbody>
@@ -134,17 +133,17 @@
                       </thead>
                       <tbody>
                         <?php foreach ($outOfStockList as $row): ?>
-                            <tr onclick="location.href='index.php?route=view-product&amp;product=<?php echo $row['product_id']?>'" style="cursor: pointer;">
+                            <tr onclick="location.href='index.php?route=view-product&amp;product=<?php echo $row['product_sku']?>'" style="cursor: pointer;">
                                 <td>
                                 <div class="d-flex align-items-center gap-6">
                                   <div>
                                     <h6 class="mb-0 text-primary"><?php echo htmlspecialchars($row['product_name']); ?></h6>
-                                    <span><?php echo htmlspecialchars($row['parent_category_name']).' / '. htmlspecialchars($row['category_name'])?></span>
+                                    <span><?php echo htmlspecialchars($row['category'])?></span>
                                   </div>
                                 </div>
                                 </td>
                                 <td><span class="badge text-white" style="background-color: #EC7063;">Out of Stock</span></td>
-                                <td><?php echo htmlspecialchars($row['qty']); ?></td>
+                                <td><?php echo htmlspecialchars($row['stocks']); ?></td>
                             </tr>
                         <?php endforeach; ?>
                       </tbody>
@@ -154,50 +153,6 @@
               </div>
             </div>
           </div>
-          <div class="row">
-            <div class="col-lg-8 d-flex align-items-stretch">
-                <div class="card w-100">
-                    <div class="card-body p-4">
-                    <h5 class="card-title fw-semibold mb-4">Location</h5>
-                        <div class="table-responsive" data-simplebar>
-                            <div id="chart"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4 d-flex align-items-stretch">
-              <div class="card w-100">
-                <div class="card-body p-4">
-                  <h5 class="card-title fw-semibold mb-4">Recently Added Products</h5>
-                  <div class="table-responsive" data-simplebar>
-                    <table class="table text-nowrap align-middle table-custom mb-0">
-                      <thead>
-                        <tr>
-                          <th scope="col" class="text-dark fw-normal ps-0">Product Name
-                          </th>
-                          <th scope="col" class="text-dark fw-normal">Date Added</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td class="ps-0">
-                            <div class="d-flex align-items-center gap-6">
-                              <div>
-                                <h6 class="mb-0">Milo</h6>
-                                <span>Nestle</span>
-                              </div>
-                            </div>
-                          </td>
-                          <td>
-                            2024-04-04
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
     </div>
 </div>
@@ -221,8 +176,7 @@
           dataSrc: 'data'
         },
         columns:[
-          {data: 'item_id', visible: false, className: 'noExport'},
-          {data: 'product_id', visible: false, className: 'noExport'},
+          {data: 'product_sku', visible: false, className: 'noExport'},
           {
               data: 'item_barcode',
               title: 'Barcode',
@@ -247,7 +201,7 @@
                 "className": "text-center"
           },
           { 
-                "data": "item_qty",
+                "data": "available_qty",
                 "render": function(data, type, row, meta) {
                     return '<span class="badge bg-dark">' + data + '</span>';
                 },
@@ -259,7 +213,7 @@
             "title": "Action",
             "className": "noExport",
             "render": function(data, type, row) {
-                return '<a class="btn btn-info btn-sm" href="index.php?route=view-product&product=' + row.product_id + '"><i class="fa-solid fa-eye"></i></a>';
+                return '<a class="btn btn-info btn-sm" href="index.php?route=view-product&product=' + row.product_sku + '"><i class="fa-solid fa-eye"></i></a>';
             } 
           }
         ],
@@ -443,52 +397,6 @@
     }
     getExpiringSoon();
   });
-        var colors = ['#008FFB', '#00E396', '#FEB019', '#FF4560', '#775DD0', '#00D9E9', '#FF66C3', '#FFD466'];
-        var options = {
-          series: [{
-            name: 'Product',
-          data: [225, 50, 10, 30]
-        }],
-          chart: {
-          height: 350,
-          type: 'bar',
-          events: {
-            click: function(chart, w, e) {
-              // console.log(chart, w, e)
-            }
-          }
-        },
-        colors: colors,
-        plotOptions: {
-          bar: {
-            columnWidth: '45%',
-            distributed: true,
-          }
-        },
-        dataLabels: {
-          enabled: false
-        },
-        legend: {
-          show: false
-        },
-        xaxis: {
-          categories: [
-            'Snack Bar',
-            'EC Cafe',
-            'Marketing',
-            'Eskina'
-          ],
-          labels: {
-            style: {
-              colors: colors,
-              fontSize: '12px'
-            }
-          }
-        }
-        };
-
-        var chart = new ApexCharts(document.querySelector("#chart"), options);
-        chart.render();
 </script>
 <?php }else{
   echo '

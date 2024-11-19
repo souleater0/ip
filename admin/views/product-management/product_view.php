@@ -13,9 +13,9 @@ function generateBarcode($text){
     $barcode_image = $generator->getBarcode($text, $generator::TYPE_CODE_128);
     return $barcode_image;
 }
-$product_id = $_GET['product'];
-$product = getProductSummary($product_id, $pdo);
-$items = getItembyID($product_id, $pdo);
+$product_no = $_GET['product'];
+$product = getProductSummary($product_no, $pdo);
+$items = getItembyID($product_no, $pdo);
 ?>
 <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'show_product')){?>
 <div class="body-wrapper-inner open-sans-regular">
@@ -85,7 +85,7 @@ $items = getItembyID($product_id, $pdo);
                             <div class="mt-3">
                                     <div class="row align-items-stretch gy-5">
                                         <div class="col-lg col-md-6 col-6">
-                                            <span class="text-dark fw-semibold ">Current Stock: </span><br><span class="text-dark"><?php echo !empty($product['stocks']) ? $product['stocks'] : 'none' ?></span>
+                                            <span class="text-dark fw-semibold ">Current Stock: </span><br><span class="text-dark"><?php echo !empty($product['stocks']) ? '<span class="badge text-white" style="background-color: #6c757d;">'.$product['stocks'].'</span>' : '<span class="badge text-white" style="background-color: #6c757d;">None</span>' ?></span>
                                         </div>
                                         <div class="col-lg col-md-6 col-6">
                                             <span class="text-dark fw-semibold ">Unit: </span><br><span class="text-dark"><?php echo !empty($product['unit']) ? $product['unit'] : 'none' ?></span>
