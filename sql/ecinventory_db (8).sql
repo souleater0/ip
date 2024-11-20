@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 19, 2024 at 11:54 AM
+-- Generation Time: Nov 20, 2024 at 12:00 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -149,7 +149,6 @@ CREATE TABLE `payments` (
   `transaction_no` varchar(255) DEFAULT NULL,
   `payment_refno` varchar(255) DEFAULT NULL,
   `payment_account` int(11) DEFAULT NULL,
-  `payment_type` int(11) DEFAULT NULL,
   `payment_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
   `payment_date` date DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
@@ -160,8 +159,8 @@ CREATE TABLE `payments` (
 -- Dumping data for table `payments`
 --
 
-INSERT INTO `payments` (`id`, `transaction_no`, `payment_refno`, `payment_account`, `payment_type`, `payment_amount`, `payment_date`, `created_at`, `updated_at`) VALUES
-(1, 'BILL-20241107-001', 'P0001', 1, 1, 200.00, '2024-11-11', '2024-11-11 07:04:15', '2024-11-11 07:04:31');
+INSERT INTO `payments` (`id`, `transaction_no`, `payment_refno`, `payment_account`, `payment_amount`, `payment_date`, `created_at`, `updated_at`) VALUES
+(17, 'BILL-20241119-001', 'P202411200001', 1, 210.00, '2024-11-20', '2024-11-20 07:44:32', NULL);
 
 -- --------------------------------------------------------
 
@@ -639,6 +638,7 @@ CREATE TABLE `trans_bill` (
   `sales_tax` decimal(10,2) NOT NULL DEFAULT 0.00,
   `grand_total` decimal(10,2) UNSIGNED NOT NULL DEFAULT 0.00,
   `payment_status` enum('paid','unpaid','partial') NOT NULL DEFAULT 'unpaid',
+  `isVoid` tinyint(4) NOT NULL DEFAULT 0,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -647,8 +647,8 @@ CREATE TABLE `trans_bill` (
 -- Dumping data for table `trans_bill`
 --
 
-INSERT INTO `trans_bill` (`id`, `supplier_id`, `bill_address`, `bill_date`, `bill_due_date`, `bill_no`, `transaction_no`, `tax_type`, `total_amount`, `sales_tax`, `grand_total`, `payment_status`, `created_at`, `updated_at`) VALUES
-(1, 1, 'test', '2024-11-22', '2024-11-25', 'bill001', 'BILL-20241119-001', 3, 210.00, 0.00, 210.00, 'unpaid', '2024-11-19 05:57:47', '2024-11-19 05:57:47');
+INSERT INTO `trans_bill` (`id`, `supplier_id`, `bill_address`, `bill_date`, `bill_due_date`, `bill_no`, `transaction_no`, `tax_type`, `total_amount`, `sales_tax`, `grand_total`, `payment_status`, `isVoid`, `created_at`, `updated_at`) VALUES
+(1, 1, 'test', '2024-11-22', '2024-11-25', 'bill001', 'BILL-20241119-001', 3, 210.00, 0.00, 210.00, 'paid', 0, '2024-11-19 05:57:47', '2024-11-20 08:31:17');
 
 -- --------------------------------------------------------
 
@@ -666,6 +666,7 @@ CREATE TABLE `trans_expense` (
   `grand_total` decimal(10,2) UNSIGNED NOT NULL DEFAULT 0.00,
   `expense_no` varchar(255) DEFAULT NULL,
   `transaction_no` varchar(255) DEFAULT NULL,
+  `isVoid` tinyint(4) NOT NULL DEFAULT 0,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -674,8 +675,8 @@ CREATE TABLE `trans_expense` (
 -- Dumping data for table `trans_expense`
 --
 
-INSERT INTO `trans_expense` (`id`, `payee_id`, `expense_date`, `expense_payment_method`, `total_amount`, `sales_tax`, `grand_total`, `expense_no`, `transaction_no`, `created_at`, `updated_at`) VALUES
-(1, 1, '2024-11-19', 'CASH', 90.00, 0.00, 90.00, 'exp001', 'EXP-20241119-001', '2024-11-19 05:59:18', NULL);
+INSERT INTO `trans_expense` (`id`, `payee_id`, `expense_date`, `expense_payment_method`, `total_amount`, `sales_tax`, `grand_total`, `expense_no`, `transaction_no`, `isVoid`, `created_at`, `updated_at`) VALUES
+(1, 1, '2024-11-19', 'CASH', 90.00, 0.00, 90.00, 'exp001', 'EXP-20241119-001', 0, '2024-11-19 05:59:18', '2024-11-20 08:31:28');
 
 -- --------------------------------------------------------
 
@@ -700,6 +701,7 @@ CREATE TABLE `trans_invoice` (
   `total_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
   `sales_tax` decimal(10,2) NOT NULL DEFAULT 0.00,
   `grand_total` decimal(10,2) UNSIGNED NOT NULL DEFAULT 0.00,
+  `isVoid` tinyint(4) NOT NULL DEFAULT 0,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -1028,7 +1030,7 @@ ALTER TABLE `modules`
 -- AUTO_INCREMENT for table `payments`
 --
 ALTER TABLE `payments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `payment_account`
@@ -1112,13 +1114,13 @@ ALTER TABLE `trans_expense`
 -- AUTO_INCREMENT for table `trans_invoice`
 --
 ALTER TABLE `trans_invoice`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `trans_item`
 --
 ALTER TABLE `trans_item`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `users`

@@ -246,6 +246,7 @@ foreach ($productlists as $productlist) {
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary " data-bs-dismiss="modal">Close</button>
         <button type="button" class="btn btn-primary" id="submitForm">Save & Close</button>
+        <button type="button" class="btn btn-danger" id="updateForm">Save & Close</button>
       </div>
     </div>
   </div>
@@ -332,12 +333,21 @@ $(document).ready(function() {
         },
         success: function(response) {
             if (response.success) {
-                alert('Payment transaction created successfully!');
+                Swal.fire({
+                  title: "Payment Successful!",
+                  text: "",
+                  icon: "success"
+                });
                 // Optionally, close the modal and refresh the table
                 $('#payModal').modal('hide');
                 tablePaymentList.ajax.reload(); // Reload the table to reflect the changes
             } else {
-                alert('Error: ' + response.message);
+              Swal.fire({
+                  title: "Payment Failed!",
+                  text: response.message,
+                  icon: "error"
+                });
+                // alert('Error: ' + response.message);
             }
         },
         error: function(xhr, status, error) {
@@ -1141,7 +1151,7 @@ function updateTotalAmount() {
 
       // Item details
       var itemList = table.rows().data().toArray();
-      console.log(itemList);
+      // console.log(itemList);
       formData.append('items', JSON.stringify(itemList));
 
       // Totals
@@ -1164,9 +1174,9 @@ function updateTotalAmount() {
       denyButtonText: `Don't save`
     }).then((result) => {
       if (result.isConfirmed) {
-        for (const [key, value] of formData.entries()) {
-            console.log(`${key}: ${value}`);
-        }
+        // for (const [key, value] of formData.entries()) {
+        //     console.log(`${key}: ${value}`);
+        // }
         // AJAX request
         $.ajax({
             url: 'admin/process/admin_action.php', // Update with your PHP script path
@@ -1212,7 +1222,135 @@ function updateTotalAmount() {
 
 
   });
+  
+  $('#updateForm').on('click', function() {
+    // Determine which form is currently active (Bill or Expense)
+    var activeForm;
+    if ($('#billForm').is(':visible')) {
+      activeForm = 'bill';
+    } else if ($('#expenseForm').is(':visible')) {
+      activeForm = 'expense';
+    } else if ($('#invoiceForm').is(':visible')) {
+      activeForm = 'invoice';
+    }
 
+    var formData = new FormData();
+
+    // Based on the active form, capture the corresponding fields
+    if (activeForm === 'bill') {
+      formData.append('action', 'updateTransaction');
+      formData.append('formType', 'bill');  // Pass form type to backend
+      formData.append('billSupplier', $('#bill_supplier').val());
+      formData.append('billAddress', $('#bill_address').val());
+      formData.append('billDate', $('#bill_start_date').val());
+      formData.append('billdueDate', $('#bill_end_date').val());
+      formData.append('billNo', $('#billNo').val());
+      //totals
+      formData.append('sub_total', $('#totalSubAmount').val());
+      formData.append('total_tax', $('#totalTaxAmount').val());
+      formData.append('grand_total', $('#totalAmount').val());
+      // Get itemList from table and append it to FormData
+      var itemList = table.rows().data().toArray();
+      formData.append('items', JSON.stringify(itemList));
+    } else if (activeForm === 'expense') {
+      formData.append('action', 'updateTransaction');
+      formData.append('formType', 'expense');  // Pass form type to backend
+      formData.append('payee_id', $('#expense_supplier').val());
+      formData.append('expenseDate', $('#expense_date').val());
+      formData.append('expense_payment_method', $('#expense_payment').val());
+      formData.append('expenseNo', $('#expense_ref_no').val());
+      var itemList = table.rows().data().toArray();
+      formData.append('items', JSON.stringify(itemList));
+      //totals
+      formData.append('sub_total', $('#totalSubAmount').val());
+      formData.append('total_tax', $('#totalTaxAmount').val());
+      formData.append('grand_total', $('#totalAmount').val());
+    } else if (activeForm === 'invoice') {
+      formData.append('action', 'updateTransaction');
+      formData.append('formType', 'invoice');
+      formData.append('customer_id', $('#invoice_customer').val());
+      formData.append('customer_email', $('#invoice_customer_email').val());
+      formData.append('invoice_bill_address', $('#invoice_bill_address').val());
+      formData.append('invoice_date', $('#invoice_date').val());
+      formData.append('invoice_duedate', $('#invoice_duedate').val());
+      formData.append('invoice_ship_address', $('#invoice_ship_address').val());
+      formData.append('invoice_ship_via', $('#invoice_via').val());
+      formData.append('invoice_ship_date', $('#expense_date').val());
+      formData.append('invoice_track_no', $('#invoice_customer_email').val());
+
+      // Item details
+      var itemList = table.rows().data().toArray();
+      // console.log(itemList);
+      formData.append('items', JSON.stringify(itemList));
+
+      // Totals
+      formData.append('sub_total', $('#totalSubAmount').val());
+      formData.append('total_tax', $('#totalTaxAmount').val());
+      formData.append('grand_total', $('#totalAmount').val());
+    }
+
+    // Attach remarks and file from `attachForm`
+    formData.append('remarks', $('#attach_Remarks').val());
+    var attachmentFile = $('#attach_File')[0].files[0]; // Get the first file from attach_File input
+    if (attachmentFile) {
+      formData.append('attachment', attachmentFile);
+    }
+    Swal.fire({
+      title: "Do you want to save the changes?",
+      showDenyButton: true,
+      showCancelButton: true,
+      confirmButtonText: "Save",
+      denyButtonText: `Don't save`
+    }).then((result) => {
+      if (result.isConfirmed) {
+        for (const [key, value] of formData.entries()) {
+            console.log(`${key}: ${value}`);
+        }
+        // AJAX request
+        // $.ajax({
+        //     url: 'admin/process/admin_action.php', // Update with your PHP script path
+        //     type: 'POST',
+        //     data: formData,
+        //     contentType: false, // Important for file uploads
+        //     processData: false, // Important for file uploads
+        //     success: function (response) {
+        //         // Handle success response
+        //         $('#responseMessage').html(response.message);
+        //         if (response.success) {
+        //             // Reset the active form
+        //             if (activeForm === 'bill') {
+        //                 $('#billForm')[0].reset(); // Reset the bill form
+        //                 Swal.fire("Saved!", response.message, "success");
+        //                 // toastr.success(response.message);
+        //             } else if (activeForm === 'expense') {
+        //                 $('#expenseForm')[0].reset(); // Reset the expense form
+        //                 // toastr.success(response.message);
+        //                 Swal.fire("Saved!", response.message, "success");
+        //             }
+        //             else if (activeForm === 'invoice') {
+        //                 $('#invoiceForm')[0].reset(); // Reset the expense form
+        //                 // toastr.success(response.message);
+        //                 Swal.fire("Saved!", response.message, "success");
+        //             }
+        //             clearRows();
+        //         } else {
+        //             console.log(response.message);
+        //             // toastr.error(response.message);
+        //             Swal.fire("Error!", response.message, "error");
+        //         }
+        //     },
+        //     error: function (xhr, status, error) {
+        //         // Handle error response
+        //         console.log('An error occurred:', error);
+        //     }
+        // });
+      } else if (result.isDenied) {
+        Swal.fire("Changes are not saved", "", "error");
+      }
+    });
+
+
+  });
   function clearRows(){
     currentlyEditingRow = null; // Reset the editing state
 

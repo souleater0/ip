@@ -2290,13 +2290,75 @@ function generatePaymentReference($pdo) {
         return ""; // Return an empty string if an error occurs
     }
 }
+// function createPaymentTransaction($pdo) {
+//     try {
+//         // Retrieve POST data
+//         $paymentRefNo = $_POST['payment_ref_no'];
+//         $paymentAccount = $_POST['payment_account'];
+//         $paymentDate = $_POST['payment_date'];
+//         $paymentAmounts = $_POST['payment_amounts']; // Array of payment details
+
+//         // Start a transaction
+//         $pdo->beginTransaction();
+
+//         // Prepare the SQL statement for inserting payment transactions
+//         $stmt = $pdo->prepare("INSERT INTO payments (transaction_no, payment_refno, payment_account, payment_amount, payment_date) 
+//                                VALUES (:transaction_no, :payment_refno, :payment_account, :payment_amount, :payment_date)");
+
+//         // Prepare the SQL statement for updating the payment status in trans_bill
+//         $updateStatusStmt = $pdo->prepare("UPDATE trans_bill SET payment_status = :payment_status WHERE transaction_no = :transaction_no");
+
+//         foreach ($paymentAmounts as $payment) {
+//             $transactionNo = $payment['transaction_no'];
+//             $amount = $payment['amount'];
+
+//             // Insert payment transaction
+//             $stmt->execute([
+//                 'transaction_no' => $transactionNo,
+//                 'payment_refno' => $paymentRefNo,
+//                 'payment_account' => $paymentAccount,
+//                 'payment_amount' => $amount,
+//                 'payment_date' => $paymentDate
+//             ]);
+
+//             // Calculate the total payments made for the transaction
+//             $totalPaymentsStmt = $pdo->prepare("SELECT COALESCE(SUM(payment_amount), 0) AS total_payments 
+//                                                 FROM payments WHERE transaction_no = :transaction_no");
+//             $totalPaymentsStmt->execute(['transaction_no' => $transactionNo]);
+//             $totalPayments = $totalPaymentsStmt->fetchColumn();
+
+//             // Retrieve the grand total for the bill
+//             $grandTotalStmt = $pdo->prepare("SELECT grand_total FROM trans_bill WHERE transaction_no = :transaction_no");
+//             $grandTotalStmt->execute(['transaction_no' => $transactionNo]);
+//             $grandTotal = $grandTotalStmt->fetchColumn();
+
+//             // Determine the new payment status
+//             $paymentStatus = ($totalPayments >= $grandTotal) ? 'paid' : 'partial';
+
+//             // Update the payment status in trans_bill
+//             $updateStatusStmt->execute([
+//                 'payment_status' => $paymentStatus,
+//                 'transaction_no' => $transactionNo
+//             ]);
+//         }
+
+//         // Commit the transaction
+//         $pdo->commit();
+
+//         return array('success' => true, 'message' => 'Payment transaction created and bill updated successfully!');
+//     } catch (Exception $e) {
+//         // Roll back the transaction if an error occurs
+//         $pdo->rollBack();
+//         return array('success' => false, 'message' => 'Error: ' . $e->getMessage());
+//     }
+// }
 function createPaymentTransaction($pdo) {
     try {
         // Retrieve POST data
         $paymentRefNo = $_POST['payment_ref_no'];
         $paymentAccount = $_POST['payment_account'];
         $paymentDate = $_POST['payment_date'];
-        $paymentAmounts = $_POST['payment_amounts']; // Array of amounts
+        $paymentAmounts = $_POST['payment_amounts']; // Array of payment details
 
         // Start a transaction
         $pdo->beginTransaction();
@@ -2305,27 +2367,63 @@ function createPaymentTransaction($pdo) {
         $stmt = $pdo->prepare("INSERT INTO payments (transaction_no, payment_refno, payment_account, payment_amount, payment_date) 
                                VALUES (:transaction_no, :payment_refno, :payment_account, :payment_amount, :payment_date)");
 
-        // Loop through each payment amount and insert a row into the payments table
+        // Prepare the SQL statement for updating the payment status in trans_bill
+        $updateStatusStmt = $pdo->prepare("UPDATE trans_bill SET payment_status = :payment_status WHERE transaction_no = :transaction_no");
+
         foreach ($paymentAmounts as $payment) {
+            $transactionNo = $payment['transaction_no'];
+            $amount = $payment['amount'];
+
+            // Calculate the total payments made for the transaction
+            $totalPaymentsStmt = $pdo->prepare("SELECT COALESCE(SUM(payment_amount), 0) AS total_payments 
+                                                FROM payments WHERE transaction_no = :transaction_no");
+            $totalPaymentsStmt->execute(['transaction_no' => $transactionNo]);
+            $totalPayments = $totalPaymentsStmt->fetchColumn();
+
+            // Retrieve the grand total for the bill
+            $grandTotalStmt = $pdo->prepare("SELECT grand_total FROM trans_bill WHERE transaction_no = :transaction_no");
+            $grandTotalStmt->execute(['transaction_no' => $transactionNo]);
+            $grandTotal = $grandTotalStmt->fetchColumn();
+
+            // Calculate remaining balance
+            $remainingBalance = $grandTotal - $totalPayments;
+
+            // Check if payment exceeds the remaining balance
+            if ($amount > $remainingBalance) {
+                throw new Exception("Payment amount ($amount) exceeds the remaining balance ($remainingBalance) for transaction $transactionNo.");
+            }
+
+            // Insert payment transaction
             $stmt->execute([
-                'transaction_no' => $payment['transaction_no'],
+                'transaction_no' => $transactionNo,
                 'payment_refno' => $paymentRefNo,
                 'payment_account' => $paymentAccount,
-                'payment_amount' => $payment['amount'],
+                'payment_amount' => $amount,
                 'payment_date' => $paymentDate
+            ]);
+
+            // Update the payment status in trans_bill
+            $totalPayments += $amount;
+            $paymentStatus = ($totalPayments >= $grandTotal) ? 'paid' : 'partial';
+
+            $updateStatusStmt->execute([
+                'payment_status' => $paymentStatus,
+                'transaction_no' => $transactionNo
             ]);
         }
 
         // Commit the transaction
         $pdo->commit();
 
-        return array('success' => true, 'message' => 'Payment transaction created successfully!');
+        return array('success' => true, 'message' => 'Payment transaction created and bill updated successfully!');
     } catch (Exception $e) {
         // Roll back the transaction if an error occurs
         $pdo->rollBack();
         return array('success' => false, 'message' => 'Error: ' . $e->getMessage());
     }
 }
+
+
 
 
 
