@@ -170,12 +170,12 @@ foreach ($productlists as $productlist) {
                       <input type="text" class="form-control" id="invoice_via" required>
                   </div>
                   <div class="col-3">
-                    <label for="expense_date" class="form-label">Shipping Date</label>
-                    <input id="expense_date" name="expense_date" class="form-control" type="date" />
+                    <label for="invoice_ship_date" class="form-label">Shipping Date</label>
+                    <input id="invoice_ship_date" name="invoice_ship_date" class="form-control" type="date" value="<?php echo date('Y-m-d', strtotime('+3 days')); ?>" />
                   </div>
                   <div class="col-3">
-                      <label for="invoice_customer_email" class="form-label">Tracking No.</label>
-                      <input type="text" class="form-control" id="invoice_customer_email" required>
+                      <label for="invoice_track_no" class="form-label">Tracking No.</label>
+                      <input type="text" class="form-control" id="invoice_track_no" required>
                   </div>
                 </div>
                 </div>
@@ -541,6 +541,29 @@ $(document).ready(function() {
           $('#bill_start_date').val(data.transaction.bill_date);
           $('#bill_end_date').val(data.transaction.bill_due_date);
           $('#billNo').val(data.transaction.bill_no);
+          $('#taxOption').val(data.transaction.tax_type);
+          toggleTaxColumn();
+      }
+      else if (transactionType === 'expense') {
+        $('#expense_supplier').val(data.transaction.payee_id).selectpicker('refresh');
+        $('#expense_date').val(data.transaction.expense_date);
+        $('#expense_payment').val(data.transaction.expense_payment_method).selectpicker('refresh');
+        $('#expense_ref_no').val(data.transaction.expense_no);
+        $('#taxOption').val(data.transaction.tax_type);
+        toggleTaxColumn();
+      }
+      else if (transactionType === 'invoice') {
+        $('#invoice_customer').val(data.transaction.customer_id).selectpicker('refresh');
+        $('#invoice_customer_email').val(data.transaction.customer_email);
+        $('#invoice_bill_address').val(data.transaction.invoice_bill_address);
+        $('#invoice_date').val(data.transaction.invoice_date);
+        $('#invoice_duedate').val(data.transaction.invoice_duedate);
+        $('#invoice_ship_address').val(data.transaction.invoice_shipping_address);
+        $('#invoice_via').val(data.transaction.invoice_ship_via);
+        $('#invoice_ship_date').val(data.transaction.invoice_ship_date);
+        $('#invoice_track_no').val(data.transaction.invoice_track_no);
+        $('#taxOption').val(data.transaction.tax_type);
+        toggleTaxColumn();
       }
       //else if (transactionType === 'expense') {
       //     $('#payee_id').val(data.payee_id);
@@ -1116,6 +1139,7 @@ function updateTotalAmount() {
       formData.append('billDate', $('#bill_start_date').val());
       formData.append('billdueDate', $('#bill_end_date').val());
       formData.append('billNo', $('#billNo').val());
+      formData.append('tax_type', $('#taxOption').val());
       //totals
       formData.append('sub_total', $('#totalSubAmount').val());
       formData.append('total_tax', $('#totalTaxAmount').val());
@@ -1130,6 +1154,7 @@ function updateTotalAmount() {
       formData.append('expenseDate', $('#expense_date').val());
       formData.append('expense_payment_method', $('#expense_payment').val());
       formData.append('expenseNo', $('#expense_ref_no').val());
+      formData.append('tax_type', $('#taxOption').val());
       var itemList = table.rows().data().toArray();
       formData.append('items', JSON.stringify(itemList));
       //totals
@@ -1146,8 +1171,9 @@ function updateTotalAmount() {
       formData.append('invoice_duedate', $('#invoice_duedate').val());
       formData.append('invoice_ship_address', $('#invoice_ship_address').val());
       formData.append('invoice_ship_via', $('#invoice_via').val());
-      formData.append('invoice_ship_date', $('#expense_date').val());
-      formData.append('invoice_track_no', $('#invoice_customer_email').val());
+      formData.append('invoice_ship_date', $('#invoice_ship_date').val());
+      formData.append('invoice_track_no', $('#invoice_track_no').val());
+      formData.append('tax_type', $('#taxOption').val());
 
       // Item details
       var itemList = table.rows().data().toArray();
@@ -1174,10 +1200,10 @@ function updateTotalAmount() {
       denyButtonText: `Don't save`
     }).then((result) => {
       if (result.isConfirmed) {
-        // for (const [key, value] of formData.entries()) {
-        //     console.log(`${key}: ${value}`);
-        // }
-        // AJAX request
+        for (const [key, value] of formData.entries()) {
+            console.log(`${key}: ${value}`);
+        }
+        //AJAX request
         $.ajax({
             url: 'admin/process/admin_action.php', // Update with your PHP script path
             type: 'POST',
