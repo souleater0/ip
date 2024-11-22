@@ -6,7 +6,7 @@ $paymentaccountlists = getPaymentAccount($pdo);
 $payment_ref = generatePaymentReference($pdo);
 $selectProduct = '';
 foreach ($productlists as $productlist) {
-  $selectProduct .= '<option value="' . htmlspecialchars($productlist['product_name']) . '" data-sku="' . htmlspecialchars($productlist['product_sku']) . '" data-rate-purchase="' . htmlspecialchars($productlist['product_pp']) . '" data-rate-sell="' . htmlspecialchars($productlist['product_sp']) . '">'.htmlspecialchars($productlist['product_name']) . '</option>';
+  $selectProduct .= '<option value="' . htmlspecialchars($productlist['product_name']) . '" data-sku="' . htmlspecialchars($productlist['product_sku']) . '" data-rate-purchase="' . htmlspecialchars($productlist['product_pp']) . '" data-rate-sell="' . (floatval($productlist['product_sp']) == 0.00 ? htmlspecialchars($productlist['product_pp'] * 1.3 + 2) : htmlspecialchars($productlist['product_sp'])) . '">'.htmlspecialchars($productlist['product_name']) . '</option>';
 }
 ?>
 <div class="body-wrapper-inner">
@@ -467,7 +467,8 @@ $(document).ready(function() {
       // Extract the Transaction No and Type
       var transactionNo = data['Transaction No'];
       var type = data['Type'];
-
+      $('#submitForm').hide();
+      $('#updateForm').show();
       // Reset form inputs
       $('#billForm')[0].reset();
       $('#expenseForm')[0].reset();
@@ -565,18 +566,6 @@ $(document).ready(function() {
         $('#taxOption').val(data.transaction.tax_type);
         toggleTaxColumn();
       }
-      //else if (transactionType === 'expense') {
-      //     $('#payee_id').val(data.payee_id);
-      //     $('#expense_date').val(data.expenseDate);
-      //     $('#expense_no').val(data.expense_no);
-      // } else if (transactionType === 'invoice') {
-      //     $('#customer_id').val(data.customer_id);
-      //     $('#invoice_bill_address').val(data.invoice_bill_address);
-      //     $('#invoice_shipping_address').val(data.invoice_shipping_address);
-      //     $('#invoice_date').val(data.invoice_date);
-      //     $('#invoice_duedate').val(data.invoice_duedate);
-      //     $('#invoice_no').val(data.invoice_no);
-      // }
 
       // Clear existing items in the table
       table.clear();
@@ -601,6 +590,8 @@ $(document).ready(function() {
 
   $('[data-form]').on('click', function() {
     var formType = $(this).data('form');
+    $('#updateForm').hide();
+    $('#submitForm').show();
     $('.select-customer').trigger('changed.bs.select');
     
     // Reset form inputs
@@ -1245,138 +1236,159 @@ function updateTotalAmount() {
         Swal.fire("Changes are not saved", "", "error");
       }
     });
-
-
   });
   
   $('#updateForm').on('click', function() {
-    // Determine which form is currently active (Bill or Expense)
+    // Retrieve transaction details from the URL parameters
+    const params = new URLSearchParams(window.location.search);
+    const transactionNo = params.get('transacNo');
+    const type = params.get('type'); // e.g., 'bill', 'expense', 'invoice'
+
+    // Ensure both 'transactionNo' and 'type' are present
+    if (!transactionNo || !type) {
+        Swal.fire("Error", "Transaction details are missing", "error");
+        return;
+    }
+
+    // Determine which form is currently active (Bill, Expense, or Invoice)
     var activeForm;
     if ($('#billForm').is(':visible')) {
-      activeForm = 'bill';
+        activeForm = 'bill';
     } else if ($('#expenseForm').is(':visible')) {
-      activeForm = 'expense';
+        activeForm = 'expense';
     } else if ($('#invoiceForm').is(':visible')) {
-      activeForm = 'invoice';
+        activeForm = 'invoice';
     }
 
     var formData = new FormData();
 
-    // Based on the active form, capture the corresponding fields
+    // Set up formData based on the active form type
     if (activeForm === 'bill') {
-      formData.append('action', 'updateTransaction');
-      formData.append('formType', 'bill');  // Pass form type to backend
-      formData.append('billSupplier', $('#bill_supplier').val());
-      formData.append('billAddress', $('#bill_address').val());
-      formData.append('billDate', $('#bill_start_date').val());
-      formData.append('billdueDate', $('#bill_end_date').val());
-      formData.append('billNo', $('#billNo').val());
-      //totals
-      formData.append('sub_total', $('#totalSubAmount').val());
-      formData.append('total_tax', $('#totalTaxAmount').val());
-      formData.append('grand_total', $('#totalAmount').val());
-      // Get itemList from table and append it to FormData
-      var itemList = table.rows().data().toArray();
-      formData.append('items', JSON.stringify(itemList));
+        formData.append('action', 'updateTransaction');
+        formData.append('formType', 'bill');  // Pass form type to backend
+        formData.append('transacNo', transactionNo); // Attach the transaction number
+        formData.append('type', type);  // Attach the transaction type
+        formData.append('tax_type', $('#taxOption').val());
+
+        // Capture the form fields
+        formData.append('billSupplier', $('#bill_supplier').val());
+        formData.append('billAddress', $('#bill_address').val());
+        formData.append('billDate', $('#bill_start_date').val());
+        formData.append('billdueDate', $('#bill_end_date').val());
+        formData.append('billNo', $('#billNo').val());
+        formData.append('sub_total', $('#totalSubAmount').val());
+        formData.append('total_tax', $('#totalTaxAmount').val());
+        formData.append('grand_total', $('#totalAmount').val());
+
+        // Get itemList from table and append it to FormData
+        var itemList = table.rows().data().toArray();
+        formData.append('items', JSON.stringify(itemList));
     } else if (activeForm === 'expense') {
-      formData.append('action', 'updateTransaction');
-      formData.append('formType', 'expense');  // Pass form type to backend
-      formData.append('payee_id', $('#expense_supplier').val());
-      formData.append('expenseDate', $('#expense_date').val());
-      formData.append('expense_payment_method', $('#expense_payment').val());
-      formData.append('expenseNo', $('#expense_ref_no').val());
-      var itemList = table.rows().data().toArray();
-      formData.append('items', JSON.stringify(itemList));
-      //totals
-      formData.append('sub_total', $('#totalSubAmount').val());
-      formData.append('total_tax', $('#totalTaxAmount').val());
-      formData.append('grand_total', $('#totalAmount').val());
+        formData.append('action', 'updateTransaction');
+        formData.append('formType', 'expense');  // Pass form type to backend
+        formData.append('transacNo', transactionNo); // Attach the transaction number
+        formData.append('type', type);  // Attach the transaction type
+        formData.append('tax_type', $('#taxOption').val());
+
+        // Capture the form fields
+        formData.append('payee_id', $('#expense_supplier').val());
+        formData.append('expenseDate', $('#expense_date').val());
+        formData.append('expense_payment_method', $('#expense_payment').val());
+        formData.append('expenseNo', $('#expense_ref_no').val());
+        formData.append('sub_total', $('#totalSubAmount').val());
+        formData.append('total_tax', $('#totalTaxAmount').val());
+        formData.append('grand_total', $('#totalAmount').val());
+
+        // Get itemList from table and append it to FormData
+        var itemList = table.rows().data().toArray();
+        formData.append('items', JSON.stringify(itemList));
     } else if (activeForm === 'invoice') {
-      formData.append('action', 'updateTransaction');
-      formData.append('formType', 'invoice');
-      formData.append('customer_id', $('#invoice_customer').val());
-      formData.append('customer_email', $('#invoice_customer_email').val());
-      formData.append('invoice_bill_address', $('#invoice_bill_address').val());
-      formData.append('invoice_date', $('#invoice_date').val());
-      formData.append('invoice_duedate', $('#invoice_duedate').val());
-      formData.append('invoice_ship_address', $('#invoice_ship_address').val());
-      formData.append('invoice_ship_via', $('#invoice_via').val());
-      formData.append('invoice_ship_date', $('#expense_date').val());
-      formData.append('invoice_track_no', $('#invoice_customer_email').val());
+        formData.append('action', 'updateTransaction');
+        formData.append('formType', 'invoice');  // Pass form type to backend
+        formData.append('transacNo', transactionNo); // Attach the transaction number
+        formData.append('type', type);  // Attach the transaction type
+        formData.append('tax_type', $('#taxOption').val());
 
-      // Item details
-      var itemList = table.rows().data().toArray();
-      // console.log(itemList);
-      formData.append('items', JSON.stringify(itemList));
+        // Capture the form fields
+        formData.append('customer_id', $('#invoice_customer').val());
+        formData.append('customer_email', $('#invoice_customer_email').val());
+        formData.append('invoice_bill_address', $('#invoice_bill_address').val());
+        formData.append('invoice_date', $('#invoice_date').val());
+        formData.append('invoice_duedate', $('#invoice_duedate').val());
+        formData.append('invoice_ship_address', $('#invoice_ship_address').val());
+        formData.append('invoice_ship_via', $('#invoice_via').val());
+        formData.append('invoice_ship_date', $('#expense_date').val());
+        formData.append('invoice_track_no', $('#invoice_customer_email').val());
 
-      // Totals
-      formData.append('sub_total', $('#totalSubAmount').val());
-      formData.append('total_tax', $('#totalTaxAmount').val());
-      formData.append('grand_total', $('#totalAmount').val());
+        // Item details
+        var itemList = table.rows().data().toArray();
+        formData.append('items', JSON.stringify(itemList));
+
+        // Totals
+        formData.append('sub_total', $('#totalSubAmount').val());
+        formData.append('total_tax', $('#totalTaxAmount').val());
+        formData.append('grand_total', $('#totalAmount').val());
     }
 
     // Attach remarks and file from `attachForm`
     formData.append('remarks', $('#attach_Remarks').val());
     var attachmentFile = $('#attach_File')[0].files[0]; // Get the first file from attach_File input
     if (attachmentFile) {
-      formData.append('attachment', attachmentFile);
+        formData.append('attachment', attachmentFile);
     }
+
+    // Confirm before saving changes
     Swal.fire({
-      title: "Do you want to save the changes?",
-      showDenyButton: true,
-      showCancelButton: true,
-      confirmButtonText: "Save",
-      denyButtonText: `Don't save`
+        title: "Do you want to save the changes?",
+        showDenyButton: true,
+        showCancelButton: true,
+        confirmButtonText: "Save",
+        denyButtonText: `Don't save`
     }).then((result) => {
-      if (result.isConfirmed) {
-        for (const [key, value] of formData.entries()) {
-            console.log(`${key}: ${value}`);
+        if (result.isConfirmed) {
+            // Log FormData to the console for debugging
+            for (const [key, value] of formData.entries()) {
+                console.log(`${key}: ${value}`);
+            }
+
+            // AJAX request to update transaction
+            $.ajax({
+                url: 'admin/process/admin_action.php', // Path to your PHP script
+                type: 'POST',
+                data: formData,
+                contentType: false, // Important for file uploads
+                processData: false, // Important for file uploads
+                success: function(response) {
+                    // Handle success response
+                    $('#responseMessage').html(response.message);
+                    if (response.success) {
+                        // Reset the active form
+                        if (activeForm === 'bill') {
+                            $('#billForm')[0].reset();
+                            Swal.fire("Saved!", response.message, "success");
+                        } else if (activeForm === 'expense') {
+                            $('#expenseForm')[0].reset();
+                            Swal.fire("Saved!", response.message, "success");
+                        } else if (activeForm === 'invoice') {
+                            $('#invoiceForm')[0].reset();
+                            Swal.fire("Saved!", response.message, "success");
+                        }
+                        clearRows(); // Optionally clear rows
+                    } else {
+                        Swal.fire("Error!", response.message, "error");
+                    }
+                },
+                error: function(xhr, status, error) {
+                    // Handle error response
+                    console.log('An error occurred:', error);
+                }
+            });
+        } else if (result.isDenied) {
+            Swal.fire("Changes are not saved", "", "error");
         }
-        // AJAX request
-        // $.ajax({
-        //     url: 'admin/process/admin_action.php', // Update with your PHP script path
-        //     type: 'POST',
-        //     data: formData,
-        //     contentType: false, // Important for file uploads
-        //     processData: false, // Important for file uploads
-        //     success: function (response) {
-        //         // Handle success response
-        //         $('#responseMessage').html(response.message);
-        //         if (response.success) {
-        //             // Reset the active form
-        //             if (activeForm === 'bill') {
-        //                 $('#billForm')[0].reset(); // Reset the bill form
-        //                 Swal.fire("Saved!", response.message, "success");
-        //                 // toastr.success(response.message);
-        //             } else if (activeForm === 'expense') {
-        //                 $('#expenseForm')[0].reset(); // Reset the expense form
-        //                 // toastr.success(response.message);
-        //                 Swal.fire("Saved!", response.message, "success");
-        //             }
-        //             else if (activeForm === 'invoice') {
-        //                 $('#invoiceForm')[0].reset(); // Reset the expense form
-        //                 // toastr.success(response.message);
-        //                 Swal.fire("Saved!", response.message, "success");
-        //             }
-        //             clearRows();
-        //         } else {
-        //             console.log(response.message);
-        //             // toastr.error(response.message);
-        //             Swal.fire("Error!", response.message, "error");
-        //         }
-        //     },
-        //     error: function (xhr, status, error) {
-        //         // Handle error response
-        //         console.log('An error occurred:', error);
-        //     }
-        // });
-      } else if (result.isDenied) {
-        Swal.fire("Changes are not saved", "", "error");
-      }
     });
+});
 
-
-  });
   function clearRows(){
     currentlyEditingRow = null; // Reset the editing state
 

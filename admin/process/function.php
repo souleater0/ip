@@ -1854,6 +1854,83 @@
             return array('success' => false, 'message' => 'Failed to update supplier: ' . $e->getMessage());
         }
     }
+    function addCustomer($pdo) {
+        $customerName = !empty($_POST['customer_name']) ? $_POST['customer_name'] : null;
+        $customerEmail = !empty($_POST['customer_email']) ? $_POST['customer_email'] : null;
+        $companyName = !empty($_POST['company_name']) ? $_POST['company_name'] : null;
+        $customerPhoneNo = !empty($_POST['customer_phone_no']) ? $_POST['customer_phone_no'] : null;
+    
+        try {
+            // Start a transaction
+            $pdo->beginTransaction();
+    
+            // Insert the new customer into the customer table
+            $stmt = $pdo->prepare("
+                INSERT INTO customer (customer_name, customer_email, company_name, customer_phone_no, created_at)
+                VALUES (:customer_name, :customer_email, :company_name, :customer_phone_no, NOW())
+            ");
+            $stmt->execute([
+                'customer_name' => $customerName,
+                'customer_email' => $customerEmail,
+                'company_name' => $companyName,
+                'customer_phone_no' => $customerPhoneNo,
+            ]);
+    
+            // Commit the transaction
+            $pdo->commit();
+            return array('success' => true, 'message' => 'Customer added successfully!');
+        } catch (Exception $e) {
+            // Roll back the transaction if something failed
+            $pdo->rollBack();
+            return array('success' => false, 'message' => 'Failed to add customer: ' . $e->getMessage());
+        }
+    }
+    
+    function updateCustomer($pdo) {
+        // Get the customer ID for the update
+        $customerId = !empty($_POST['update_id']) ? $_POST['update_id'] : null;
+    
+        // If no customer ID is provided, return an error message
+        if (is_null($customerId)) {
+            return array('success' => false, 'message' => 'Customer ID is required for updating.');
+        }
+    
+        $customerName = !empty($_POST['customer_name']) ? $_POST['customer_name'] : null;
+        $customerEmail = !empty($_POST['customer_email']) ? $_POST['customer_email'] : null;
+        $companyName = !empty($_POST['company_name']) ? $_POST['company_name'] : null;
+        $customerPhoneNo = !empty($_POST['customer_phone_no']) ? $_POST['customer_phone_no'] : null;
+    
+        try {
+            // Start a transaction
+            $pdo->beginTransaction();
+    
+            // Update the existing customer in the customer table
+            $stmt = $pdo->prepare("
+                UPDATE customer 
+                SET customer_name = :customer_name, 
+                    customer_email = :customer_email, 
+                    company_name = :company_name, 
+                    customer_phone_no = :customer_phone_no, 
+                    updated_at = NOW()
+                WHERE id = :customer_id
+            ");
+            $stmt->execute([
+                'customer_name' => $customerName,
+                'customer_email' => $customerEmail,
+                'company_name' => $companyName,
+                'customer_phone_no' => $customerPhoneNo,
+                'customer_id' => $customerId
+            ]);
+    
+            // Commit the transaction
+            $pdo->commit();
+            return array('success' => true, 'message' => 'Customer updated successfully!');
+        } catch (Exception $e) {
+            // Roll back the transaction if something failed
+            $pdo->rollBack();
+            return array('success' => false, 'message' => 'Failed to update customer: ' . $e->getMessage());
+        }
+    }
     function getProductDetailsbyName($pdo) {
         $product_name = !empty($_POST['product_name']) ? $_POST['product_name'] : null;
     
@@ -2126,6 +2203,204 @@
             return array('success' => false, 'message' => 'Failed to add transaction: ' . $e->getMessage());
         }
 }
+function updateTransaction($pdo) {
+    // Get form data from $_POST
+    $formType = !empty($_POST['formType']) ? $_POST['formType'] : null;
+    $items = !empty($_POST['items']) ? json_decode($_POST['items'], true) : [];
+    $transactionNo = !empty($_POST['transacNo']) ? $_POST['transacNo'] : null;
+
+    // Validate that items and transaction number are provided
+    if (empty($items)) {
+        return array('success' => false, 'message' => 'No items provided for this transaction.');
+    }
+
+    if (empty($transactionNo)) {
+        return array('success' => false, 'message' => 'Transaction number is required.');
+    }
+
+    try {
+        // Start a PDO transaction
+        $pdo->beginTransaction();
+
+        // Determine transaction details based on formType
+        $stmtParams = [];
+        switch ($formType) {
+            case 'bill':
+                $supplierID = !empty($_POST['billSupplier']) ? $_POST['billSupplier'] : null;
+                $address = !empty($_POST['billAddress']) ? $_POST['billAddress'] : null;
+                $date = !empty($_POST['billDate']) ? $_POST['billDate'] : null;
+                $dueDate = !empty($_POST['billdueDate']) ? $_POST['billdueDate'] : null;
+                $subTotal = !empty($_POST['sub_total']) ? $_POST['sub_total'] : 0;
+                $total_tax = !empty($_POST['total_tax']) ? $_POST['total_tax'] : 0;
+                $grand_total = !empty($_POST['grand_total']) ? $_POST['grand_total'] : 0;
+                $tax_type = !empty($_POST['tax_type']) ? $_POST['tax_type'] : null;
+
+                // Update trans_bill table
+                $sql = "
+                    UPDATE trans_bill SET
+                        supplier_id = :supplier_id,
+                        bill_address = :bill_address,
+                        bill_date = :bill_date,
+                        bill_due_date = :bill_due_date,
+                        total_amount = :total_amount,
+                        sales_tax = :sales_tax,
+                        grand_total = :grand_total,
+                        tax_type = :tax_type
+                    WHERE transaction_no = :transaction_no
+                ";
+                $stmtParams = [
+                    'supplier_id' => $supplierID,
+                    'bill_address' => $address,
+                    'bill_date' => $date,
+                    'bill_due_date' => $dueDate,
+                    'total_amount' => $subTotal,
+                    'sales_tax' => $total_tax,
+                    'grand_total' => $grand_total,
+                    'transaction_no' => $transactionNo,
+                    'tax_type' => $tax_type
+                ];
+                break;
+
+            case 'expense':
+                $supplierID = !empty($_POST['payee_id']) ? $_POST['payee_id'] : null;
+                $date = !empty($_POST['expenseDate']) ? $_POST['expenseDate'] : null;
+                $paymentMethod = !empty($_POST['expense_payment_method']) ? $_POST['expense_payment_method'] : null;
+                $expenseNo = !empty($_POST['expenseNo']) ? $_POST['expenseNo'] : null;
+                $subTotal = !empty($_POST['sub_total']) ? $_POST['sub_total'] : 0;
+                $totalTax = !empty($_POST['total_tax']) ? $_POST['total_tax'] : 0;
+                $grandTotal = !empty($_POST['grand_total']) ? $_POST['grand_total'] : 0;
+                $tax_type = !empty($_POST['tax_type']) ? $_POST['tax_type'] : null;
+
+                // Update trans_expense table
+                $sql = "
+                    UPDATE trans_expense SET
+                        payee_id = :payee_id,
+                        expense_date = :expense_date,
+                        expense_payment_method = :expense_payment_method,
+                        expense_no = :expense_no,
+                        tax_type = :tax_type,
+                        total_amount = :total_amount,
+                        sales_tax = :sales_tax,
+                        grand_total = :grand_total
+                    WHERE transaction_no = :transaction_no
+                ";
+                $stmtParams = [
+                    'payee_id' => $supplierID,
+                    'expense_date' => $date,
+                    'expense_payment_method' => $paymentMethod,
+                    'expense_no' => $expenseNo,
+                    'transaction_no' => $transactionNo,
+                    'tax_type' => $tax_type,
+                    'total_amount' => $subTotal,
+                    'sales_tax' => $totalTax,
+                    'grand_total' => $grandTotal
+                ];
+                break;
+
+            case 'invoice':
+                $customerID = !empty($_POST['customer_id']) ? $_POST['customer_id'] : null;
+                $customerEmail = !empty($_POST['customer_email']) ? $_POST['customer_email'] : null;
+                $billingAddress = !empty($_POST['invoice_bill_address']) ? $_POST['invoice_bill_address'] : null;
+                $invoiceDate = !empty($_POST['invoice_date']) ? $_POST['invoice_date'] : null;
+                $dueDate = !empty($_POST['invoice_duedate']) ? $_POST['invoice_duedate'] : null;
+                $shippingAddress = !empty($_POST['invoice_ship_address']) ? $_POST['invoice_ship_address'] : null;
+                $shipVia = !empty($_POST['invoice_ship_via']) ? $_POST['invoice_ship_via'] : null;
+                $shipDate = !empty($_POST['invoice_ship_date']) ? $_POST['invoice_ship_date'] : null;
+                $trackNo = !empty($_POST['invoice_track_no']) ? $_POST['invoice_track_no'] : null;
+                $subTotal = !empty($_POST['sub_total']) ? $_POST['sub_total'] : 0;
+                $totalTax = !empty($_POST['total_tax']) ? $_POST['total_tax'] : 0;
+                $grandTotal = !empty($_POST['grand_total']) ? $_POST['grand_total'] : 0;
+                $tax_type = !empty($_POST['tax_type']) ? $_POST['tax_type'] : null;
+
+                // Update trans_invoice table
+                $sql = "
+                    UPDATE trans_invoice SET
+                        customer_id = :customer_id,
+                        customer_email = :customer_email,
+                        invoice_bill_address = :invoice_bill_address,
+                        invoice_date = :invoice_date,
+                        invoice_duedate = :invoice_duedate,
+                        invoice_shipping_address = :invoice_shipping_address,
+                        invoice_ship_via = :invoice_ship_via,
+                        invoice_ship_date = :invoice_ship_date,
+                        invoice_track_no = :invoice_track_no,
+                        total_amount = :total_amount,
+                        sales_tax = :sales_tax,
+                        grand_total = :grand_total,
+                        tax_type = :tax_type
+                    WHERE transaction_no = :transaction_no
+                ";
+                $stmtParams = [
+                    'customer_id' => $customerID,
+                    'customer_email' => $customerEmail,
+                    'invoice_bill_address' => $billingAddress,
+                    'invoice_date' => $invoiceDate,
+                    'invoice_duedate' => $dueDate,
+                    'invoice_shipping_address' => $shippingAddress,
+                    'invoice_ship_via' => $shipVia,
+                    'invoice_ship_date' => $shipDate,
+                    'invoice_track_no' => $trackNo,
+                    'total_amount' => $subTotal,
+                    'sales_tax' => $totalTax,
+                    'grand_total' => $grandTotal,
+                    'transaction_no' => $transactionNo,
+                    'tax_type' => $tax_type
+                ];
+                break;
+
+            default:
+                throw new Exception('Invalid form type');
+        }
+
+        // Prepare and execute the main update SQL
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($stmtParams);
+
+        // Update trans_item table with items
+        $itemSQL = "
+            UPDATE trans_item SET
+                product_sku = :product_sku,
+                item_barcode = :item_barcode,
+                item_qty = :item_qty,
+                item_rate = :item_rate,
+                item_tax = :item_tax,
+                item_amount = :item_amount,
+                transaction_type = :transaction_type,
+                item_expiry = :item_expiry
+            WHERE transaction_no = :transaction_no AND product_sku = :product_sku
+        ";
+        $itemStmt = $pdo->prepare($itemSQL);
+
+        foreach ($items as $item) {
+            if (!empty($item['sku']) && !empty($item['qty']) && !empty($item['rate']) && !empty($item['amount'])) {
+                $itemStmt->execute([
+                    'transaction_no' => $transactionNo,
+                    'product_sku' => $item['sku'],
+                    'item_barcode' => $item['barcode'] ?? null,
+                    'item_qty' => $item['qty'],
+                    'item_rate' => $item['rate'],
+                    'item_tax' => $item['tax'] ?? null,
+                    'item_amount' => $item['amount'],
+                    'transaction_type' => $formType,
+                    'item_expiry' => $item['expiry'] ?? null
+                ]);
+            }
+        }
+
+        // Commit the transaction
+        $pdo->commit();
+        return array('success' => true, 'message' => 'Transaction and items updated successfully.');
+
+    } catch (Exception $e) {
+        // Roll back the transaction if any error occurs
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        return array('success' => false, 'message' => 'Error: ' . $e->getMessage());
+    }
+}
+
+
 
 function generateTransactionNo($pdo, $transactionType) {
     // Define the table and prefix for each transaction type
@@ -2428,6 +2703,384 @@ function createPaymentTransaction($pdo) {
         return array('success' => false, 'message' => 'Error: ' . $e->getMessage());
     }
 }
+function generateInventoryStockReport($pdo) {
+    try {
+        // Get the stock level from the POST request
+        $stockLevel = !empty($_POST['stock_level']) ? (int)$_POST['stock_level'] : null;
+
+        // Ensure stock level is valid
+        if (!in_array($stockLevel, [1, 2, 3])) {
+            return array('success' => false, 'message' => 'Invalid stock level provided.');
+        }
+
+        $query = "
+            SELECT
+                a.product_name,
+                COALESCE(
+                    SUM(CASE WHEN g.transaction_type IN ('bill', 'expense') THEN g.item_qty ELSE 0 END) 
+                    - SUM(CASE WHEN g.transaction_type = 'invoice' THEN g.item_qty ELSE 0 END),
+                    0
+                ) AS stock,
+                CASE
+                    WHEN COALESCE(
+                        SUM(CASE WHEN g.transaction_type IN ('bill', 'expense') THEN g.item_qty ELSE 0 END) 
+                        - SUM(CASE WHEN g.transaction_type = 'invoice' THEN g.item_qty ELSE 0 END),
+                        0
+                    ) >= a.product_min THEN 1
+                    WHEN COALESCE(
+                        SUM(CASE WHEN g.transaction_type IN ('bill', 'expense') THEN g.item_qty ELSE 0 END) 
+                        - SUM(CASE WHEN g.transaction_type = 'invoice' THEN g.item_qty ELSE 0 END),
+                        0
+                    ) < a.product_min
+                    AND COALESCE(
+                        SUM(CASE WHEN g.transaction_type IN ('bill', 'expense') THEN g.item_qty ELSE 0 END) 
+                        - SUM(CASE WHEN g.transaction_type = 'invoice' THEN g.item_qty ELSE 0 END),
+                        0
+                    ) > 0 THEN 2
+                    ELSE 3
+                END AS status
+            FROM product a
+            LEFT JOIN trans_item g ON g.product_sku = a.product_sku
+            GROUP BY a.product_id, a.product_name
+            HAVING status = :stockLevel;
+        ";
+
+        $stmt = $pdo->prepare($query);
+        $stmt->execute(['stockLevel' => $stockLevel]);
+
+        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Commit the transaction
+        return array(
+            'success' => true,
+            'message' => 'Report has been generated!',
+            'data' => $products
+        );
+    } catch (Exception $e) {
+        // Roll back the transaction if an error occurs
+        return array(
+            'success' => false,
+            'message' => 'Error: ' . $e->getMessage()
+        );
+    }
+}
+// function generateValuationStockReport($pdo) {
+//     try {
+//         // Query to retrieve stock report details
+//         $query = "
+//             SELECT 
+//                 p.product_sku,
+//                 p.product_name,
+//                 p.product_pp AS purchase_price,
+//                 COALESCE(
+//                     SUM(CASE 
+//                         WHEN t.transaction_type IN ('bill', 'expense') THEN t.item_qty 
+//                         WHEN t.transaction_type = 'invoice' THEN -t.item_qty 
+//                         ELSE 0 
+//                     END), 
+//                     0
+//                 ) AS stock,
+//                 COALESCE(
+//                     SUM(CASE 
+//                         WHEN t.transaction_type IN ('bill', 'expense') THEN t.item_qty * t.item_rate 
+//                         ELSE 0 
+//                     END), 
+//                     0
+//                 ) AS total_value_based_on_item_rate,
+//                 COALESCE(
+//                     SUM(CASE 
+//                         WHEN t.transaction_type IN ('bill', 'expense') THEN t.item_qty 
+//                         ELSE 0 
+//                     END) * p.product_pp, 
+//                     0
+//                 ) AS total_value_based_on_product_pp
+//             FROM product p
+//             LEFT JOIN trans_item t ON t.product_sku = p.product_sku
+//             GROUP BY p.product_sku, p.product_name, p.product_pp;
+//         ";
+
+//         $stmt = $pdo->prepare($query);
+//         $stmt->execute();
+
+//         $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+//         // Return success and the data
+//         return array(
+//             'success' => true,
+//             'message' => 'Stock report generated successfully.',
+//             'data' => $products
+//         );
+//     } catch (Exception $e) {
+//         // Return error message
+//         return array(
+//             'success' => false,
+//             'message' => 'Error: ' . $e->getMessage()
+//         );
+//     }
+// }
+function generateValuationStockReport($pdo, $dateFilter, $startDate, $endDate) {
+    try {
+        // Set initial date filter condition
+        $dateCondition = '';
+        
+        if ($dateFilter == 'custom' && !empty($startDate) && !empty($endDate)) {
+            // If custom range is selected, validate and parse the date range
+            $startDateFormatted = date('Y-m-d', strtotime($startDate));
+            $endDateFormatted = date('Y-m-d', strtotime($endDate));
+            $dateCondition = "AND (b.bill_date BETWEEN :startDate AND :endDate OR e.expense_date BETWEEN :startDate AND :endDate OR i.invoice_date BETWEEN :startDate AND :endDate)";
+        }
+
+        // Query to retrieve stock report details
+        $query = "
+            SELECT 
+                p.product_sku,
+                p.product_name,
+                p.product_pp AS purchase_price,
+                COALESCE(
+                    SUM(CASE 
+                        WHEN t.transaction_type IN ('bill', 'expense') THEN t.item_qty 
+                        WHEN t.transaction_type = 'invoice' THEN -t.item_qty 
+                        ELSE 0 
+                    END), 
+                    0
+                ) AS stock,
+                COALESCE(
+                    SUM(CASE 
+                        WHEN t.transaction_type IN ('bill', 'expense') THEN t.item_qty * t.item_rate 
+                        ELSE 0 
+                    END), 
+                    0
+                ) AS total_value_based_on_item_rate,
+                COALESCE(
+                    SUM(CASE 
+                        WHEN t.transaction_type IN ('bill', 'expense') THEN t.item_qty 
+                        ELSE 0 
+                    END) * p.product_pp, 
+                    0
+                ) AS total_value_based_on_product_pp
+            FROM product p
+            LEFT JOIN trans_item t ON t.product_sku = p.product_sku
+            LEFT JOIN trans_bill b ON t.transaction_no = b.transaction_no
+            LEFT JOIN trans_expense e ON t.transaction_no = e.transaction_no
+            LEFT JOIN trans_invoice i ON t.transaction_no = i.transaction_no
+            WHERE 1 = 1
+            $dateCondition
+            GROUP BY p.product_sku, p.product_name, p.product_pp;
+        ";
+
+        $stmt = $pdo->prepare($query);
+
+        // Bind parameters if custom date range is applied
+        if ($dateCondition) {
+            $stmt->bindParam(':startDate', $startDateFormatted);
+            $stmt->bindParam(':endDate', $endDateFormatted);
+        }
+
+        $stmt->execute();
+
+        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Return success and the data
+        return array(
+            'success' => true,
+            'message' => 'Stock report generated successfully.',
+            'data' => $products
+        );
+    } catch (Exception $e) {
+        // Return error message
+        return array(
+            'success' => false,
+            'message' => 'Error: ' . $e->getMessage()
+        );
+    }
+}
+function generateStockMovementReport($pdo, $dateFilter, $startDate, $endDate) {
+    try {
+        // Set initial date filter condition
+        $dateCondition = '';
+        
+        if ($dateFilter == 'custom' && !empty($startDate) && !empty($endDate)) {
+            // If custom range is selected, validate and parse the date range
+            $startDateFormatted = date('Y-m-d', strtotime($startDate));
+            $endDateFormatted = date('Y-m-d', strtotime($endDate));
+            $dateCondition = "AND (b.bill_date BETWEEN :startDate AND :endDate OR e.expense_date BETWEEN :startDate AND :endDate OR i.invoice_date BETWEEN :startDate AND :endDate)";
+        }
+
+        // Query to retrieve stock movement report details
+        $query = "SELECT 
+                p.product_sku,
+                p.product_name,
+                
+                -- Total quantity in (bill + expense)
+                COALESCE(
+                    SUM(CASE 
+                        WHEN t.transaction_type IN ('bill', 'expense') THEN t.item_qty 
+                        ELSE 0 
+                    END), 
+                    0
+                ) AS quantity_in,
+                
+                -- Total quantity out (invoice)
+                COALESCE(
+                    SUM(CASE 
+                        WHEN t.transaction_type = 'invoice' THEN -t.item_qty 
+                        ELSE 0 
+                    END), 
+                    0
+                ) AS quantity_out,
+                
+                -- Total purchase value (based on item rate for bills and expenses)
+                COALESCE(
+                    SUM(CASE 
+                        WHEN t.transaction_type IN ('bill', 'expense') THEN t.item_qty * t.item_rate 
+                        ELSE 0 
+                    END), 
+                    0
+                ) AS total_purchase_value,
+                
+                -- Total sale value (based on item rate for invoices)
+                COALESCE(
+                    SUM(CASE 
+                        WHEN t.transaction_type = 'invoice' THEN t.item_qty * t.item_rate 
+                        ELSE 0 
+                    END), 
+                    0
+                ) AS total_sale_value,
+                
+                -- Total purchase value (based on product purchase price (PP) for bills and expenses)
+                COALESCE(
+                    SUM(CASE 
+                        WHEN t.transaction_type IN ('bill', 'expense') THEN t.item_qty * p.product_pp
+                        ELSE 0 
+                    END), 
+                    0
+                ) AS total_purchase_value_pp,
+                
+                -- Total sale value (based on product purchase price (PP) for invoices)
+                COALESCE(
+                    SUM(CASE 
+                        WHEN t.transaction_type = 'invoice' THEN t.item_qty * p.product_pp
+                        ELSE 0 
+                    END), 
+                    0
+                ) AS total_sale_value_pp
+            FROM product p
+            LEFT JOIN trans_item t ON t.product_sku = p.product_sku
+            LEFT JOIN trans_bill b ON t.transaction_no = b.transaction_no
+            LEFT JOIN trans_expense e ON t.transaction_no = e.transaction_no
+            LEFT JOIN trans_invoice i ON t.transaction_no = i.transaction_no
+            WHERE 1 = 1
+            $dateCondition
+            GROUP BY p.product_sku, p.product_name;";
+
+        $stmt = $pdo->prepare($query);
+
+        // Bind parameters if custom date range is applied
+        if ($dateCondition) {
+            $stmt->bindParam(':startDate', $startDateFormatted);
+            $stmt->bindParam(':endDate', $endDateFormatted);
+        }
+
+        $stmt->execute();
+
+        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Return success and the data
+        return array(
+            'success' => true,
+            'message' => 'Stock movement report generated successfully.',
+            'data' => $products
+        );
+    } catch (Exception $e) {
+        // Return error message
+        return array(
+            'success' => false,
+            'message' => 'Error: ' . $e->getMessage()
+        );
+    }
+}
+function getProductTransactionsReport($pdo) {
+    try {
+        $product_sku = !empty($_POST['product_sku']) ? $_POST['product_sku'] : null;
+        $dateFilter = !empty($_POST['dateFilter']) ? $_POST['dateFilter'] : null;
+        $start_date = !empty($_POST['start_date']) ? $_POST['start_date'] : null;
+        $end_date = !empty($_POST['end_date']) ? $_POST['end_date'] : null;
+        // Base SQL query
+        $sql = "SELECT 
+                    t.transaction_no,
+                    t.transaction_type,
+                    CASE
+                        WHEN t.transaction_type IN ('bill', 'expense') THEN s.vendor_name
+                        WHEN t.transaction_type = 'invoice' THEN c.customer_name
+                        ELSE 'Unknown'
+                    END AS p_name,
+                    t.created_at,
+                    t.item_qty,
+                    t.item_rate,
+                    (t.item_qty * t.item_rate) AS total_amount
+                FROM trans_item t
+                LEFT JOIN trans_bill b ON t.transaction_no = b.transaction_no AND t.transaction_type = 'bill'
+                LEFT JOIN trans_expense e ON t.transaction_no = e.transaction_no AND t.transaction_type = 'expense'
+                LEFT JOIN trans_invoice i ON t.transaction_no = i.transaction_no AND t.transaction_type = 'invoice'
+                LEFT JOIN supplier s ON (b.supplier_id = s.id OR e.payee_id = s.id)  -- Supplier for Bill and Expense
+                LEFT JOIN customer c ON i.customer_id = c.id                         -- Customer for Invoice
+                WHERE t.product_sku = :product_sku";
+
+        // Add date filter if it's 'custom' and both start_date and end_date are provided
+        if ($dateFilter === 'custom' && !empty($start_date) && !empty($end_date)) {
+            // Format dates to 'Y-m-d' if not already in that format
+            $start_date = date('Y-m-d', strtotime($start_date));
+            $end_date = date('Y-m-d', strtotime($end_date));
+
+            // Append date condition to SQL query
+            $sql .= " AND DATE(t.created_at) BETWEEN :start_date AND :end_date";
+        }
+
+        // Order results by creation date
+        $sql .= " ORDER BY t.created_at DESC";
+
+        // Prepare the SQL query
+        $stmt = $pdo->prepare($sql);
+
+        // Bind product_sku parameter
+        $stmt->bindParam(':product_sku', $product_sku, PDO::PARAM_STR);
+
+        // If date filter is custom, bind the start_date and end_date parameters
+        if ($dateFilter === 'custom' && !empty($start_date) && !empty($end_date)) {
+            $stmt->bindParam(':start_date', $start_date, PDO::PARAM_STR);
+            $stmt->bindParam(':end_date', $end_date, PDO::PARAM_STR);
+        }
+
+        // Debugging: Log SQL query and parameters
+        error_log("SQL Query: $sql");
+        error_log("Parameters: " . json_encode([
+            'product_sku' => $product_sku,
+            'start_date' => $start_date,
+            'end_date' => $end_date
+        ]));
+
+        // Execute the query
+        $stmt->execute();
+
+        // Return results
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Check if results are empty
+        if (empty($results)) {
+            return ['message' => 'No data available for the selected filter.'];
+        }
+
+        return $results;
+        
+    } catch (PDOException $e) {
+        // Log error and return an error message
+        error_log("Error in getProductTransactionsReport: " . $e->getMessage());
+        return ['error' => 'Error retrieving data: ' . $e->getMessage()];
+    }
+}
+
+
+
 
 
 

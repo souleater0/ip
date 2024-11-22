@@ -136,41 +136,9 @@ $route = $_GET['route'] ?? 'home';
             </li>
             <li class="nav-small-cap" data-bs-toggle="collapse" data-bs-target="#collapseStock" aria-expanded="false" aria-controls="collapseStock">
               <iconify-icon icon="solar:menu-dots-linear" class="nav-small-cap-icon fs-4"></iconify-icon>
-              <span class="hide-menu text-uppercase">stock management</span>
+              <span class="hide-menu text-uppercase">cost management</span>
             </li>
             <div class="collapse <?php echo ($route == 'stock-in' || $route == 'stock-out' || $route == 'pending-stockin' || $route == 'pending-stockout' || $route == 'validate-stockout' || $route == 'costing' || $route == 'waste') ? 'show' : ''; ?>" id="collapseStock">
-            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_stockin')){?>
-            <li class="sidebar-item">
-              <a class="sidebar-link" href="index.php?route=stock-in" aria-expanded="false">
-                <iconify-icon icon="ph:stack-plus"></iconify-icon>
-                <span class="hide-menu">Stock In</span>
-              </a>
-            </li>
-            <?php } ?>
-            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_stockout')){?>
-            <li class="sidebar-item">
-              <a class="sidebar-link <?php echo ($route == 'validate-stockout') ? 'active' : ''; ?>" href="index.php?route=stock-out" aria-expanded="false">
-                <iconify-icon icon="ph:stack-minus"></iconify-icon>
-                <span class="hide-menu">Stock Out</span>
-              </a>
-            </li>
-            <?php } ?>
-            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_pending_stockin')){?>
-            <li class="sidebar-item">
-              <a class="sidebar-link" href="index.php?route=pending-stockin" aria-expanded="false">
-                <iconify-icon icon="mdi:receipt-text-pending"></iconify-icon>
-                <span class="hide-menu">Pending Stock In</span>
-              </a>
-            </li>
-            <?php } ?>
-            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_stockout_history')){?>
-            <li class="sidebar-item">
-              <a class="sidebar-link" href="index.php?route=pending-stockout" aria-expanded="false">
-                <iconify-icon icon="healthicons:stock-out" width="24" height="24"></iconify-icon>
-                <span class="hide-menu">Stock Out History</span>
-              </a>
-            </li>
-            <?php } ?>
             <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_costing')){?>
             <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=costing" aria-expanded="false">
@@ -180,12 +148,12 @@ $route = $_GET['route'] ?? 'home';
             </li>
             <?php } ?>
             <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_waste')){?>
-            <li class="sidebar-item">
+            <!-- <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=waste" aria-expanded="false">
                 <iconify-icon icon="hugeicons:waste-restore" width="24" height="24"></iconify-icon>
                 <span class="hide-menu">Waste</span>
               </a>
-            </li>
+            </li> -->
             <?php } ?>
             </div>
             <?php } ?>
@@ -196,7 +164,7 @@ $route = $_GET['route'] ?? 'home';
               <iconify-icon icon="solar:menu-dots-linear" class="nav-small-cap-icon fs-4"></iconify-icon>
               <span class="hide-menu text-uppercase">Vendor Management</span>
             </li>
-            <div class="collapse <?php echo ($route == 'manage-supplier'|| $route == 'manage-supplier') ? 'show' : ''; ?>" id="collapseVendor">
+            <div class="collapse <?php echo ($route == 'manage-supplier'|| $route == 'manage-transaction' || $route == 'manage-customer') ? 'show' : ''; ?>" id="collapseVendor">
             <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_user')){?>
             <li class="sidebar-item">
               <a class="sidebar-link <?php echo ($route == 'manage-supplier' )? 'active' : ''; ?>" href="index.php?route=manage-supplier" aria-expanded="false">
@@ -205,9 +173,17 @@ $route = $_GET['route'] ?? 'home';
               </a>
             </li>
             <?php } ?>
-            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_role')){?>
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_user')){?>
             <li class="sidebar-item">
-              <a class="sidebar-link" href="index.php?route=manage-receipt" aria-expanded="false">
+              <a class="sidebar-link <?php echo ($route == 'manage-customer' )? 'active' : ''; ?>" href="index.php?route=manage-customer" aria-expanded="false">
+                <iconify-icon icon="carbon:scis-transparent-supply"></iconify-icon>
+                <span class="hide-menu">Customer</span>
+              </a>
+            </li>
+            <?php } ?>
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_stockin')){?>
+            <li class="sidebar-item">
+              <a class="sidebar-link <?php echo ($route == 'manage-transaction' )? 'active' : ''; ?>" href="index.php?route=manage-transaction" aria-expanded="false">
                 <iconify-icon icon="ic:baseline-receipt-long"></iconify-icon>
                 <span class="hide-menu">Transaction</span>
               </a>
@@ -221,17 +197,29 @@ $route = $_GET['route'] ?? 'home';
               <iconify-icon icon="solar:menu-dots-linear" class="nav-small-cap-icon fs-4"></iconify-icon>
               <span class="hide-menu text-uppercase">Reports</span>
             </li>
-            <div class="collapse show" id="collapseVendor">
+            <div class="collapse <?php echo ($route == 'inventory-stock-report'|| $route == 'stock-valuation-report' || $route == 'stock-movement-report' || $route == 'product-history-report') ? 'show' : ''; ?>" id="collapseReport">
             <li class="sidebar-item">
-              <a class="sidebar-link" href="#InventoryStockReport" aria-expanded="false">
+              <a class="sidebar-link" href="index.php?route=inventory-stock-report" aria-expanded="false">
                 <iconify-icon icon="ic:baseline-receipt-long"></iconify-icon>
                 <span class="hide-menu">Inventory Stock Report</span>
               </a>
             </li>
             <li class="sidebar-item">
-              <a class="sidebar-link" href="#" aria-expanded="false">
+              <a class="sidebar-link" href="index.php?route=stock-valuation-report" aria-expanded="false">
                 <iconify-icon icon="carbon:scis-transparent-supply"></iconify-icon>
-                <span class="hide-menu">Supplier</span>
+                <span class="hide-menu">Stock Valuation Report</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a class="sidebar-link" href="index.php?route=stock-movement-report" aria-expanded="false">
+                <iconify-icon icon="carbon:scis-transparent-supply"></iconify-icon>
+                <span class="hide-menu">Stock Movement Report</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a class="sidebar-link" href="index.php?route=product-history-report" aria-expanded="false">
+                <iconify-icon icon="carbon:scis-transparent-supply"></iconify-icon>
+                <span class="hide-menu">Product History Report</span>
               </a>
             </li>
             </div>

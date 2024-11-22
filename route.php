@@ -49,8 +49,23 @@ switch ($route){
     case "manage-supplier":
         require 'admin/views/vendor-management/supplier.php';
         break;
-    case "manage-receipt":
+    case "manage-customer":
+        require 'admin/views/vendor-management/customer.php';
+        break;
+    case "manage-transaction":
         require 'admin/views/vendor-management/receipt.php';
+        break;
+    case "inventory-stock-report":
+        require 'admin/views/report/inventory_stock_report.php';
+        break;
+    case "stock-valuation-report":
+        require 'admin/views/report/stock_valuation_report.php';
+        break;
+    case "stock-movement-report":
+        require 'admin/views/report/stock_movement_report.php';
+        break;
+    case "product-history-report":
+        require 'admin/views/report/product_transaction_report.php';
         break;
     case "user-management":
         require 'admin/views/user-management/users.php';

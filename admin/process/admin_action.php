@@ -811,6 +811,58 @@ require_once 'function.php';
         echo json_encode($response);
         exit();
     }
+    if (!empty($_POST['action']) && $_POST['action'] == 'addCustomer') {
+        if (empty($_POST['customer_name'])) {
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter Customer Name!'
+            );
+        } else {
+            $result = addCustomer($pdo);
+            if ($result['success']) {
+                $response = array(
+                    'success' => true,
+                    'message' => $result['message']
+                );
+            } else {
+                $response = array(
+                    'success' => false,
+                    'message' => $result['message']
+                );
+            }
+        }
+        // Send response
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
+    
+    if (!empty($_POST['action']) && $_POST['action'] == 'updateCustomer') {
+        if (empty($_POST['customer_name'])) {
+            $response = array(
+                'success' => false,
+                'message' => 'Please enter Customer Name!'
+            );
+        } else {
+            $result = updateCustomer($pdo);
+            if ($result['success']) {
+                $response = array(
+                    'success' => true,
+                    'message' => $result['message']
+                );
+            } else {
+                $response = array(
+                    'success' => false,
+                    'message' => $result['message']
+                );
+            }
+        }
+        // Send response
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit();
+    }
+    
     if (!empty($_POST['action']) && $_POST['action'] == 'getProductbyName') {
         // Call the function directly as the validation is handled inside the function
         $result = getProductDetailsbyName($pdo);
@@ -950,6 +1002,118 @@ require_once 'function.php';
             exit();
         }
     }
+    if (!empty($_POST['action']) && $_POST['action'] === 'updateTransaction') {
+        // Check which form is being submitted
+        if (isset($_POST['formType'])) {
+            $formType = $_POST['formType'];
+            $response = array('success' => false, 'message' => '');
+            
+            // Common variables
+            $items = isset($_POST['items']) ? json_decode($_POST['items'], true) : [];
+            
+            // Validate items
+            $validItems = [];
+            foreach ($items as $item) {
+                if (!empty($item['product_name']) && !empty($item['sku']) &&
+                    !empty($item['qty']) && !empty($item['rate']) &&
+                    !empty($item['amount'])) {
+                    $validItems[] = $item;
+                }
+            }
+            
+            // Check if there is at least one valid item
+            if (count($validItems) === 0) {
+                $response['message'] = 'Add at least one product!';
+            } else {
+                try {
+                    // Prepare data based on form type
+                    if ($formType === 'bill') {
+                        // Validate bill form fields
+                        if (empty($_POST['billSupplier'])) {
+                            $response['message'] = 'Please enter Supplier Name!';
+                        } elseif (empty($_POST['billDate'])) {
+                            $response['message'] = 'Please enter Bill Date!';
+                        } elseif (empty($_POST['billdueDate'])) {
+                            $response['message'] = 'Please enter Due Date!';
+                        } elseif (empty($_POST['billNo'])) {
+                            $response['message'] = 'Please enter Bill No!';
+                        } else {
+                            // Call the updateTransaction function
+                            $transactionResult = updateTransaction($pdo);
+                            
+                            if ($transactionResult['success']) {
+                                // Handle file upload for bill
+                                if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
+                                    handleFileUpload($_FILES['attachment']);
+                                }
+                                $response['success'] = true;
+                                $response['message'] = 'Bill updated successfully!';
+                            } else {
+                                $response['message'] = $transactionResult['message'];
+                            }
+                        }
+                    } elseif ($formType === 'expense') {
+                        // Validate expense form fields
+                        if (empty($_POST['payee_id'])) {
+                            $response['message'] = 'Please enter Payee!';
+                        } elseif (empty($_POST['expenseDate'])) {
+                            $response['message'] = 'Please enter Bill Date!';
+                        } elseif (empty($_POST['expense_payment_method'])) {
+                            $response['message'] = 'Please enter Payment Method!';
+                        } elseif (empty($_POST['expenseNo'])) {
+                            $response['message'] = 'Please enter Reference No!';
+                        } else {
+                            // Call the updateTransaction function
+                            $transactionResult = updateTransaction($pdo);
+                            
+                            if ($transactionResult['success']) {
+                                // Handle file upload for expense
+                                if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
+                                    handleFileUpload($_FILES['attachment']);
+                                }
+                                $response['success'] = true;
+                                $response['message'] = 'Expense updated successfully!';
+                            } else {
+                                $response['message'] = $transactionResult['message'];
+                            }
+                        }
+                    } elseif ($formType === 'invoice') {
+                        // Validate invoice form fields
+                        if (empty($_POST['customer_id'])) {
+                            $response['message'] = 'Please enter Customer ID!';
+                        } elseif (empty($_POST['invoice_date'])) {
+                            $response['message'] = 'Please enter Invoice Date!';
+                        } elseif (empty($_POST['invoice_duedate'])) {
+                            $response['message'] = 'Please enter Due Date!';
+                        } elseif (empty($_POST['invoice_bill_address'])) {
+                            $response['message'] = 'Please enter Billing Address!';
+                        } else {
+                            // Call the updateTransaction function
+                            $transactionResult = updateTransaction($pdo);
+                            
+                            if ($transactionResult['success']) {
+                                // Handle file upload for invoice
+                                if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
+                                    handleFileUpload($_FILES['attachment']);
+                                }
+                                $response['success'] = true;
+                                $response['message'] = 'Invoice updated successfully!';
+                            } else {
+                                $response['message'] = $transactionResult['message'];
+                            }
+                        }
+                    }
+                } catch (Exception $e) {
+                    $response['message'] = 'Failed to update transaction: ' . $e->getMessage();
+                }
+            }
+            
+            // Send response
+            header('Content-Type: application/json');
+            echo json_encode($response);
+            exit();
+        }
+    }
     if (!empty($_POST['action']) && $_POST['action'] === 'checkBarcodeItemDetails') {
 
         // Send response
@@ -1036,4 +1200,90 @@ require_once 'function.php';
         echo json_encode($result);
         exit();
     }
+    if (!empty($_POST['action']) && $_POST['action'] == 'getStockReport') {
+        // Call the function to create the payment transaction
+        $result = generateInventoryStockReport($pdo);
+    
+        // Send response as JSON
+        header('Content-Type: application/json');
+        echo json_encode($result);
+        exit();
+    }
+    // if (!empty($_POST['action']) && $_POST['action'] == 'getStockValuationReport') {
+    //     // Call the function to generate the stock report
+    //     $result = generateValuationStockReport($pdo);
+    
+    //     // Send response as JSON
+    //     header('Content-Type: application/json');
+    //     echo json_encode($result);
+    //     exit();
+    // }
+    if (!empty($_POST['action']) && $_POST['action'] == 'getStockValuationReport') {
+        // Call the function to generate the stock report
+        $result = generateValuationStockReport($pdo, $_POST['dateFilter'], $_POST['startDate'], $_POST['endDate']);
+        
+        // Send response as JSON
+        header('Content-Type: application/json');
+        echo json_encode($result);
+        exit();
+    }
+    if (!empty($_POST['action']) && $_POST['action'] == 'getStockMovementReport') {
+        // Call the function to generate the stock movement report
+        $result = generateStockMovementReport($pdo, $_POST['dateFilter'], $_POST['startDate'], $_POST['endDate']);
+        
+        // Send response as JSON
+        header('Content-Type: application/json');
+        echo json_encode($result);
+        exit();
+    }
+    if (!empty($_POST['action']) && $_POST['action'] == 'getProductTransactions') {
+        // Check if product_sku is provided in the POST request
+        if (isset($_POST['product_sku']) && !empty($_POST['product_sku'])) {
+            $product_sku = $_POST['product_sku'];
+
+            // Call the function to get product transactions
+            $transactions = getProductTransactionsReport($pdo, $product_sku);
+
+            // Send response as JSON
+            header('Content-Type: application/json');
+            if ($transactions !== false) {
+                echo json_encode([
+                    'success' => true,
+                    'data' => $transactions
+                ]);
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'No transactions found for this product.'
+                ]);
+            }
+        } else {
+            // If product_sku is not provided
+            echo json_encode([
+                'success' => false,
+                'message' => 'Product SKU is required.'
+            ]);
+        }
+        exit();
+    }
+    if (!empty($_POST['action']) && $_POST['action'] == 'getProductTransactions') {
+        // Check if custom date range is provided
+        // $start_date = isset($_POST['start_date']) ? date('Y-m-d', strtotime($_POST['start_date'])) : null;
+        // $end_date = isset($_POST['end_date']) ? date('Y-m-d', strtotime($_POST['end_date'])) : null;
+
+        // Call the function to get product transactions
+        $result = getProductTransactionsReport($pdo);
+    
+        // Check if the result is valid and send response as JSON
+        header('Content-Type: application/json');
+        if ($result) {
+            echo json_encode(['success' => true, 'data' => $result]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'No data found or an error occurred']);
+        }
+        exit();
+    }
+    
+    
+    
 ?>

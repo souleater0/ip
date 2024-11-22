@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 20, 2024 at 12:00 PM
+-- Generation Time: Nov 22, 2024 at 11:20 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -98,7 +98,7 @@ CREATE TABLE `customer` (
 --
 
 INSERT INTO `customer` (`id`, `customer_name`, `customer_email`, `company_name`, `customer_phone_no`, `created_at`, `updated_at`) VALUES
-(1, 'ESKINA', 'ecxdev03@gmail.com', NULL, NULL, '2024-10-30 04:44:44', '2024-10-30 10:13:34'),
+(1, 'ESKINA', 'ecxdev03@gmail.com', NULL, NULL, '2024-10-30 04:44:44', '2024-11-22 08:56:27'),
 (2, 'EC CAFE BALIUAG', 'test1@gmail.com', NULL, NULL, '2024-10-30 04:45:32', '2024-10-30 10:13:48'),
 (3, 'ECSTATICS', 'test2@gmail.com', NULL, NULL, '2024-10-30 04:45:38', '2024-10-30 10:14:04'),
 (4, 'ECXPERIENCE', 'test3@gmail.com', NULL, NULL, '2024-10-30 04:46:56', '2024-10-30 10:14:04'),
@@ -334,7 +334,7 @@ CREATE TABLE `product` (
 
 INSERT INTO `product` (`product_id`, `product_name`, `product_description`, `brand_id`, `category_id`, `status_id`, `product_sku`, `product_pp`, `product_sp`, `product_min`, `product_max`, `unit_id`, `tax_id`, `expiry_notice`, `created_at`, `updated_at`) VALUES
 (1, 'OISHI PODS PEA SNACK 60G', 'OISHI PODS PEA SNACK 60G', 10, 8, NULL, 'SN00001', 30.00, 40.00, 20, 30, 1, 1, 10, '2024-08-08 09:06:29', '2024-10-29 04:33:31'),
-(2, 'LAURAS MANNA BUTTERED TOAST 200G', 'LAURAS MANNA BUTTERED TOAST 200G', 12, 9, NULL, 'BR00001', 100.00, 0.00, 10, 20, 1, 1, 10, '2024-08-08 09:09:17', NULL),
+(2, 'LAURAS MANNA BUTTERED TOAST 200G', 'LAURAS MANNA BUTTERED TOAST 200G', 12, 9, NULL, 'BR00001', 100.00, 100.00, 10, 20, 1, 1, 10, '2024-08-08 09:09:17', '2024-11-22 09:24:49'),
 (3, 'BREAD PAN WHITE CHEDDAR 24G', 'BREAD PAN WHITE CHEDDAR 24G', 10, 9, NULL, 'BR00002', 15.00, 0.00, 20, 50, 1, 1, 10, '2024-08-08 09:10:06', '2024-08-08 09:10:28'),
 (4, 'BREAD PAN CHEESE & ONION 24G', 'BREAD PAN CHEESE & ONION 24G', 10, 8, NULL, 'SN00002', 15.00, 0.00, 20, 50, 1, 1, 10, '2024-08-08 09:12:50', '2024-08-08 09:13:19');
 
@@ -648,7 +648,7 @@ CREATE TABLE `trans_bill` (
 --
 
 INSERT INTO `trans_bill` (`id`, `supplier_id`, `bill_address`, `bill_date`, `bill_due_date`, `bill_no`, `transaction_no`, `tax_type`, `total_amount`, `sales_tax`, `grand_total`, `payment_status`, `isVoid`, `created_at`, `updated_at`) VALUES
-(1, 1, 'test', '2024-11-22', '2024-11-25', 'bill001', 'BILL-20241119-001', 3, 210.00, 0.00, 210.00, 'paid', 0, '2024-11-19 05:57:47', '2024-11-20 08:31:17');
+(2, 3, 'test', '2024-11-22', '2024-11-22', 'bill001', 'BILL-20241122-001', 1, 450.00, 54.00, 504.00, 'unpaid', 0, '2024-11-21 23:20:15', '2024-11-21 23:25:15');
 
 -- --------------------------------------------------------
 
@@ -666,6 +666,7 @@ CREATE TABLE `trans_expense` (
   `grand_total` decimal(10,2) UNSIGNED NOT NULL DEFAULT 0.00,
   `expense_no` varchar(255) DEFAULT NULL,
   `transaction_no` varchar(255) DEFAULT NULL,
+  `tax_type` int(11) NOT NULL DEFAULT 3,
   `isVoid` tinyint(4) NOT NULL DEFAULT 0,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
@@ -675,8 +676,8 @@ CREATE TABLE `trans_expense` (
 -- Dumping data for table `trans_expense`
 --
 
-INSERT INTO `trans_expense` (`id`, `payee_id`, `expense_date`, `expense_payment_method`, `total_amount`, `sales_tax`, `grand_total`, `expense_no`, `transaction_no`, `isVoid`, `created_at`, `updated_at`) VALUES
-(1, 1, '2024-11-19', 'CASH', 90.00, 0.00, 90.00, 'exp001', 'EXP-20241119-001', 0, '2024-11-19 05:59:18', '2024-11-20 08:31:28');
+INSERT INTO `trans_expense` (`id`, `payee_id`, `expense_date`, `expense_payment_method`, `total_amount`, `sales_tax`, `grand_total`, `expense_no`, `transaction_no`, `tax_type`, `isVoid`, `created_at`, `updated_at`) VALUES
+(3, 1, '2024-11-22', 'CASH', 120.00, 14.40, 134.40, 'exp001', 'EXP-20241122-001', 1, 0, '2024-11-22 03:11:33', NULL);
 
 -- --------------------------------------------------------
 
@@ -697,7 +698,8 @@ CREATE TABLE `trans_invoice` (
   `invoice_track_no` varchar(255) DEFAULT NULL,
   `invoice_no` varchar(255) DEFAULT NULL,
   `transaction_no` varchar(255) DEFAULT NULL,
-  `payment_status` enum('paid','notdeposited','deposited') DEFAULT NULL,
+  `tax_type` int(11) NOT NULL DEFAULT 3,
+  `payment_status` enum('paid','notdeposited','deposited') DEFAULT 'paid',
   `total_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
   `sales_tax` decimal(10,2) NOT NULL DEFAULT 0.00,
   `grand_total` decimal(10,2) UNSIGNED NOT NULL DEFAULT 0.00,
@@ -705,6 +707,13 @@ CREATE TABLE `trans_invoice` (
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `trans_invoice`
+--
+
+INSERT INTO `trans_invoice` (`id`, `customer_id`, `customer_email`, `invoice_bill_address`, `invoice_shipping_address`, `invoice_ship_via`, `invoice_ship_date`, `invoice_date`, `invoice_duedate`, `invoice_track_no`, `invoice_no`, `transaction_no`, `tax_type`, `payment_status`, `total_amount`, `sales_tax`, `grand_total`, `isVoid`, `created_at`, `updated_at`) VALUES
+(13, 1, NULL, 'test', 'test', 'test', NULL, '2024-11-22', '2024-11-23', NULL, NULL, 'INV-20241122-001', 3, 'paid', 100.00, 0.00, 100.00, 0, '2024-11-22 03:38:53', '2024-11-22 08:12:11');
 
 -- --------------------------------------------------------
 
@@ -732,9 +741,10 @@ CREATE TABLE `trans_item` (
 --
 
 INSERT INTO `trans_item` (`item_id`, `transaction_no`, `product_sku`, `item_barcode`, `item_qty`, `item_rate`, `item_tax`, `item_amount`, `transaction_type`, `item_expiry`, `customer_id`, `created_at`) VALUES
-(1, 'BILL-20241119-001', 'SN00001', '124', 4, 30.00, NULL, 120.00, 'bill', '2024-11-22', NULL, '2024-11-19 05:57:47'),
-(2, 'BILL-20241119-001', 'SN00001', '123', 3, 30.00, NULL, 90.00, 'bill', '2024-11-21', NULL, '2024-11-19 05:57:47'),
-(3, 'EXP-20241119-001', 'SN00001', '', 3, 30.00, NULL, 90.00, 'expense', '2024-11-22', NULL, '2024-11-19 05:59:18');
+(19, 'BILL-20241122-001', 'SN00001', '123', 5, 30.00, 12, 150.00, 'bill', '0000-00-00', NULL, '2024-11-21 23:20:15'),
+(20, 'BILL-20241122-001', 'BR00001', '', 3, 100.00, 12, 300.00, 'bill', '0000-00-00', NULL, '2024-11-21 23:20:15'),
+(22, 'EXP-20241122-001', 'SN00001', '', 3, 40.00, 12, 120.00, 'expense', '0000-00-00', NULL, '2024-11-22 03:11:33'),
+(24, 'INV-20241122-001', 'BR00001', '', 1, 100.00, NULL, 100.00, 'invoice', '0000-00-00', NULL, '2024-11-22 03:38:53');
 
 -- --------------------------------------------------------
 
@@ -1102,25 +1112,25 @@ ALTER TABLE `system_option`
 -- AUTO_INCREMENT for table `trans_bill`
 --
 ALTER TABLE `trans_bill`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `trans_expense`
 --
 ALTER TABLE `trans_expense`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `trans_invoice`
 --
 ALTER TABLE `trans_invoice`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `trans_item`
 --
 ALTER TABLE `trans_item`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `users`
