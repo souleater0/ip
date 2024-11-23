@@ -420,46 +420,59 @@ $(document).ready(function() {
         });
   });
   var tableTransaction = $('#transactionTable').DataTable({
-        order: [[0, 'desc']],
-        paging: true,
-        scrollCollapse: true,
-        scrollX: true,
-        scrollY: true,
-        responsive: true,
-        searching: true,
-        autoWidth: false,
-        ajax:{
-          url: 'admin/process/table.php?table_type=transaction-list',
-          dataSrc: 'data'
-        },
-        columns:[
-          {data: 'Date', title: 'Date', className: 'text-start'},
-          {
-      data: 'Type', 
-      title: 'Type',
-      render: function (data, type, row) {
-        if (data) {
-          // Capitalize the first letter
-          return data.charAt(0).toUpperCase() + data.slice(1);
-        }
-        return data;
-      }
+    order: [[0, 'desc']],
+    paging: true,
+    scrollCollapse: true,
+    scrollX: true,
+    scrollY: true,
+    responsive: true,
+    searching: true,
+    autoWidth: false,
+    ajax: {
+        url: 'admin/process/table.php?table_type=transaction-list',
+        dataSrc: 'data'
     },
-          {data: 'Transaction No', title: 'Transaction No'},
-          {data: 'No', title: 'Receipt No'},
-          {data: 'Payee', title: 'Payee'},
-          {data: 'Total Before Sales', title: 'Total Before Sales'},
-          {data: 'Sales Tax', title: 'Sales Tax'},
-          {data: 'Total', title: 'Total'},
-          {
-            title: "Actions", 
-            data: null,
-            defaultContent: `
-              <button type="button" class="btn btn-primary btn-sm btn-view">View</button>
-              <button type="button" class="btn btn-danger btn-sm btn-voide">Void</button>
-              `
-          }
-    ]});
+    columns: [
+        { data: 'Date', title: 'Date', className: 'text-start' },
+        {
+            data: 'Type',
+            title: 'Type',
+            render: function (data, type, row) {
+                if (data) {
+                    // Capitalize the first letter
+                    return data.charAt(0).toUpperCase() + data.slice(1);
+                }
+                return data;
+            }
+        },
+        { data: 'Transaction No', title: 'Transaction No' },
+        { data: 'No', title: 'Receipt No' },
+        { data: 'Payee', title: 'Payee' },
+        { data: 'Total Before Sales', title: 'Total Before Sales' },
+        { data: 'Sales Tax', title: 'Sales Tax' },
+        { data: 'Total', title: 'Total' },
+        {
+            title: "Actions",
+            data: 'Type', // Use 'Type' to determine which buttons to display
+            render: function (data, type, row) {
+                let actions = `<button type="button" class="btn btn-primary btn-sm btn-view">View</button>`;
+
+                if (data === 'bill') {
+                    actions += `
+                        <button type="button" class="btn btn-danger btn-sm btn-delete">Delete</button>
+                    `;
+                } else if (data === 'expense' || data === 'invoice') {
+                    actions += `
+                        <button type="button" class="btn btn-danger btn-sm btn-void">Void</button>
+                        <button type="button" class="btn btn-danger btn-sm btn-delete">Delete</button>
+                    `;
+                }
+
+                return actions;
+            }
+        }
+    ]
+});
 
     $('#transactionTable').on('click', 'button.btn-view', function () {
       var data = tableTransaction.row($(this).parents('tr')).data();
@@ -528,6 +541,97 @@ $(document).ready(function() {
           }
         });
     });
+
+    $('#transactionTable').on('click', 'button.btn-void', function () {
+      var data = tableTransaction.row($(this).parents('tr')).data();
+      transac_type = data['Type'];
+      transac_no = data['Transaction No'];
+      console.log("transac: " +data['Type']+" TransacNo: "+data['Transaction No']);
+      
+      Swal.fire({
+      title: "Void this Transaction: \n"+data['Transaction No']+" ?",
+      showDenyButton: true,
+      showCancelButton: false,
+      confirmButtonText: "Yes",
+      denyButtonText: `No`
+      }).then((result) => {
+      if (result.isConfirmed) {
+            //AJAX request
+            $.ajax({
+            url: 'admin/process/admin_action.php', // Update with your PHP script path
+            type: 'POST',
+            data: {
+                action: 'voidTransaction',
+                transac_type: transac_type,
+                transac_no: transac_no
+            },
+            dataType: 'json', // Expecting JSON response
+            success: function (response) {
+                if (response.success) {
+
+                } else {
+                    console.log(response.message);
+                    // toastr.error(response.message);
+                    Swal.fire("Error!", response.message, "error");
+                }
+            },
+            error: function (xhr, status, error) {
+                // Handle error response
+                console.log('An error occurred:', error);
+            }
+          });
+      }else if (result.isDenied) {
+        Swal.fire("Void has been canceled.", "", "error");
+      }
+      });
+    });
+    $('#transactionTable').on('click', 'button.btn-delete', function () {
+    var data = tableTransaction.row($(this).parents('tr')).data();
+    transac_type = data['Type'];
+    transac_no = data['Transaction No'];
+    console.log("transac: " + data['Type'] + " TransacNo: " + data['Transaction No']);
+    
+    Swal.fire({
+        title: "Delete this Transaction: \n" + data['Transaction No'] + " ?",
+        text: "This action cannot be undone!",
+        icon: "warning",
+        showDenyButton: true,
+        showCancelButton: false,
+        confirmButtonText: "Yes, delete it",
+        denyButtonText: `No`
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // AJAX request
+            $.ajax({
+                url: 'admin/process/admin_action.php', // Update with your PHP script path
+                type: 'POST',
+                data: {
+                    action: 'deleteTransaction',
+                    transac_type: transac_type,
+                    transac_no: transac_no
+                },
+                dataType: 'json', // Expecting JSON response
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire("Deleted!", response.message, "success");
+                        tableTransaction.ajax.reload(null, false); // Reload table data without resetting pagination
+                    } else {
+                        console.log(response.message);
+                        Swal.fire("Error!", response.message, "error");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    // Handle error response
+                    console.log('An error occurred:', error);
+                    Swal.fire("Error!", "An unexpected error occurred.", "error");
+                }
+            });
+        } else if (result.isDenied) {
+            Swal.fire("Delete has been canceled.", "", "info");
+        }
+    });
+});
+
     function populateTransactionDetails(data, transactionType) {
       // Clear main form fields before populating
       console.log(data.transaction.supplier_id);

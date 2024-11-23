@@ -229,28 +229,30 @@
                 break;
             case 'expiring_soon':
                 $sql = 'SELECT
-                    p.product_id,
-                    p.product_name,
-                    t.product_sku, 
-                    t.item_barcode, 
-                    t.item_expiry, 
-                    p.expiry_notice, 
-                    DATEDIFF(t.item_expiry, NOW()) + 1 AS days_to_expiry, 
-                    SUM(CASE 
-                            WHEN t.transaction_type IN ("bill", "expense") THEN t.item_qty 
-                            WHEN t.transaction_type = "invoice" THEN -t.item_qty 
-                            ELSE 0 
-                        END) AS available_qty
-                FROM 
-                    trans_item t
-                JOIN 
-                    product p ON t.product_sku = p.product_sku
-                GROUP BY 
-                    t.product_sku, t.item_barcode, t.item_expiry, p.expiry_notice
-                HAVING 
-                    available_qty > 0
-                ORDER BY 
-                    t.item_expiry ASC, t.item_barcode ASC';
+                p.product_id,
+                p.product_name,
+                t.product_sku, 
+                t.item_barcode, 
+                t.item_expiry, 
+                p.expiry_notice, 
+                DATEDIFF(t.item_expiry, NOW()) + 1 AS days_to_expiry, 
+                SUM(CASE 
+                        WHEN t.transaction_type IN ("bill", "expense") THEN t.item_qty 
+                        WHEN t.transaction_type = "invoice" THEN -t.item_qty 
+                        ELSE 0 
+                    END) AS available_qty
+            FROM 
+                trans_item t
+            JOIN 
+                product p ON t.product_sku = p.product_sku
+            WHERE 
+                t.item_expiry IS NOT NULL AND t.item_expiry != "0000-00-00"
+            GROUP BY 
+                t.product_sku, t.item_barcode, t.item_expiry, p.expiry_notice
+            HAVING 
+                available_qty > 0
+            ORDER BY 
+                t.item_expiry ASC, t.item_barcode ASC;';
                 break;
             case 'supplier-list':
                 $sql = 'SELECT * FROM supplier

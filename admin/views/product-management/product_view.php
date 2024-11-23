@@ -15,6 +15,7 @@ function generateBarcode($text){
 }
 $product_no = $_GET['product'];
 $product = getProductSummary($product_no, $pdo);
+// $items = getItembyID($product_no, $pdo);
 $items = getItembyID($product_no, $pdo);
 ?>
 <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'show_product')){?>

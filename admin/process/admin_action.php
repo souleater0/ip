@@ -1284,6 +1284,21 @@ require_once 'function.php';
         exit();
     }
     
+    if (!empty($_POST['action']) && $_POST['action'] == 'voidTransaction') {
+        $result = voidTransaction($pdo);
     
+        // Send JSON response
+        header('Content-Type: application/json');
+        echo json_encode($result);
+        exit();
+    }
+    if (!empty($_POST['action']) && $_POST['action'] == 'deleteTransaction') {
+        $result = deleteTransaction($pdo);
+    
+        // Send JSON response
+        header('Content-Type: application/json');
+        echo json_encode($result);
+        exit();
+    }
     
 ?>

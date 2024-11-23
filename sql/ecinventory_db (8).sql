@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 22, 2024 at 11:20 AM
+-- Generation Time: Nov 23, 2024 at 05:40 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -643,13 +643,6 @@ CREATE TABLE `trans_bill` (
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `trans_bill`
---
-
-INSERT INTO `trans_bill` (`id`, `supplier_id`, `bill_address`, `bill_date`, `bill_due_date`, `bill_no`, `transaction_no`, `tax_type`, `total_amount`, `sales_tax`, `grand_total`, `payment_status`, `isVoid`, `created_at`, `updated_at`) VALUES
-(2, 3, 'test', '2024-11-22', '2024-11-22', 'bill001', 'BILL-20241122-001', 1, 450.00, 54.00, 504.00, 'unpaid', 0, '2024-11-21 23:20:15', '2024-11-21 23:25:15');
-
 -- --------------------------------------------------------
 
 --
@@ -671,13 +664,6 @@ CREATE TABLE `trans_expense` (
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `trans_expense`
---
-
-INSERT INTO `trans_expense` (`id`, `payee_id`, `expense_date`, `expense_payment_method`, `total_amount`, `sales_tax`, `grand_total`, `expense_no`, `transaction_no`, `tax_type`, `isVoid`, `created_at`, `updated_at`) VALUES
-(3, 1, '2024-11-22', 'CASH', 120.00, 14.40, 134.40, 'exp001', 'EXP-20241122-001', 1, 0, '2024-11-22 03:11:33', NULL);
 
 -- --------------------------------------------------------
 
@@ -708,13 +694,6 @@ CREATE TABLE `trans_invoice` (
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `trans_invoice`
---
-
-INSERT INTO `trans_invoice` (`id`, `customer_id`, `customer_email`, `invoice_bill_address`, `invoice_shipping_address`, `invoice_ship_via`, `invoice_ship_date`, `invoice_date`, `invoice_duedate`, `invoice_track_no`, `invoice_no`, `transaction_no`, `tax_type`, `payment_status`, `total_amount`, `sales_tax`, `grand_total`, `isVoid`, `created_at`, `updated_at`) VALUES
-(13, 1, NULL, 'test', 'test', 'test', NULL, '2024-11-22', '2024-11-23', NULL, NULL, 'INV-20241122-001', 3, 'paid', 100.00, 0.00, 100.00, 0, '2024-11-22 03:38:53', '2024-11-22 08:12:11');
-
 -- --------------------------------------------------------
 
 --
@@ -735,16 +714,6 @@ CREATE TABLE `trans_item` (
   `customer_id` int(11) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `trans_item`
---
-
-INSERT INTO `trans_item` (`item_id`, `transaction_no`, `product_sku`, `item_barcode`, `item_qty`, `item_rate`, `item_tax`, `item_amount`, `transaction_type`, `item_expiry`, `customer_id`, `created_at`) VALUES
-(19, 'BILL-20241122-001', 'SN00001', '123', 5, 30.00, 12, 150.00, 'bill', '0000-00-00', NULL, '2024-11-21 23:20:15'),
-(20, 'BILL-20241122-001', 'BR00001', '', 3, 100.00, 12, 300.00, 'bill', '0000-00-00', NULL, '2024-11-21 23:20:15'),
-(22, 'EXP-20241122-001', 'SN00001', '', 3, 40.00, 12, 120.00, 'expense', '0000-00-00', NULL, '2024-11-22 03:11:33'),
-(24, 'INV-20241122-001', 'BR00001', '', 1, 100.00, NULL, 100.00, 'invoice', '0000-00-00', NULL, '2024-11-22 03:38:53');
 
 -- --------------------------------------------------------
 

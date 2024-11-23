@@ -946,7 +946,7 @@
                 a.item_expiry ASC, a.item_barcode ASC";
             
             $stmt = $pdo->prepare($query);
-            $stmt->bindParam(':product_no', $product_no, PDO::PARAM_INT);
+            $stmt->bindParam(':product_no', $product_no, PDO::PARAM_STR);
             $stmt->execute();
             $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
@@ -3079,9 +3079,105 @@ function getProductTransactionsReport($pdo) {
     }
 }
 
+function voidTransaction($pdo) {
+    // Retrieve transaction type and number from POST request
+    $transac_type = $_POST['transac_type'] ?? null;
+    $transac_no = $_POST['transac_no'] ?? null;
 
+    if (!$transac_type || !$transac_no) {
+        return ['success' => false, 'message' => 'Invalid transaction type or number'];
+    }
 
+    try {
+        // Determine the table and query to update based on transaction type
+        if ($transac_type === 'expense') {
+            $query = "UPDATE trans_expense SET isVoid = 1 WHERE transaction_no = :transaction_no";
+        } elseif ($transac_type === 'invoice') {
+            $query = "UPDATE trans_invoice SET isVoid = 1 WHERE transaction_no = :transaction_no";
+        } else {
+            return ['success' => false, 'message' => 'Unknown transaction type'];
+        }
 
+        // Prepare and execute the query
+        $stmt = $pdo->prepare($query);
+        $stmt->bindParam(':transaction_no', $transac_no, PDO::PARAM_STR);
+        $stmt->execute();
+
+        // Check if the update was successful
+        if ($stmt->rowCount() > 0) {
+            return [
+                'success' => true,
+                'message' => "Transaction No: $transac_no\nType: $transac_type\nhas been voided!"
+            ];
+        } else {
+            return [
+                'success' => false,
+                'message' => "No matching transaction found or already voided"
+            ];
+        }
+    } catch (Exception $e) {
+        // Handle exceptions
+        return ['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()];
+    }
+}
+
+function deleteTransaction($pdo) {
+    // Retrieve transaction type and number from POST request
+    $transac_type = $_POST['transac_type'] ?? null;
+    $transac_no = $_POST['transac_no'] ?? null;
+
+    if (!$transac_type || !$transac_no) {
+        return ['success' => false, 'message' => 'Invalid transaction type or number'];
+    }
+
+    try {
+        // Begin transaction
+        $pdo->beginTransaction();
+
+        // Determine the main table query based on transaction type
+        if ($transac_type === 'bill') {
+            $mainQuery = "DELETE FROM trans_bill WHERE transaction_no = :transaction_no";
+        } elseif ($transac_type === 'expense') {
+            $mainQuery = "DELETE FROM trans_expense WHERE transaction_no = :transaction_no";
+        } elseif ($transac_type === 'invoice') {
+            $mainQuery = "DELETE FROM trans_invoice WHERE transaction_no = :transaction_no";
+        } else {
+            return ['success' => false, 'message' => 'Unknown transaction type'];
+        }
+
+        // Delete from main transaction table
+        $stmt = $pdo->prepare($mainQuery);
+        $stmt->bindParam(':transaction_no', $transac_no, PDO::PARAM_STR);
+        $stmt->execute();
+
+        // Check if the main transaction was found and deleted
+        if ($stmt->rowCount() === 0) {
+            $pdo->rollBack();
+            return [
+                'success' => false,
+                'message' => "Transaction No: $transac_no of type $transac_type not found or already deleted."
+            ];
+        }
+
+        // Delete associated items from `trans_item`
+        $itemQuery = "DELETE FROM trans_item WHERE transaction_no = :transaction_no";
+        $itemStmt = $pdo->prepare($itemQuery);
+        $itemStmt->bindParam(':transaction_no', $transac_no, PDO::PARAM_STR);
+        $itemStmt->execute();
+
+        // Commit transaction
+        $pdo->commit();
+
+        return [
+            'success' => true,
+            'message' => "Transaction No: $transac_no of type $transac_type and all associated items have been successfully deleted!"
+        ];
+    } catch (Exception $e) {
+        // Roll back transaction in case of error
+        $pdo->rollBack();
+        return ['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()];
+    }
+}
 
 
 
