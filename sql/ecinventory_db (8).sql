@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 23, 2024 at 05:40 AM
+-- Generation Time: Nov 23, 2024 at 11:46 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -643,6 +643,13 @@ CREATE TABLE `trans_bill` (
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `trans_bill`
+--
+
+INSERT INTO `trans_bill` (`id`, `supplier_id`, `bill_address`, `bill_date`, `bill_due_date`, `bill_no`, `transaction_no`, `tax_type`, `total_amount`, `sales_tax`, `grand_total`, `payment_status`, `isVoid`, `created_at`, `updated_at`) VALUES
+(3, 1, NULL, '2024-11-23', '2024-11-23', 'bill001', 'BILL-20241123-001', 3, 450.00, 0.00, 450.00, 'unpaid', 0, '2024-11-23 05:41:40', '2024-11-23 05:41:40');
+
 -- --------------------------------------------------------
 
 --
@@ -664,6 +671,13 @@ CREATE TABLE `trans_expense` (
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `trans_expense`
+--
+
+INSERT INTO `trans_expense` (`id`, `payee_id`, `expense_date`, `expense_payment_method`, `total_amount`, `sales_tax`, `grand_total`, `expense_no`, `transaction_no`, `tax_type`, `isVoid`, `created_at`, `updated_at`) VALUES
+(4, 1, '2024-11-23', 'CASH', 300.00, 0.00, 300.00, 'exp001', 'EXP-20241123-001', 3, 0, '2024-11-23 05:42:07', NULL);
 
 -- --------------------------------------------------------
 
@@ -694,6 +708,13 @@ CREATE TABLE `trans_invoice` (
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `trans_invoice`
+--
+
+INSERT INTO `trans_invoice` (`id`, `customer_id`, `customer_email`, `invoice_bill_address`, `invoice_shipping_address`, `invoice_ship_via`, `invoice_ship_date`, `invoice_date`, `invoice_duedate`, `invoice_track_no`, `invoice_no`, `transaction_no`, `tax_type`, `payment_status`, `total_amount`, `sales_tax`, `grand_total`, `isVoid`, `created_at`, `updated_at`) VALUES
+(14, 1, NULL, 'test', 'test', 'test', '2024-11-26', '2024-11-23', '2024-11-24', 'tk001', NULL, 'INV-20241123-001', 3, 'paid', 300.00, 0.00, 300.00, 0, '2024-11-23 05:43:50', NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -714,6 +735,16 @@ CREATE TABLE `trans_item` (
   `customer_id` int(11) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `trans_item`
+--
+
+INSERT INTO `trans_item` (`item_id`, `transaction_no`, `product_sku`, `item_barcode`, `item_qty`, `item_rate`, `item_tax`, `item_amount`, `transaction_type`, `item_expiry`, `customer_id`, `created_at`) VALUES
+(25, 'BILL-20241123-001', 'SN00001', '', 5, 30.00, NULL, 150.00, 'bill', '2024-11-23', NULL, '2024-11-23 05:41:40'),
+(26, 'BILL-20241123-001', 'BR00001', '', 3, 100.00, NULL, 300.00, 'bill', '0000-00-00', NULL, '2024-11-23 05:41:40'),
+(27, 'EXP-20241123-001', 'BR00001', '', 3, 100.00, NULL, 300.00, 'expense', '0000-00-00', NULL, '2024-11-23 05:42:07'),
+(28, 'INV-20241123-001', 'BR00001', '', 3, 100.00, NULL, 300.00, 'invoice', '0000-00-00', NULL, '2024-11-23 05:43:50');
 
 -- --------------------------------------------------------
 
@@ -1081,25 +1112,25 @@ ALTER TABLE `system_option`
 -- AUTO_INCREMENT for table `trans_bill`
 --
 ALTER TABLE `trans_bill`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `trans_expense`
 --
 ALTER TABLE `trans_expense`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `trans_invoice`
 --
 ALTER TABLE `trans_invoice`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `trans_item`
 --
 ALTER TABLE `trans_item`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT for table `users`
