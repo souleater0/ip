@@ -67,6 +67,15 @@ switch ($route){
     case "product-history-report":
         require 'admin/views/report/product_transaction_report.php';
         break;
+    case "supplier-transaction":
+        require 'admin/views/report/supplier_transaction.php';
+        break;
+    case "customer-transaction":
+        require 'admin/views/report/customer_transaction.php';
+        break;
+    case "summary-report":
+        require 'admin/views/report/summary_report.php';
+        break;
     case "user-management":
         require 'admin/views/user-management/users.php';
         break;

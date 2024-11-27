@@ -1209,15 +1209,6 @@ require_once 'function.php';
         echo json_encode($result);
         exit();
     }
-    // if (!empty($_POST['action']) && $_POST['action'] == 'getStockValuationReport') {
-    //     // Call the function to generate the stock report
-    //     $result = generateValuationStockReport($pdo);
-    
-    //     // Send response as JSON
-    //     header('Content-Type: application/json');
-    //     echo json_encode($result);
-    //     exit();
-    // }
     if (!empty($_POST['action']) && $_POST['action'] == 'getStockValuationReport') {
         // Call the function to generate the stock report
         $result = generateValuationStockReport($pdo, $_POST['dateFilter'], $_POST['startDate'], $_POST['endDate']);

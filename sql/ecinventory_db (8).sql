@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 23, 2024 at 11:46 AM
+-- Generation Time: Nov 27, 2024 at 12:03 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -129,14 +129,17 @@ INSERT INTO `modules` (`id`, `module_name`, `description`) VALUES
 (4, 'Brand Management', NULL),
 (5, 'Unit Management', NULL),
 (6, 'Tax Management', NULL),
-(7, 'Stock In Management', NULL),
-(8, 'Stock Out Management', NULL),
-(9, 'Pending Stock In Management', NULL),
-(10, 'Stock Out History Management', NULL),
+(7, 'Stock Management', NULL),
+(9, 'Paybills', NULL),
+(10, 'Supplier Management', NULL),
 (11, 'Costing Management', NULL),
-(12, 'Waste Management', NULL),
+(12, 'Customer Management', NULL),
 (13, 'User Management', NULL),
-(14, 'Role Management', NULL);
+(14, 'Role Management', NULL),
+(16, 'Inventory Stock Report', NULL),
+(17, 'Stock Valuation Report', NULL),
+(18, 'Stock Movement Report', NULL),
+(19, 'Product History Report', NULL);
 
 -- --------------------------------------------------------
 
@@ -281,27 +284,38 @@ INSERT INTO `permissions` (`id`, `permission_name`, `description`, `module_id`) 
 (20, 'create_tax', 'CREATE', 6),
 (21, 'update_tax', 'UPDATE', 6),
 (22, 'delete_tax', 'DELETE', 6),
-(23, 'manage_stockin', 'MANAGE', 7),
-(24, 'manage_stockout', 'MANAGE', 8),
-(25, 'show_pending_stockin', 'SHOW', 9),
-(26, 'manage_pending_stockin', 'MANAGE', 9),
-(27, 'approve_pending_stockin', 'APPROVE', 9),
-(28, 'delete_pending_stockin', 'DELETE', 9),
-(29, 'show_stockout_history', 'SHOW', 10),
-(30, 'manage_stockout_history', 'MANAGE', 10),
-(31, 'delete_stockout_history', 'DELETE', 10),
-(32, 'manage_costing', 'MANAGE', 11),
-(33, 'update_costing', 'UPDATE', 11),
-(34, 'show_waste', 'SHOW', 12),
-(35, 'manage_waste', 'MANAGE', 12),
-(36, 'manage_user', 'MANAGE', 13),
-(37, 'create_user', 'CREATE', 13),
-(38, 'update_user', 'UPDATE', 13),
-(39, 'delete_user', 'DELETE', 13),
-(40, 'manage_role', 'MANAGE', 14),
-(41, 'create_role', 'CREATE', 14),
-(42, 'update_role', 'UPDATE', 14),
-(43, 'delete_role', 'DELETE', 14);
+(23, 'manage_costing', 'MANAGE', 11),
+(24, 'update_costing', 'UPDATE', 11),
+(25, 'manage_supplier', 'MANAGE', 10),
+(26, 'create_supplier', 'CREATE', 10),
+(27, 'update_supplier', 'UPDATE', 10),
+(28, 'delete_supplier', 'DELETE', 10),
+(29, 'manage_customer', 'MANAGE', 12),
+(30, 'create_customer', 'CREATE', 12),
+(31, 'update_customer', 'UPDATE', 12),
+(32, 'delete_customer', 'DELETE', 12),
+(33, 'manage_transaction', 'MANAGE', 7),
+(34, 'view_transaction', 'VIEW', 7),
+(35, 'void_transaction', 'VOID', 7),
+(36, 'create_transaction', 'CREATE', 7),
+(37, 'update_transaction', 'UPDATE', 7),
+(38, 'delete_transaction', 'DELETE', 7),
+(39, 'pay_bills', 'PAY BILL', 7),
+(40, 'create_bill', 'CREATE BILL', 7),
+(41, 'create_expense', 'CREATE EXPENSE', 7),
+(42, 'create_invoice', 'CREATE INVOICE', 7),
+(43, 'manage_inventory_stock', 'MANAGE', 16),
+(44, 'manage_stock_valuation', 'MANAGE', 17),
+(45, 'manage_stock_movement', 'MANAGE', 18),
+(46, 'manage_product_history', 'MANAGE', 19),
+(47, 'manage_user', 'MANAGE', 13),
+(48, 'create_user', 'CREATE', 13),
+(49, 'update_user', 'UPDATE', 13),
+(50, 'delete_user', 'DELETE', 13),
+(51, 'manage_role', 'MANAGE', 14),
+(52, 'create_role', 'CREATE', 14),
+(53, 'update_role', 'UPDATE', 14),
+(54, 'delete_role', 'DELETE', 14);
 
 -- --------------------------------------------------------
 
@@ -334,9 +348,9 @@ CREATE TABLE `product` (
 
 INSERT INTO `product` (`product_id`, `product_name`, `product_description`, `brand_id`, `category_id`, `status_id`, `product_sku`, `product_pp`, `product_sp`, `product_min`, `product_max`, `unit_id`, `tax_id`, `expiry_notice`, `created_at`, `updated_at`) VALUES
 (1, 'OISHI PODS PEA SNACK 60G', 'OISHI PODS PEA SNACK 60G', 10, 8, NULL, 'SN00001', 30.00, 40.00, 20, 30, 1, 1, 10, '2024-08-08 09:06:29', '2024-10-29 04:33:31'),
-(2, 'LAURAS MANNA BUTTERED TOAST 200G', 'LAURAS MANNA BUTTERED TOAST 200G', 12, 9, NULL, 'BR00001', 100.00, 100.00, 10, 20, 1, 1, 10, '2024-08-08 09:09:17', '2024-11-22 09:24:49'),
+(2, 'LAURAS MANNA BUTTERED TOAST 200G', 'LAURAS MANNA BUTTERED TOAST 200G', 12, 9, NULL, 'BR00001', 100.00, 100.00, 10, 20, 1, 5, 10, '2024-08-08 09:09:17', '2024-11-27 05:23:52'),
 (3, 'BREAD PAN WHITE CHEDDAR 24G', 'BREAD PAN WHITE CHEDDAR 24G', 10, 9, NULL, 'BR00002', 15.00, 0.00, 20, 50, 1, 1, 10, '2024-08-08 09:10:06', '2024-08-08 09:10:28'),
-(4, 'BREAD PAN CHEESE & ONION 24G', 'BREAD PAN CHEESE & ONION 24G', 10, 8, NULL, 'SN00002', 15.00, 0.00, 20, 50, 1, 1, 10, '2024-08-08 09:12:50', '2024-08-08 09:13:19');
+(4, 'BREAD PAN CHEESE & ONION 24G', 'BREAD PAN CHEESE & ONION 24G', 10, 8, NULL, 'SN00002', 15.00, 22.00, 20, 50, 1, 5, 10, '2024-08-08 09:12:50', '2024-11-27 05:41:50');
 
 -- --------------------------------------------------------
 
@@ -436,40 +450,17 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 (1, 41),
 (1, 42),
 (1, 43),
-(2, 1),
-(2, 2),
-(2, 3),
-(2, 4),
-(2, 5),
-(2, 6),
-(2, 7),
-(2, 8),
-(2, 9),
-(2, 10),
-(2, 11),
-(2, 12),
-(2, 13),
-(2, 14),
-(2, 15),
-(2, 16),
-(2, 17),
-(2, 18),
-(2, 23),
-(2, 24),
-(2, 25),
-(2, 26),
-(2, 27),
-(2, 28),
-(2, 29),
-(2, 30),
-(2, 31),
-(3, 1),
-(3, 19),
-(3, 20),
-(3, 21),
-(3, 22),
-(3, 32),
-(3, 33);
+(1, 44),
+(1, 45),
+(1, 46),
+(1, 47),
+(1, 48),
+(1, 49),
+(1, 50),
+(1, 51),
+(1, 52),
+(1, 53),
+(1, 54);
 
 -- --------------------------------------------------------
 
@@ -648,7 +639,8 @@ CREATE TABLE `trans_bill` (
 --
 
 INSERT INTO `trans_bill` (`id`, `supplier_id`, `bill_address`, `bill_date`, `bill_due_date`, `bill_no`, `transaction_no`, `tax_type`, `total_amount`, `sales_tax`, `grand_total`, `payment_status`, `isVoid`, `created_at`, `updated_at`) VALUES
-(3, 1, NULL, '2024-11-23', '2024-11-23', 'bill001', 'BILL-20241123-001', 3, 450.00, 0.00, 450.00, 'unpaid', 0, '2024-11-23 05:41:40', '2024-11-23 05:41:40');
+(3, 1, NULL, '2024-11-23', '2024-11-23', 'bill001', 'BILL-20241123-001', 3, 450.00, 0.00, 450.00, 'unpaid', 0, '2024-11-23 05:41:40', '2024-11-23 05:41:40'),
+(5, 1, 'test', '2024-11-27', '2024-11-27', 'bill002', 'BILL-20241127-001', 3, 120.00, 0.00, 120.00, 'unpaid', 0, '2024-11-27 09:11:22', '2024-11-27 09:11:56');
 
 -- --------------------------------------------------------
 
@@ -744,7 +736,8 @@ INSERT INTO `trans_item` (`item_id`, `transaction_no`, `product_sku`, `item_barc
 (25, 'BILL-20241123-001', 'SN00001', '', 5, 30.00, NULL, 150.00, 'bill', '2024-11-23', NULL, '2024-11-23 05:41:40'),
 (26, 'BILL-20241123-001', 'BR00001', '', 3, 100.00, NULL, 300.00, 'bill', '0000-00-00', NULL, '2024-11-23 05:41:40'),
 (27, 'EXP-20241123-001', 'BR00001', '', 3, 100.00, NULL, 300.00, 'expense', '0000-00-00', NULL, '2024-11-23 05:42:07'),
-(28, 'INV-20241123-001', 'BR00001', '', 3, 100.00, NULL, 300.00, 'invoice', '0000-00-00', NULL, '2024-11-23 05:43:50');
+(28, 'INV-20241123-001', 'BR00001', '', 3, 100.00, NULL, 300.00, 'invoice', '0000-00-00', NULL, '2024-11-23 05:43:50'),
+(34, 'BILL-20241127-001', 'SN00001', '', 3, 40.00, NULL, 120.00, 'bill', '0000-00-00', NULL, '2024-11-27 09:11:22');
 
 -- --------------------------------------------------------
 
@@ -1034,7 +1027,7 @@ ALTER TABLE `customer`
 -- AUTO_INCREMENT for table `modules`
 --
 ALTER TABLE `modules`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `payments`
@@ -1064,7 +1057,7 @@ ALTER TABLE `pending_stock_out`
 -- AUTO_INCREMENT for table `permissions`
 --
 ALTER TABLE `permissions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=45;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
 -- AUTO_INCREMENT for table `product`
@@ -1112,7 +1105,7 @@ ALTER TABLE `system_option`
 -- AUTO_INCREMENT for table `trans_bill`
 --
 ALTER TABLE `trans_bill`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `trans_expense`
@@ -1130,7 +1123,7 @@ ALTER TABLE `trans_invoice`
 -- AUTO_INCREMENT for table `trans_item`
 --
 ALTER TABLE `trans_item`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT for table `users`

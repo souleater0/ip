@@ -125,6 +125,8 @@ $(document).on('change', 'input[type="checkbox"]', function () {
 
         // Add Role
         $('#addRole').click(function () {
+          $('#updateRole').hide();
+          $('#addRole').show();
             var roleName = $('#role_name').val();
             var selectedPermissions = [];
             $('.permission-checkbox:checked').each(function () {
@@ -269,6 +271,8 @@ $(document).on('change', 'input[type="checkbox"]', function () {
                         // Show the modal
                         $("#role_name").val(data.role_name);
                         updateCheckAllGlobal();
+                        $('#addRole').hide();
+                        $('#updateRole').show();
                         $('#roleModal').modal('show');
                     } else {
                         toastr.error(response.message);

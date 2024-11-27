@@ -1,18 +1,45 @@
 <?php
-    function getProductList($pdo){
-        try {
-            $query = "SELECT * FROM product";
-            $stmt = $pdo->prepare($query);
+function getProductList($pdo) {
+    try {
+        $query = 
+        "SELECT 
+                p.product_id, 
+                p.product_name, 
+                p.product_description, 
+                p.brand_id, 
+                p.category_id, 
+                p.status_id, 
+                p.product_sku, 
+                p.product_pp, 
+                p.product_sp, 
+                p.product_min, 
+                p.product_max, 
+                p.unit_id, 
+                p.tax_id, 
+                p.expiry_notice, 
+                p.created_at, 
+                p.updated_at, 
+                CAST(ROUND(p.product_sp * (1 + t.tax_percentage / 100), 2) AS DECIMAL(10, 2)) AS product_sp_with_tax
+            FROM 
+                product p
+            LEFT JOIN 
+                tax t ON p.tax_id = t.tax_id
+        ";
 
-            $stmt ->execute();
-            $productList = $stmt -> fetchAll(PDO::FETCH_ASSOC);
-            return $productList;
-        }catch(PDOException $e){
-            // Handle database connection error
-            echo "Error: " . $e->getMessage();
-            return array(); // Return an empty array if an error occurs
-        }
+        $stmt = $pdo->prepare($query);
+        $stmt->execute();
+        
+        // Fetch the result as an associative array
+        $productList = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        return $productList;
+    } catch (PDOException $e) {
+        // Handle database connection error
+        echo "Error: " . $e->getMessage();
+        return array(); // Return an empty array if an error occurs
     }
+}
+
     function getModules($pdo){
         try {
             $query = "SELECT * FROM modules";

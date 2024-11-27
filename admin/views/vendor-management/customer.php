@@ -1,3 +1,4 @@
+<?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_customer')){?>
 <div class="body-wrapper-inner">
     <div class="container-fluid mw-100">
         <div class="card shadow-sm">
@@ -10,9 +11,11 @@
                         <button class="btn btn-sm float-end" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
                             <iconify-icon icon="rivet-icons:filter" width="20" height="20"></iconify-icon>
                         </button>
+                        <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'create_customer')){?>
                         <button class="btn btn-primary btn-sm float-end" id="addCustomerBTN" data-bs-toggle="modal" data-bs-target="#customerModal">
                             <i class="fa-solid fa-plus"></i>&nbsp;Add Customer
                         </button>
+                        <?php } ?>
                         <ul class="dropdown-menu p-3">
                             <div class="fw-bolder text-dark">Hide Column:</div>
                             <li>
@@ -131,14 +134,10 @@ $(document).ready(function () {
                 "data": "created_at", 
                 "title": "Date Created", 
                 "className": "text-start"
-            },
-              {
-                  "data": null,
-                  "className": "text-center noExport",
-                  "title": 'Action',
-                  "defaultContent": "<button class='btn btn-primary btn-sm btn-edit'><i class='fa-regular fa-pen-to-square'></i></button>&nbsp;<button class='btn btn-danger btn-sm'><i class='fa-solid fa-trash'></i></button>"
-
             }
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'update_customer') || userHasPermission($pdo, $_SESSION["user_id"], 'delete_customer') ){?>
+            ,{"data": null,"className": "text-center noExport", title: 'Action', "defaultContent": "<?php if(userHasPermission($pdo, $_SESSION["user_id"], 'update_customer')){ ?><button class='btn btn-primary btn-sm btn-edit'><i class='fa-regular fa-pen-to-square'></i></button>&nbsp;<?php } ?><?php if(userHasPermission($pdo, $_SESSION["user_id"], 'delete_customer')){ ?><button class='btn btn-danger btn-sm'><i class='fa-solid fa-trash'></i></button><?php } ?>"}
+            <?php } ?>
         ],
         dom: 'Bfrtip',
         buttons: [
@@ -270,3 +269,19 @@ $(document).ready(function () {
     });
 });
 </script>
+<?php }else{
+  echo '
+  <div class="d-flex justify-content-center align-items-center vh-100">
+  <div class="container">
+      <div class="row">
+          <div class="col text-center">
+              <iconify-icon icon="maki:caution" width="50" height="50"></iconify-icon>
+              <h2 class="fw-bolder">User does not have permission!</h2>
+              <p>We are sorry, your account does not have permission to access this page.</p>
+          </div>
+      </div>
+  </div>
+</div>
+  ';
+}
+?>

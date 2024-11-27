@@ -4,11 +4,13 @@ $supplierlists = getSupplierList($pdo);
 $customerlists = getCustomerList($pdo);
 $paymentaccountlists = getPaymentAccount($pdo);
 $payment_ref = generatePaymentReference($pdo);
+$taxes = getTaxs($pdo);
 $selectProduct = '';
 foreach ($productlists as $productlist) {
-  $selectProduct .= '<option value="' . htmlspecialchars($productlist['product_name']) . '" data-sku="' . htmlspecialchars($productlist['product_sku']) . '" data-rate-purchase="' . htmlspecialchars($productlist['product_pp']) . '" data-rate-sell="' . (floatval($productlist['product_sp']) == 0.00 ? htmlspecialchars($productlist['product_pp'] * 1.3 + 2) : htmlspecialchars($productlist['product_sp'])) . '">'.htmlspecialchars($productlist['product_name']) . '</option>';
+  $selectProduct .= '<option value="' . htmlspecialchars($productlist['product_name']) . '" data-sku="' . htmlspecialchars($productlist['product_sku']) . '" data-rate-purchase="' . htmlspecialchars($productlist['product_pp']) . '" data-rate-sell="' . (floatval($productlist['product_sp_with_tax']) == 0.00 ? htmlspecialchars($productlist['product_pp'] * 1.3 + 2) : htmlspecialchars($productlist['product_sp_with_tax'])) . '">'.htmlspecialchars($productlist['product_name']) . '</option>';
 }
 ?>
+<?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_transaction')){?>
 <div class="body-wrapper-inner">
   <div class="container-fluid mw-100">
     <div class="row py-3">
@@ -17,14 +19,22 @@ foreach ($productlists as $productlist) {
       </div>
       <div class="col">
         <div class="dropdown float-end">
+          <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'pay_bills')){?>
           <button class="btn btn-light btn btn-outline-dark" id="payBillbtn" type="button" data-bs-toggle="modal" data-bs-target="#payModal">Pay Bills</button>
+          <?php } ?>
           <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
             New Transaction
           </button>
           <ul class="dropdown-menu">
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'create_bill')){?>
             <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#transactionModal" data-form="bill">Bill</a></li>
+            <?php } ?>
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'create_expense')){?>
             <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#transactionModal" data-form="expense">Expense</a></li>
+            <?php } ?>
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'create_invoice')){?>
             <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#transactionModal" data-form="invoice">Invoice</a></li>
+            <?php } ?>
           </ul>
         </div>
       </div>
@@ -245,8 +255,12 @@ foreach ($productlists as $productlist) {
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary " data-bs-dismiss="modal">Close</button>
+        <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'create_transaction')){?>
         <button type="button" class="btn btn-primary" id="submitForm">Save & Close</button>
+        <?php } ?>
+        <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'update_transaction')){?>
         <button type="button" class="btn btn-danger" id="updateForm">Save & Close</button>
+        <?php } ?>
       </div>
     </div>
   </div>
@@ -377,7 +391,25 @@ $(document).ready(function() {
         { data: 'payee', title: 'PAYEE', className:'text-dark'},
         { data: 'transaction_no', title: 'TRANSACTION NO.', className:'text-dark' },
         { data: 'ref_no', title: 'REF NO.', className:'text-dark' },
-        { data: 'due_date', title: 'Due Date', className:'text-dark' },
+        { 
+            data: 'due_date', 
+            title: 'Due Date', 
+            className: 'text-dark', 
+            render: function(data, type, row) {
+                const today = new Date();
+                const dueDate = new Date(data);
+                const diffTime = dueDate - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays < 0) {
+                    return `<span>${data} <span class="badge bg-danger">Overdue</span></span>`;
+                } else if (diffDays === 0) {
+                    return `<span>${data} <span class="badge bg-warning">Due Today</span></span>`;
+                } else {
+                    return `<span>${data} <span class="badge bg-success">${diffDays} Days Remaining</span></span>`;
+                }
+            } 
+        },
         { data: 'bill_amount', title: 'BILL AMOUNT', className:'text-dark' },
         { data: 'total_payments', title: 'PAID AMOUNT', className:'text-dark' },
         { data: 'open_balance', title: 'OPEN BALANCE', className:'text-dark' },
@@ -450,27 +482,38 @@ $(document).ready(function() {
         { data: 'Payee', title: 'Payee' },
         { data: 'Total Before Sales', title: 'Total Before Sales' },
         { data: 'Sales Tax', title: 'Sales Tax' },
-        { data: 'Total', title: 'Total' },
-        {
-            title: "Actions",
-            data: 'Type', // Use 'Type' to determine which buttons to display
-            render: function (data, type, row) {
-                let actions = `<button type="button" class="btn btn-primary btn-sm btn-view">View</button>`;
+        { data: 'Total', title: 'Total' }
+        <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'view_transaction') || userHasPermission($pdo, $_SESSION["user_id"], 'void_transaction') || userHasPermission($pdo, $_SESSION["user_id"], 'delete_transaction')){ ?>
+    ,{
+        title: "Actions",
+        data: 'Type', // Use 'Type' to determine which buttons to display
+        render: function (data, type, row) {
+            let actions = '';
 
-                if (data === 'bill') {
-                    actions += `
-                        <button type="button" class="btn btn-danger btn-sm btn-delete">Delete</button>
-                    `;
-                } else if (data === 'expense' || data === 'invoice') {
-                    actions += `
-                        <button type="button" class="btn btn-danger btn-sm btn-void">Void</button>
-                        <button type="button" class="btn btn-danger btn-sm btn-delete">Delete</button>
-                    `;
-                }
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'view_transaction')){ ?>
+                actions += `<button type="button" class="btn btn-primary btn-sm btn-view">View</button>`;
+            <?php } ?>
 
-                return actions;
+            if (data === 'bill') {
+                <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'delete_transaction')){ ?>
+                    actions += `<button type="button" class="btn btn-danger btn-sm btn-delete">Delete</button>`;
+                <?php } ?>
+            } else if (data === 'expense' || data === 'invoice') {
+                <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'void_transaction')){ ?>
+                    actions += `<button type="button" class="btn btn-danger btn-sm btn-void">Void</button>`;
+                <?php } ?>
+                <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'delete_transaction')){ ?>
+                    actions += `<button type="button" class="btn btn-danger btn-sm btn-delete">Delete</button>`;
+                <?php } ?>
             }
+
+            return actions;
         }
+    }
+<?php } ?>
+
+
+
     ]
 });
 
@@ -826,12 +869,13 @@ $(document).ready(function() {
   if (isTaxVisible) {
     fields.push(
       '<select class="tax selectpicker form-control" data-live-search="true">' +
-        '<option value="0">0%</option>' +
-        '<option value="5">5%</option>' +
-        '<option value="12">12%</option>' +
+        '<?php foreach ($taxes as $tax): ?>' +
+          '<option value="<?php echo $tax['tax_percentage']; ?>"><?php echo $tax['tax_name']; ?></option>' +
+        '<?php endforeach; ?>' +
       '</select>'
     );
   }
+
 
   // Add the customer field (always visible)
   fields.push(
@@ -1523,3 +1567,19 @@ function updateTotalAmount() {
 });
 
 </script>
+<?php }else{
+  echo '
+  <div class="d-flex justify-content-center align-items-center vh-100">
+  <div class="container">
+      <div class="row">
+          <div class="col text-center">
+              <iconify-icon icon="maki:caution" width="50" height="50"></iconify-icon>
+              <h2 class="fw-bolder">User does not have permission!</h2>
+              <p>We are sorry, your account does not have permission to access this page.</p>
+          </div>
+      </div>
+  </div>
+</div>
+  ';
+}
+?>

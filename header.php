@@ -16,6 +16,15 @@ $route = $_GET['route'] ?? 'home';
     .nav-small-cap{
       cursor: pointer;
     }
+    @media print {
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        #printArea {
+            page-break-inside: avoid;
+        }
+    }
   </style>
   <script src="assets/libs/jquery/dist/jquery.min.js"></script>
   <script src="assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
@@ -181,7 +190,7 @@ $route = $_GET['route'] ?? 'home';
               </a>
             </li>
             <?php } ?>
-            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_stockin')){?>
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_transaction')){?>
             <li class="sidebar-item">
               <a class="sidebar-link <?php echo ($route == 'manage-transaction' )? 'active' : ''; ?>" href="index.php?route=manage-transaction" aria-expanded="false">
                 <iconify-icon icon="ic:baseline-receipt-long"></iconify-icon>
@@ -190,6 +199,7 @@ $route = $_GET['route'] ?? 'home';
             </li>
             <?php } ?>
             </div>
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_inventory_stock') || userHasPermission($pdo, $_SESSION["user_id"], 'manage_stock_valuation') || userHasPermission($pdo, $_SESSION["user_id"], 'manage_stock_movement') || userHasPermission($pdo, $_SESSION["user_id"], 'manage_product_history')){?>
             <li>
               <span class="sidebar-divider lg"></span>
             </li>
@@ -198,6 +208,12 @@ $route = $_GET['route'] ?? 'home';
               <span class="hide-menu text-uppercase">Reports</span>
             </li>
             <div class="collapse <?php echo ($route == 'inventory-stock-report'|| $route == 'stock-valuation-report' || $route == 'stock-movement-report' || $route == 'product-history-report') ? 'show' : ''; ?>" id="collapseReport">
+            <li class="sidebar-item">
+              <a class="sidebar-link" href="index.php?route=summary-report" aria-expanded="false">
+                <iconify-icon icon="carbon:scis-transparent-supply"></iconify-icon>
+                <span class="hide-menu">Summary Report</span>
+              </a>
+            </li>
             <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=inventory-stock-report" aria-expanded="false">
                 <iconify-icon icon="ic:baseline-receipt-long"></iconify-icon>
@@ -222,7 +238,20 @@ $route = $_GET['route'] ?? 'home';
                 <span class="hide-menu">Product History Report</span>
               </a>
             </li>
+            <li class="sidebar-item">
+              <a class="sidebar-link" href="index.php?route=supplier-transaction" aria-expanded="false">
+                <iconify-icon icon="carbon:scis-transparent-supply"></iconify-icon>
+                <span class="hide-menu">Supplier Transaction</span>
+              </a>
+            </li>
+            <li class="sidebar-item">
+              <a class="sidebar-link" href="index.php?route=customer-transaction" aria-expanded="false">
+                <iconify-icon icon="carbon:scis-transparent-supply"></iconify-icon>
+                <span class="hide-menu">Customer Transaction</span>
+              </a>
+            </li>
             </div>
+            <?php } ?>
             <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_user') || userHasPermission($pdo, $_SESSION["user_id"], 'manage_role')){?>
             <li>
               <span class="sidebar-divider lg"></span>
