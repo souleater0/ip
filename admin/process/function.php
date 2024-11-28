@@ -2022,11 +2022,12 @@ function getProductList($pdo) {
                     $grand_total = !empty($_POST['grand_total']) ? $_POST['grand_total'] : null;
                     $transactionNo = generateTransactionNo($pdo, 'bill');
                     $tax_type = !empty($_POST['tax_type']) ? $_POST['tax_type'] : null;
+                    $remarks = !empty($_POST['remarks']) ? $_POST['remarks'] : null;
     
                     // Insert into the trans_bill table
                     $sql = "
-                        INSERT INTO trans_bill (supplier_id, bill_address, bill_date, bill_due_date, bill_no, total_amount, sales_tax, grand_total, transaction_no , tax_type) 
-                        VALUES (:supplier_id, :bill_address, :bill_date, :bill_due_date, :bill_no, :total_amount, :sales_tax, :grand_total, :transaction_no, :tax_type)
+                        INSERT INTO trans_bill (supplier_id, bill_address, bill_date, bill_due_date, bill_no, total_amount, sales_tax, grand_total, transaction_no , tax_type, remarks) 
+                        VALUES (:supplier_id, :bill_address, :bill_date, :bill_due_date, :bill_no, :total_amount, :sales_tax, :grand_total, :transaction_no, :tax_type, :remarks)
                     ";
                     $stmtParams = [
                         'supplier_id' => $supplierID,
@@ -2038,7 +2039,8 @@ function getProductList($pdo) {
                         'sales_tax' => $total_tax,
                         'grand_total' => $grand_total,
                         'transaction_no' => $transactionNo,
-                        'tax_type' => $tax_type
+                        'tax_type' => $tax_type,
+                        'remarks' => $remarks
                     ];
                     break;
     
@@ -2052,11 +2054,12 @@ function getProductList($pdo) {
                     $grandTotal = !empty($_POST['grand_total']) ? $_POST['grand_total'] : 0;
                     $transactionNo = generateTransactionNo($pdo, 'expense');
                     $tax_type = !empty($_POST['tax_type']) ? $_POST['tax_type'] : null;
+                    $remarks = !empty($_POST['remarks']) ? $_POST['remarks'] : null;
     
                     // Insert into the trans_expense table
                     $sql = "
-                        INSERT INTO trans_expense (payee_id, expense_date, expense_payment_method, expense_no, transaction_no, tax_type, total_amount, sales_tax, grand_total) 
-                        VALUES (:payee_id, :expense_date, :expense_payment_method, :expense_no, :transaction_no, :tax_type, :total_amount, :sales_tax, :grand_total)
+                        INSERT INTO trans_expense (payee_id, expense_date, expense_payment_method, expense_no, transaction_no, tax_type, total_amount, sales_tax, grand_total, remarks) 
+                        VALUES (:payee_id, :expense_date, :expense_payment_method, :expense_no, :transaction_no, :tax_type, :total_amount, :sales_tax, :grand_total, :remarks)
                     ";
                     $stmtParams = [
                         'payee_id' => $supplierID,
@@ -2067,7 +2070,8 @@ function getProductList($pdo) {
                         'tax_type' => $tax_type,
                         'total_amount' => $subTotal,
                         'sales_tax' => $totalTax,
-                        'grand_total' => $grandTotal
+                        'grand_total' => $grandTotal,
+                        'remarks' => $remarks
                     ];
                     break;
     
@@ -2086,13 +2090,14 @@ function getProductList($pdo) {
                     $grandTotal = !empty($_POST['grand_total']) ? $_POST['grand_total'] : null;
                     $transactionNo = generateTransactionNo($pdo, 'invoice');
                     $tax_type = !empty($_POST['tax_type']) ? $_POST['tax_type'] : null;
+                    $remarks = !empty($_POST['remarks']) ? $_POST['remarks'] : null;
                 
                     // Insert into trans_invoice table
                     $sql = "
                         INSERT INTO trans_invoice (customer_id, customer_email, invoice_bill_address, invoice_date, invoice_duedate, invoice_shipping_address, 
-                                                    invoice_ship_via, invoice_ship_date, invoice_track_no, total_amount, sales_tax, grand_total, transaction_no, tax_type) 
+                                                    invoice_ship_via, invoice_ship_date, invoice_track_no, total_amount, sales_tax, grand_total, transaction_no, tax_type, remarks) 
                         VALUES (:customer_id, :customer_email, :invoice_bill_address, :invoice_date, :invoice_duedate, :invoice_shipping_address, 
-                                :invoice_ship_via, :invoice_ship_date, :invoice_track_no, :total_amount, :sales_tax, :grand_total, :transaction_no , :tax_type)
+                                :invoice_ship_via, :invoice_ship_date, :invoice_track_no, :total_amount, :sales_tax, :grand_total, :transaction_no , :tax_type, :remarks)
                     ";
                     $stmtParams = [
                         'customer_id' => $customerID,
@@ -2108,7 +2113,8 @@ function getProductList($pdo) {
                         'sales_tax' => $totalTax,
                         'grand_total' => $grandTotal,
                         'transaction_no' => $transactionNo,
-                        'tax_type' => $tax_type
+                        'tax_type' => $tax_type,
+                        'remarks' => $remarks
                     ];
                     break;
     
@@ -2261,6 +2267,7 @@ function updateTransaction($pdo) {
                 $total_tax = !empty($_POST['total_tax']) ? $_POST['total_tax'] : 0;
                 $grand_total = !empty($_POST['grand_total']) ? $_POST['grand_total'] : 0;
                 $tax_type = !empty($_POST['tax_type']) ? $_POST['tax_type'] : null;
+                $remarks = !empty($_POST['remarks']) ? $_POST['remarks'] : null;
 
                 // Update trans_bill table
                 $sql = "
@@ -2272,7 +2279,8 @@ function updateTransaction($pdo) {
                         total_amount = :total_amount,
                         sales_tax = :sales_tax,
                         grand_total = :grand_total,
-                        tax_type = :tax_type
+                        tax_type = :tax_type,
+                        remarks = :remarks
                     WHERE transaction_no = :transaction_no
                 ";
                 $stmtParams = [
@@ -2284,7 +2292,8 @@ function updateTransaction($pdo) {
                     'sales_tax' => $total_tax,
                     'grand_total' => $grand_total,
                     'transaction_no' => $transactionNo,
-                    'tax_type' => $tax_type
+                    'tax_type' => $tax_type,
+                    'remarks' => $remarks
                 ];
                 break;
 
@@ -2297,6 +2306,7 @@ function updateTransaction($pdo) {
                 $totalTax = !empty($_POST['total_tax']) ? $_POST['total_tax'] : 0;
                 $grandTotal = !empty($_POST['grand_total']) ? $_POST['grand_total'] : 0;
                 $tax_type = !empty($_POST['tax_type']) ? $_POST['tax_type'] : null;
+                $remarks = !empty($_POST['remarks']) ? $_POST['remarks'] : null;
 
                 // Update trans_expense table
                 $sql = "
@@ -2308,7 +2318,8 @@ function updateTransaction($pdo) {
                         tax_type = :tax_type,
                         total_amount = :total_amount,
                         sales_tax = :sales_tax,
-                        grand_total = :grand_total
+                        grand_total = :grand_total,
+                        remarks = :remarks
                     WHERE transaction_no = :transaction_no
                 ";
                 $stmtParams = [
@@ -2320,7 +2331,8 @@ function updateTransaction($pdo) {
                     'tax_type' => $tax_type,
                     'total_amount' => $subTotal,
                     'sales_tax' => $totalTax,
-                    'grand_total' => $grandTotal
+                    'grand_total' => $grandTotal,
+                    'remarks' => $remarks
                 ];
                 break;
 
@@ -2338,6 +2350,7 @@ function updateTransaction($pdo) {
                 $totalTax = !empty($_POST['total_tax']) ? $_POST['total_tax'] : 0;
                 $grandTotal = !empty($_POST['grand_total']) ? $_POST['grand_total'] : 0;
                 $tax_type = !empty($_POST['tax_type']) ? $_POST['tax_type'] : null;
+                $remarks = !empty($_POST['remarks']) ? $_POST['remarks'] : null;
 
                 // Update trans_invoice table
                 $sql = "
@@ -2354,7 +2367,8 @@ function updateTransaction($pdo) {
                         total_amount = :total_amount,
                         sales_tax = :sales_tax,
                         grand_total = :grand_total,
-                        tax_type = :tax_type
+                        tax_type = :tax_type,
+                        remarks = :remarks
                     WHERE transaction_no = :transaction_no
                 ";
                 $stmtParams = [
@@ -2371,7 +2385,8 @@ function updateTransaction($pdo) {
                     'sales_tax' => $totalTax,
                     'grand_total' => $grandTotal,
                     'transaction_no' => $transactionNo,
-                    'tax_type' => $tax_type
+                    'tax_type' => $tax_type,
+                    'remarks' => $remarks
                 ];
                 break;
 

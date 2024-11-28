@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 27, 2024 at 12:03 PM
+-- Generation Time: Nov 28, 2024 at 11:02 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -158,13 +158,6 @@ CREATE TABLE `payments` (
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `payments`
---
-
-INSERT INTO `payments` (`id`, `transaction_no`, `payment_refno`, `payment_account`, `payment_amount`, `payment_date`, `created_at`, `updated_at`) VALUES
-(17, 'BILL-20241119-001', 'P202411200001', 1, 210.00, '2024-11-20', '2024-11-20 07:44:32', NULL);
-
 -- --------------------------------------------------------
 
 --
@@ -187,62 +180,6 @@ INSERT INTO `payment_account` (`id`, `pay_account_name`) VALUES
 (4, 'Petty Cash Fund'),
 (5, 'Change Fund'),
 (6, 'Gcash');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `pending_item`
---
-
-CREATE TABLE `pending_item` (
-  `id` int(11) NOT NULL,
-  `series_number` varchar(255) DEFAULT NULL,
-  `item_sku` varchar(255) DEFAULT NULL,
-  `product_name` varchar(255) DEFAULT NULL,
-  `item_barcode` varchar(255) DEFAULT NULL,
-  `product_pp` int(11) DEFAULT NULL,
-  `product_sp` int(11) DEFAULT NULL,
-  `item_qty` int(11) DEFAULT NULL,
-  `item_expiry` date DEFAULT NULL,
-  `product_sku` varchar(255) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `pending_item`
---
-
-INSERT INTO `pending_item` (`id`, `series_number`, `item_sku`, `product_name`, `item_barcode`, `product_pp`, `product_sp`, `item_qty`, `item_expiry`, `product_sku`, `created_at`) VALUES
-(1, 'STK_IN00001', NULL, 'OISHI PODS PEA SNACK 60G', 'NCHDWHDG', 30, NULL, 15, '2024-09-30', 'SN00001', '2024-09-05 21:39:58'),
-(2, 'STK_IN00001', NULL, 'LAURAS MANNA BUTTERED TOAST 200G', 'AWDASCAD', 100, NULL, 10, '2024-09-30', 'BR00001', '2024-09-05 21:39:58');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `pending_stock_out`
---
-
-CREATE TABLE `pending_stock_out` (
-  `id` int(11) NOT NULL,
-  `series_number` varchar(255) DEFAULT NULL,
-  `item_sku` varchar(255) DEFAULT NULL,
-  `product_name` varchar(255) DEFAULT NULL,
-  `item_barcode` varchar(255) DEFAULT NULL,
-  `product_pp` int(11) DEFAULT NULL,
-  `product_sp` int(11) DEFAULT NULL,
-  `item_qty` int(11) DEFAULT NULL,
-  `item_expiry` date DEFAULT NULL,
-  `product_sku` varchar(255) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `pending_stock_out`
---
-
-INSERT INTO `pending_stock_out` (`id`, `series_number`, `item_sku`, `product_name`, `item_barcode`, `product_pp`, `product_sp`, `item_qty`, `item_expiry`, `product_sku`, `created_at`) VALUES
-(1, 'STK_OUT00001', NULL, 'LAURAS MANNA BUTTERED TOAST 200G', 'AWDASCAD', 100, 0, 5, '2024-09-30', 'BR00001', '2024-09-06 03:44:26'),
-(2, 'STK_OUT00001', NULL, 'OISHI PODS PEA SNACK 60G', 'NCHDWHDG', 30, 0, 5, '2024-09-30', 'SN00001', '2024-09-06 03:44:26');
 
 -- --------------------------------------------------------
 
@@ -460,7 +397,42 @@ INSERT INTO `role_permissions` (`role_id`, `permission_id`) VALUES
 (1, 51),
 (1, 52),
 (1, 53),
-(1, 54);
+(1, 54),
+(2, 1),
+(2, 2),
+(2, 3),
+(2, 4),
+(2, 5),
+(2, 7),
+(2, 8),
+(2, 9),
+(2, 11),
+(2, 12),
+(2, 13),
+(2, 15),
+(2, 16),
+(2, 17),
+(2, 19),
+(2, 20),
+(2, 21),
+(2, 25),
+(2, 26),
+(2, 27),
+(2, 29),
+(2, 30),
+(2, 31),
+(2, 33),
+(2, 34),
+(2, 36),
+(2, 37),
+(2, 39),
+(2, 40),
+(2, 41),
+(2, 42),
+(2, 43),
+(2, 44),
+(2, 45),
+(2, 46);
 
 -- --------------------------------------------------------
 
@@ -481,46 +453,6 @@ INSERT INTO `status` (`status_id`, `status_name`) VALUES
 (1, 'In Stock'),
 (2, 'Low Stock'),
 (3, 'Out of Stock');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `stockin_history`
---
-
-CREATE TABLE `stockin_history` (
-  `id` int(11) NOT NULL,
-  `series_number` varchar(255) DEFAULT NULL,
-  `date` timestamp NULL DEFAULT current_timestamp(),
-  `isAdded` tinyint(4) DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `stockin_history`
---
-
-INSERT INTO `stockin_history` (`id`, `series_number`, `date`, `isAdded`) VALUES
-(1, 'STK_IN00001', '2024-09-06 03:39:58', 1);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `stockout_history`
---
-
-CREATE TABLE `stockout_history` (
-  `id` int(11) NOT NULL,
-  `series_number` varchar(255) DEFAULT NULL,
-  `date` timestamp NULL DEFAULT current_timestamp(),
-  `isAdded` tinyint(4) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `stockout_history`
---
-
-INSERT INTO `stockout_history` (`id`, `series_number`, `date`, `isAdded`) VALUES
-(1, 'STK_OUT00001', '2024-09-06 03:44:26', 1);
 
 -- --------------------------------------------------------
 
@@ -629,18 +561,11 @@ CREATE TABLE `trans_bill` (
   `sales_tax` decimal(10,2) NOT NULL DEFAULT 0.00,
   `grand_total` decimal(10,2) UNSIGNED NOT NULL DEFAULT 0.00,
   `payment_status` enum('paid','unpaid','partial') NOT NULL DEFAULT 'unpaid',
+  `remarks` varchar(255) DEFAULT NULL,
   `isVoid` tinyint(4) NOT NULL DEFAULT 0,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `trans_bill`
---
-
-INSERT INTO `trans_bill` (`id`, `supplier_id`, `bill_address`, `bill_date`, `bill_due_date`, `bill_no`, `transaction_no`, `tax_type`, `total_amount`, `sales_tax`, `grand_total`, `payment_status`, `isVoid`, `created_at`, `updated_at`) VALUES
-(3, 1, NULL, '2024-11-23', '2024-11-23', 'bill001', 'BILL-20241123-001', 3, 450.00, 0.00, 450.00, 'unpaid', 0, '2024-11-23 05:41:40', '2024-11-23 05:41:40'),
-(5, 1, 'test', '2024-11-27', '2024-11-27', 'bill002', 'BILL-20241127-001', 3, 120.00, 0.00, 120.00, 'unpaid', 0, '2024-11-27 09:11:22', '2024-11-27 09:11:56');
 
 -- --------------------------------------------------------
 
@@ -659,17 +584,11 @@ CREATE TABLE `trans_expense` (
   `expense_no` varchar(255) DEFAULT NULL,
   `transaction_no` varchar(255) DEFAULT NULL,
   `tax_type` int(11) NOT NULL DEFAULT 3,
+  `remarks` varchar(255) DEFAULT NULL,
   `isVoid` tinyint(4) NOT NULL DEFAULT 0,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `trans_expense`
---
-
-INSERT INTO `trans_expense` (`id`, `payee_id`, `expense_date`, `expense_payment_method`, `total_amount`, `sales_tax`, `grand_total`, `expense_no`, `transaction_no`, `tax_type`, `isVoid`, `created_at`, `updated_at`) VALUES
-(4, 1, '2024-11-23', 'CASH', 300.00, 0.00, 300.00, 'exp001', 'EXP-20241123-001', 3, 0, '2024-11-23 05:42:07', NULL);
 
 -- --------------------------------------------------------
 
@@ -695,17 +614,11 @@ CREATE TABLE `trans_invoice` (
   `total_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
   `sales_tax` decimal(10,2) NOT NULL DEFAULT 0.00,
   `grand_total` decimal(10,2) UNSIGNED NOT NULL DEFAULT 0.00,
+  `remarks` varchar(255) DEFAULT NULL,
   `isVoid` tinyint(4) NOT NULL DEFAULT 0,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `trans_invoice`
---
-
-INSERT INTO `trans_invoice` (`id`, `customer_id`, `customer_email`, `invoice_bill_address`, `invoice_shipping_address`, `invoice_ship_via`, `invoice_ship_date`, `invoice_date`, `invoice_duedate`, `invoice_track_no`, `invoice_no`, `transaction_no`, `tax_type`, `payment_status`, `total_amount`, `sales_tax`, `grand_total`, `isVoid`, `created_at`, `updated_at`) VALUES
-(14, 1, NULL, 'test', 'test', 'test', '2024-11-26', '2024-11-23', '2024-11-24', 'tk001', NULL, 'INV-20241123-001', 3, 'paid', 300.00, 0.00, 300.00, 0, '2024-11-23 05:43:50', NULL);
 
 -- --------------------------------------------------------
 
@@ -727,17 +640,6 @@ CREATE TABLE `trans_item` (
   `customer_id` int(11) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `trans_item`
---
-
-INSERT INTO `trans_item` (`item_id`, `transaction_no`, `product_sku`, `item_barcode`, `item_qty`, `item_rate`, `item_tax`, `item_amount`, `transaction_type`, `item_expiry`, `customer_id`, `created_at`) VALUES
-(25, 'BILL-20241123-001', 'SN00001', '', 5, 30.00, NULL, 150.00, 'bill', '2024-11-23', NULL, '2024-11-23 05:41:40'),
-(26, 'BILL-20241123-001', 'BR00001', '', 3, 100.00, NULL, 300.00, 'bill', '0000-00-00', NULL, '2024-11-23 05:41:40'),
-(27, 'EXP-20241123-001', 'BR00001', '', 3, 100.00, NULL, 300.00, 'expense', '0000-00-00', NULL, '2024-11-23 05:42:07'),
-(28, 'INV-20241123-001', 'BR00001', '', 3, 100.00, NULL, 300.00, 'invoice', '0000-00-00', NULL, '2024-11-23 05:43:50'),
-(34, 'BILL-20241127-001', 'SN00001', '', 3, 40.00, NULL, 120.00, 'bill', '0000-00-00', NULL, '2024-11-27 09:11:22');
 
 -- --------------------------------------------------------
 
@@ -791,7 +693,8 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `username`, `password`, `display_name`, `role_id`, `isEnabled`, `created_at`, `updated_at`) VALUES
 (1, 'admin', '$2y$10$Yvn5wPKG1D1ovcMe5wM2lemqHaX40cKBJ7ybknP0rtYFkVSYt0MmK', 'Jerome De Lara', 1, 1, '2024-05-08 12:30:37', '2024-08-12 03:45:55'),
 (3, 'jhondell', '$2y$10$JRSUatHPUFuxnBTk2t1PzeHke3itwMQXgGiKJrvWT.55bKynetknq', 'Jhondell', 3, 1, '2024-05-22 07:11:58', '2024-08-07 06:30:26'),
-(4, 'purchase', '$2y$10$fu8HEOtJ/Jq2yVXmua8meeAFO3i04W.V6lcj.jdoMXfkHhn1/KWC.', 'Purchasing', 2, 0, '2024-07-26 10:24:19', '2024-08-27 03:09:17');
+(4, 'purchase', '$2y$10$fu8HEOtJ/Jq2yVXmua8meeAFO3i04W.V6lcj.jdoMXfkHhn1/KWC.', 'Purchasing', 2, 0, '2024-07-26 10:24:19', '2024-08-27 03:09:17'),
+(6, 'johannie', '$2y$10$EGuMfwsxUqEbjRIR7OTDI.n/48v6pzHrlHlBmjYuSVjmHg2/cCg9O', 'johannie', 2, 1, '2024-11-28 01:47:21', NULL);
 
 -- --------------------------------------------------------
 
@@ -869,19 +772,6 @@ ALTER TABLE `payment_account`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `pending_item`
---
-ALTER TABLE `pending_item`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `fr_series_no` (`series_number`);
-
---
--- Indexes for table `pending_stock_out`
---
-ALTER TABLE `pending_stock_out`
-  ADD PRIMARY KEY (`id`);
-
---
 -- Indexes for table `permissions`
 --
 ALTER TABLE `permissions`
@@ -925,19 +815,6 @@ ALTER TABLE `role_permissions`
 --
 ALTER TABLE `status`
   ADD PRIMARY KEY (`status_id`);
-
---
--- Indexes for table `stockin_history`
---
-ALTER TABLE `stockin_history`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `series_number` (`series_number`);
-
---
--- Indexes for table `stockout_history`
---
-ALTER TABLE `stockout_history`
-  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `supplier`
@@ -1033,25 +910,13 @@ ALTER TABLE `modules`
 -- AUTO_INCREMENT for table `payments`
 --
 ALTER TABLE `payments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `payment_account`
 --
 ALTER TABLE `payment_account`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
-
---
--- AUTO_INCREMENT for table `pending_item`
---
-ALTER TABLE `pending_item`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
-
---
--- AUTO_INCREMENT for table `pending_stock_out`
---
-ALTER TABLE `pending_stock_out`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `permissions`
@@ -1078,18 +943,6 @@ ALTER TABLE `status`
   MODIFY `status_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
--- AUTO_INCREMENT for table `stockin_history`
---
-ALTER TABLE `stockin_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT for table `stockout_history`
---
-ALTER TABLE `stockout_history`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
 -- AUTO_INCREMENT for table `supplier`
 --
 ALTER TABLE `supplier`
@@ -1105,31 +958,31 @@ ALTER TABLE `system_option`
 -- AUTO_INCREMENT for table `trans_bill`
 --
 ALTER TABLE `trans_bill`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `trans_expense`
 --
 ALTER TABLE `trans_expense`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `trans_invoice`
 --
 ALTER TABLE `trans_invoice`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `trans_item`
 --
 ALTER TABLE `trans_item`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `waste`
@@ -1140,12 +993,6 @@ ALTER TABLE `waste`
 --
 -- Constraints for dumped tables
 --
-
---
--- Constraints for table `pending_item`
---
-ALTER TABLE `pending_item`
-  ADD CONSTRAINT `fr_series_no` FOREIGN KEY (`series_number`) REFERENCES `stockin_history` (`series_number`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `permissions`

@@ -52,6 +52,12 @@ $route = $_GET['route'] ?? 'home';
   <script src="assets/libs/toastr/js/toastr.min.js"></script>
   <script src="assets/js/all.js"></script>
 
+  <link href="https://unpkg.com/filepond@^4/dist/filepond.css" rel="stylesheet" />
+  <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet"/>
+  <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
+  <script src="https://unpkg.com/filepond/dist/filepond.min.js"></script>
+  <script src="https://unpkg.com/jquery-filepond/filepond.jquery.js"></script>
+
   <!-- SWEETALERT -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -208,12 +214,12 @@ $route = $_GET['route'] ?? 'home';
               <span class="hide-menu text-uppercase">Reports</span>
             </li>
             <div class="collapse <?php echo ($route == 'inventory-stock-report'|| $route == 'stock-valuation-report' || $route == 'stock-movement-report' || $route == 'product-history-report') ? 'show' : ''; ?>" id="collapseReport">
-            <li class="sidebar-item">
+            <!-- <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=summary-report" aria-expanded="false">
                 <iconify-icon icon="carbon:scis-transparent-supply"></iconify-icon>
                 <span class="hide-menu">Summary Report</span>
               </a>
-            </li>
+            </li> -->
             <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=inventory-stock-report" aria-expanded="false">
                 <iconify-icon icon="ic:baseline-receipt-long"></iconify-icon>
@@ -238,7 +244,7 @@ $route = $_GET['route'] ?? 'home';
                 <span class="hide-menu">Product History Report</span>
               </a>
             </li>
-            <li class="sidebar-item">
+            <!-- <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=supplier-transaction" aria-expanded="false">
                 <iconify-icon icon="carbon:scis-transparent-supply"></iconify-icon>
                 <span class="hide-menu">Supplier Transaction</span>
@@ -249,7 +255,7 @@ $route = $_GET['route'] ?? 'home';
                 <iconify-icon icon="carbon:scis-transparent-supply"></iconify-icon>
                 <span class="hide-menu">Customer Transaction</span>
               </a>
-            </li>
+            </li> -->
             </div>
             <?php } ?>
             <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_user') || userHasPermission($pdo, $_SESSION["user_id"], 'manage_role')){?>

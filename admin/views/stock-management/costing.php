@@ -94,17 +94,17 @@ $(document).ready( function () {
           {data: 'product_sku', title: 'SKU'},
           {data: 'product_pp', title: 'Purchase Price',className: 'text-center'},
           {data: 'tax_id', visible: false},
-          { 
-                "data": "product_sp",
-                "render": function(data, type, row, meta) {
-                  if (data === null || data === 0) {
+          {
+              "data": "product_sp",
+              "render": function(data, type, row, meta) {
+                  if (data === null || parseFloat(data) <= 0) {
                       return '<span class="badge bg-danger">Need Costing</span>';
                   } else {
                       return data;
                   }
-                },
-                "title": "Selling Price",
-                "className": "text-center"
+              },
+              "title": "Selling Price",
+              "className": "text-center"
           },
           {data: 'tax_name', title: 'Tax'},
           { 

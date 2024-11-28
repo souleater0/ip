@@ -922,8 +922,6 @@ require_once 'function.php';
                             $response['message'] = 'Please enter Bill Date!';
                         } elseif (empty($_POST['billdueDate'])) {
                             $response['message'] = 'Please enter Due Date!';
-                        } elseif (empty($_POST['billNo'])) {
-                            $response['message'] = 'Please enter Bill No!';
                         } else {
                             // Call the addTransaction function
                             $transactionResult = addTransaction($pdo);
@@ -947,8 +945,6 @@ require_once 'function.php';
                             $response['message'] = 'Please enter Bill Date!';
                         } elseif (empty($_POST['expense_payment_method'])) {
                             $response['message'] = 'Please enter Payment Method!';
-                        } elseif (empty($_POST['expenseNo'])) {
-                            $response['message'] = 'Please enter Reference No!';
                         } else {
                             // Call the addTransaction function
                             $transactionResult = addTransaction($pdo);
@@ -1035,8 +1031,6 @@ require_once 'function.php';
                             $response['message'] = 'Please enter Bill Date!';
                         } elseif (empty($_POST['billdueDate'])) {
                             $response['message'] = 'Please enter Due Date!';
-                        } elseif (empty($_POST['billNo'])) {
-                            $response['message'] = 'Please enter Bill No!';
                         } else {
                             // Call the updateTransaction function
                             $transactionResult = updateTransaction($pdo);
@@ -1060,8 +1054,6 @@ require_once 'function.php';
                             $response['message'] = 'Please enter Bill Date!';
                         } elseif (empty($_POST['expense_payment_method'])) {
                             $response['message'] = 'Please enter Payment Method!';
-                        } elseif (empty($_POST['expenseNo'])) {
-                            $response['message'] = 'Please enter Reference No!';
                         } else {
                             // Call the updateTransaction function
                             $transactionResult = updateTransaction($pdo);

@@ -238,7 +238,6 @@ foreach ($productlists as $productlist) {
             <button id="clearRows" type="button" class="btn btn-danger btn-sm">Clear All</button>
 
             <div class="row">
-              <form id="attachForm">
               <div class="col-2">
                 <div>
                   <label for="attach_Remarks" class="form-label">Remarks</label>
@@ -247,9 +246,8 @@ foreach ($productlists as $productlist) {
               </div>
               <div class="col-3">
                 <label for="attach_File" class="form-label">Attachment</label>
-                <input class="form-control" type="file" id="attach_File">
+                <input class="attachment_file" type="file" id="attach_File">
               </div>
-              </form>
             </div>
         </div>
       </div>
@@ -312,6 +310,27 @@ foreach ($productlists as $productlist) {
 <!-- Modal END-->
 <script>
 $(document).ready(function() {
+  // Register FilePond plugins
+  FilePond.registerPlugin(FilePondPluginImagePreview);
+  $('.attachment_file').filepond();
+
+  // Turn input element into a pond with configuration options
+  $('.attachment_file').filepond({
+    allowMultiple: true,   // Allow multiple file uploads
+    maxFiles: 20,           // Max files limit
+    imagePreviewHeight: 100,  // Set the preview height for images (optional)
+    imagePreviewMaxHeight: 200,  // Maximum height of the image preview (optional)
+    imagePreviewMaxWidth: 200,  // Maximum width of the image preview (optional)
+    allowImagePreview: true,    // Allow image preview (enabled by default)
+    allowFileTypeValidation: true,  // Validate file type (optional)
+    fileValidateTypeLabelExpectedTypes: 'Image only',  // Custom message for invalid types
+    fileValidateTypeDetectType: true   // Automatically detect file types
+  });
+
+  // Listen for addfile event
+  $('.attachment_file').on('FilePond:addfile', function (e) {
+      console.log('file added event', e);
+  });
 
   $('#payBillsTable').on('input', '.payment-input', function() {
         let value = $(this).val().replace(/\D/g, ''); // Remove non-digit characters
@@ -431,6 +450,11 @@ $(document).ready(function() {
         });
     }
   });
+  
+  $('#payModal').on('shown.bs.modal', function () {
+    $('#payBillsTable').DataTable().columns.adjust().draw();
+  });
+
   $('#payBillbtn').on('click', function() {
     $.ajax({
             url: 'admin/process/admin_action.php',
@@ -443,10 +467,8 @@ $(document).ready(function() {
                 } else {
                     alert('Error: ' + response.message);
                 }
-                tablePaymentList.columns.adjust().responsive.recalc();
             },
             error: function() {
-                tablePaymentList.columns.adjust().responsive.recalc();
                 alert('An error occurred while generating the payment reference.');
             }
         });
@@ -690,6 +712,8 @@ $(document).ready(function() {
           $('#bill_end_date').val(data.transaction.bill_due_date);
           $('#billNo').val(data.transaction.bill_no);
           $('#taxOption').val(data.transaction.tax_type);
+          $('#attach_Remarks').val(data.transaction.remarks);
+          
           toggleTaxColumn();
       }
       else if (transactionType === 'expense') {
@@ -698,6 +722,7 @@ $(document).ready(function() {
         $('#expense_payment').val(data.transaction.expense_payment_method).selectpicker('refresh');
         $('#expense_ref_no').val(data.transaction.expense_no);
         $('#taxOption').val(data.transaction.tax_type);
+        $('#attach_Remarks').val(data.transaction.remarks);
         toggleTaxColumn();
       }
       else if (transactionType === 'invoice') {
@@ -711,6 +736,7 @@ $(document).ready(function() {
         $('#invoice_ship_date').val(data.transaction.invoice_ship_date);
         $('#invoice_track_no').val(data.transaction.invoice_track_no);
         $('#taxOption').val(data.transaction.tax_type);
+        $('#attach_Remarks').val(data.transaction.remarks);
         toggleTaxColumn();
       }
 
@@ -745,6 +771,7 @@ $(document).ready(function() {
     $('#billForm')[0].reset();
     $('#expenseForm')[0].reset();
     $('#invoiceForm')[0].reset();
+    $('#attach_Remarks').val("");
     clearRows();
     if (formType === 'bill') {
       $('#expenseForm').hide();
@@ -1283,6 +1310,7 @@ function updateTotalAmount() {
       formData.append('sub_total', $('#totalSubAmount').val());
       formData.append('total_tax', $('#totalTaxAmount').val());
       formData.append('grand_total', $('#totalAmount').val());
+      
       // Get itemList from table and append it to FormData
       var itemList = table.rows().data().toArray();
       formData.append('items', JSON.stringify(itemList));
@@ -1356,17 +1384,17 @@ function updateTotalAmount() {
                     // Reset the active form
                     if (activeForm === 'bill') {
                         $('#billForm')[0].reset(); // Reset the bill form
+                        $('#attach_Remarks').val("");
                         Swal.fire("Saved!", response.message, "success");
-                        // toastr.success(response.message);
                     } else if (activeForm === 'expense') {
                         $('#expenseForm')[0].reset(); // Reset the expense form
-                        // toastr.success(response.message);
                         Swal.fire("Saved!", response.message, "success");
+                        $('#attach_Remarks').val("");
                     }
                     else if (activeForm === 'invoice') {
                         $('#invoiceForm')[0].reset(); // Reset the expense form
-                        // toastr.success(response.message);
                         Swal.fire("Saved!", response.message, "success");
+                        $('#attach_Remarks').val("");
                     }
                     clearRows();
                 } else {
