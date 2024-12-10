@@ -214,12 +214,12 @@ $route = $_GET['route'] ?? 'home';
               <span class="hide-menu text-uppercase">Reports</span>
             </li>
             <div class="collapse <?php echo ($route == 'inventory-stock-report'|| $route == 'stock-valuation-report' || $route == 'stock-movement-report' || $route == 'product-history-report') ? 'show' : ''; ?>" id="collapseReport">
-            <!-- <li class="sidebar-item">
+            <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=summary-report" aria-expanded="false">
                 <iconify-icon icon="carbon:scis-transparent-supply"></iconify-icon>
                 <span class="hide-menu">Summary Report</span>
               </a>
-            </li> -->
+            </li>
             <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=inventory-stock-report" aria-expanded="false">
                 <iconify-icon icon="ic:baseline-receipt-long"></iconify-icon>
@@ -249,8 +249,8 @@ $route = $_GET['route'] ?? 'home';
                 <iconify-icon icon="carbon:scis-transparent-supply"></iconify-icon>
                 <span class="hide-menu">Supplier Transaction</span>
               </a>
-            </li>
-            <li class="sidebar-item">
+            </li> -->
+            <!-- <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=customer-transaction" aria-expanded="false">
                 <iconify-icon icon="carbon:scis-transparent-supply"></iconify-icon>
                 <span class="hide-menu">Customer Transaction</span>

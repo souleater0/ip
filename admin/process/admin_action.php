@@ -1283,5 +1283,15 @@ require_once 'function.php';
         echo json_encode($result);
         exit();
     }
+    if (!empty($_POST['action']) && $_POST['action'] == 'generateSalesReport') {
+        $result = generateSalesReport($pdo, $_POST);
+    
+        // Send JSON response
+        header('Content-Type: application/json');
+        echo json_encode($result);
+        exit();
+    }
+    
+    
     
 ?>
