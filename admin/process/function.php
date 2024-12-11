@@ -3286,4 +3286,54 @@ function generateSalesReport($pdo, $filters) {
     }
 }
 
+function getProductAndTransactions($pdo, $sku, $transactionType, $dateFilter, $startDate, $endDate) {
+    // Fetch product data based on SKU
+    $stmt = $pdo->prepare("SELECT * FROM product WHERE product_sku = :sku");
+    $stmt->execute(['sku' => $sku]);
+    $product = $stmt->fetch();
+
+    if (!$product) {
+        return ['product' => null, 'transactions' => []]; // No product found
+    }
+
+    // Build the base query for fetching transactions
+    $query = "SELECT ti.*, p.product_name, b.bill_date, e.expense_date, i.invoice_date
+              FROM trans_item ti
+              LEFT JOIN product p ON p.product_sku = ti.product_sku
+              LEFT JOIN trans_bill b ON b.transaction_no = ti.transaction_no
+              LEFT JOIN trans_expense e ON e.transaction_no = ti.transaction_no
+              LEFT JOIN trans_invoice i ON i.transaction_no = ti.transaction_no
+              WHERE ti.product_sku = :sku";
+
+    // Add transaction type filter
+    if ($transactionType !== 'none') {
+        $query .= " AND ti.transaction_type = :transactionType";
+    }
+
+    // Add date range filter if dateFilter is custom
+    if ($dateFilter === 'custom' && !empty($startDate) && !empty($endDate)) {
+        $query .= " AND (
+                        (b.bill_date BETWEEN :startDate AND :endDate) OR
+                        (e.expense_date BETWEEN :startDate AND :endDate) OR
+                        (i.invoice_date BETWEEN :startDate AND :endDate)
+                    )";
+    }
+
+    // Prepare and execute the transaction query
+    $stmt = $pdo->prepare($query);
+    $stmt->bindParam(':sku', $sku);
+    if ($transactionType !== 'none') {
+        $stmt->bindParam(':transactionType', $transactionType);
+    }
+    if ($dateFilter === 'custom' && !empty($startDate) && !empty($endDate)) {
+        $stmt->bindParam(':startDate', $startDate);
+        $stmt->bindParam(':endDate', $endDate);
+    }
+
+    $stmt->execute();
+    $transactions = $stmt->fetchAll();
+
+    return ['product' => $product, 'transactions' => $transactions];
+}
+
 ?>

@@ -4,18 +4,34 @@ require_once __DIR__ . '/../../vendor/autoload.php'; // Load TCPDF
 // Check if the required POST data is available
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['groupedData'])) {
     $groupedData = json_decode($_POST['groupedData'], true);
+    $filters = json_decode($_POST['filters'], true); // Assuming 'filters' is passed in POST data
+    $currentDate = date('F d, Y');
+
+    // Extract filters and ensure 'dateFilter' exists
+    $transactionType = $filters['transactionType'] ?? 'All';
+    $dateFilter = $filters['dateFilter'] ?? 'all'; // Default to 'all' if 'dateFilter' is not set
+
+    $dateRange = (isset($filters['dateFilter']) && $filters['dateFilter'] === 'all')
+    ? 'All'
+    : (!empty($filters['startDate']) && !empty($filters['endDate'])
+        ? date('F d, Y', strtotime($filters['startDate'])) . ' - ' . date('F d, Y', strtotime($filters['endDate']))
+        : '');
+
 
     // Create new PDF instance
     $pdf = new TCPDF('P', 'mm', 'LEGAL'); // 'L' for Landscape, 'mm' for millimeters, 'A4' for paper size
     $pdf->SetCreator(PDF_CREATOR);
-    $pdf->SetTitle('Sales Report');
+    $pdf->SetTitle('Summary Report - ' . $currentDate);
     $pdf->AddPage();
 
     // Header
     $pdf->SetFont('helvetica', 'B', 14);
     $pdf->Cell(0, 10, 'Summary Report', 0, 1, 'C');
 
+    // Add filter details
     $pdf->SetFont('helvetica', '', 10);
+    $pdf->Cell(0, 05, 'Transaction Type: ' . $transactionType, 0, 1, 'C');
+    $pdf->Cell(0, 05, 'Date Range: ' . $dateRange, 0, 1, 'C');
 
     $columnHeaders = [
         'Product SKU' => 'ProductSKU',
@@ -26,11 +42,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['groupedData'])) {
         'Avg Price' => 'AvgPrice',
     ];
 
+    // The rest of the PDF content generation remains the same
     // Determine column widths dynamically
     $columnWidths = [];
     foreach ($columnHeaders as $header => $key) {
         $columnWidths[$key] = $pdf->GetStringWidth($header) + 10; // Minimum width to fit the header
     }
+
+
 
     // Adjust column widths based on content
     foreach ($groupedData as $categoryName => $products) {
@@ -95,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['groupedData'])) {
         $grandTotalPercentage += $categoryTotalPercentage;
         $grandTotalAvgPrice += $categoryTotalAvgPrice;
 
-        $pdf->Ln(5); // Space after each category
+        $pdf->Ln(2); // Space after each category
     }
 
     // Add the grand total
@@ -107,9 +126,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['groupedData'])) {
     $pdf->Cell($columnWidths['AvgPrice'], 10, number_format($grandTotalAvgPrice, 2), 1, 1, 'R');
 
     // Output the PDF (open in new tab)
-    $pdf->Output('Sales_Report.pdf', 'I'); // 'I' will display the PDF in a new tab
+    $pdf->Output('Summary_Report' . date('Ymd') . '.pdf', 'I'); // 'I' will display the PDF in a new tab
 } else {
     echo "Invalid request.";
     exit;
 }
+
 ?>

@@ -134,7 +134,12 @@ $(document).ready(function () {
 
                             reportHTML += `
                                 <tr>
-                                    <td class="text-dark">${product.ProductSKU}</td>
+                                    <td>
+                                        <a href="index.php?route=detailed-report&sku=${product.ProductSKU}&transactionType=${transactionType}&dateFilter=${dateFilter}&startDate=${startDate}&endDate=${endDate}" 
+                                          class="text-primary" target="_blank" rel="noopener noreferrer">
+                                            ${product.ProductSKU}
+                                        </a>
+                                    </td>
                                     <td class="text-dark">${product.ProductName}</td>
                                     <td class="text-dark">${product.Qty}</td>
                                     <td class="text-dark">${product.Amount}</td>
@@ -183,57 +188,6 @@ $(document).ready(function () {
     });
 
     $("#exportToExcel").click(function () {
-        // Get the same filter values used in the report generation
-        const transactionType = $("#trans_type").val();
-        const dateFilter = $("#dateFilter").val();
-        const startDate = $("#start_date").val();
-        const endDate = $("#end_date").val();
-
-        // Validate custom date range if selected
-        if (dateFilter === "custom" && (!startDate || !endDate)) {
-            alert("Please select both start and end dates.");
-            return;
-        }
-
-        $.ajax({
-            url: "admin/process/admin_action.php",
-            method: "POST",
-            data: {
-                action: "generateSalesReport",
-                transactionType: transactionType,
-                dateFilter: dateFilter,
-                startDate: startDate,
-                endDate: endDate,
-            },
-            success: function (response) {
-                if (response.success) {
-                    const groupedData = response.data;
-
-                    // Trigger export to Excel via export_excel.php
-                    const form = $('<form>', {
-                        action: 'admin/process/export_excel.php',
-                        method: 'POST'
-                    }).append($('<input>', {
-                        type: 'hidden',
-                        name: 'groupedData',
-                        value: JSON.stringify(groupedData)
-                    }));
-
-                    // Submit the form to trigger download
-                    $('body').append(form);
-                    form.submit();
-                    form.remove();
-                } else {
-                    alert("Failed to generate report for export.");
-                }
-            },
-            error: function (error) {
-                console.error("AJAX error:", error);
-            }
-        });
-    });
-
-    $("#generatePDF").click(function () {
     // Get the same filter values used in the report generation
     const transactionType = $("#trans_type").val();
     const dateFilter = $("#dateFilter").val();
@@ -246,45 +200,139 @@ $(document).ready(function () {
         return;
     }
 
-      // Fetch the report data
-      $.ajax({
-          url: "admin/process/admin_action.php",
-          method: "POST",
-          data: {
-              action: "generateSalesReport",
-              transactionType: transactionType,
-              dateFilter: dateFilter,
-              startDate: startDate,
-              endDate: endDate,
-          },
-          success: function (response) {
-              if (response.success) {
-                  const groupedData = response.data;
+    // Display a loading indicator (optional)
+    const loader = $('<div class="loader">Exporting...</div>');
+    $('body').append(loader);
 
-                  // Prepare the form for PDF export
-                  const form = $('<form>', {
-                      action: 'admin/process/export_pdf.php',
-                      method: 'POST',
-                      target: '_blank' // Open the PDF in a new tab
-                  }).append($('<input>', {
-                      type: 'hidden',
-                      name: 'groupedData',
-                      value: JSON.stringify(groupedData)
-                  }));
+    $.ajax({
+        url: "admin/process/admin_action.php",
+        method: "POST",
+        data: {
+            action: "generateSalesReport",
+            transactionType: transactionType,
+            dateFilter: dateFilter,
+            startDate: startDate,
+            endDate: endDate,
+        },
+        dataType: "json", // Ensure the response is parsed as JSON
+        success: function (response) {
+            // Remove loader
+            loader.remove();
 
-                  // Submit the form to trigger PDF download
-                  $('body').append(form);
-                  form.submit();
-                  form.remove();
-              } else {
-                  alert("Failed to generate report for PDF export.");
-              }
-          },
-          error: function (error) {
-              console.error("AJAX error:", error);
-          }
-      });
-  });
+            if (response.success) {
+                const groupedData = response.data;
+                const filters = {
+                    transactionType: transactionType,
+                    dateFilter: dateFilter,
+                    startDate: startDate,
+                    endDate: endDate
+                };
+
+                // Trigger export to Excel via export_excel.php
+                const form = $('<form>', {
+                    action: 'admin/process/export_excel.php',
+                    method: 'POST'
+                }).append($('<input>', {
+                    type: 'hidden',
+                    name: 'groupedData',
+                    value: JSON.stringify(groupedData)
+                })).append($('<input>', {
+                    type: 'hidden',
+                    name: 'filters',
+                    value: JSON.stringify(filters)
+                }));
+
+                // Submit the form to trigger download
+                $('body').append(form);
+                form.submit();
+                form.remove();
+            } else {
+                alert(response.message || "Failed to generate report for export.");
+            }
+        },
+        error: function (xhr, status, error) {
+            // Remove loader
+            loader.remove();
+
+            console.error("AJAX error:", error);
+            alert("An error occurred while generating the report. Please try again.");
+        }
+    });
+});
+
+    $("#generatePDF").click(function () {
+    // Get filter values used for report generation
+    const transactionType = $("#trans_type").val();
+    const dateFilter = $("#dateFilter").val();
+    const startDate = $("#start_date").val();
+    const endDate = $("#end_date").val();
+
+    // Validate custom date range if selected
+    if (dateFilter === "custom" && (!startDate || !endDate)) {
+        alert("Please select both start and end dates for the custom date range.");
+        return;
+    }
+
+    // Prepare data for the AJAX request
+    let requestData = {
+        action: "generateSalesReport",
+        transactionType: transactionType,
+        dateFilter: dateFilter, // Pass the dateFilter as 'all' or 'custom'
+    };
+
+    // Add startDate and endDate if custom filter is selected
+    if (dateFilter === "custom") {
+        requestData.startDate = startDate;
+        requestData.endDate = endDate;
+    }
+
+    // Fetch the report data via AJAX
+    $.ajax({
+        url: "admin/process/admin_action.php", // Backend endpoint
+        method: "POST",
+        data: requestData,
+        success: function (response) {
+            // Parse the response
+            if (response.success) {
+                const groupedData = response.data;
+
+                // Create a form dynamically for PDF export
+                const form = $('<form>', {
+                    action: 'admin/process/export_pdf.php',
+                    method: 'POST',
+                    target: '_blank', // Open the PDF in a new tab
+                }).append($('<input>', {
+                    type: 'hidden',
+                    name: 'groupedData',
+                    value: JSON.stringify(groupedData),
+                })).append($('<input>', {
+                    type: 'hidden',
+                    name: 'filters',
+                    value: JSON.stringify({ 
+                        transactionType: transactionType, 
+                        dateFilter: dateFilter,  // Include dateFilter in the PDF filters
+                        startDate: startDate, 
+                        endDate: endDate 
+                    }),
+                }));
+
+                // Append, submit, and remove the form
+                $('body').append(form);
+                form.submit();
+                form.remove();
+            } else {
+                alert(response.message || "Failed to generate report for PDF export.");
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error("AJAX Error:", status, error);
+            alert("An error occurred while generating the report. Please try again.");
+        },
+    });
+});
+
+
+
 
 });
 </script>

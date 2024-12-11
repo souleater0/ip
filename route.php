@@ -76,6 +76,9 @@ switch ($route){
     case "summary-report":
         require 'admin/views/report/summary_report.php';
         break;
+    case "detailed-report":
+        require 'admin/views/report/detailed_report.php';
+        break;
     case "user-management":
         require 'admin/views/user-management/users.php';
         break;

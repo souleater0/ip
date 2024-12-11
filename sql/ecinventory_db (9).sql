@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 10, 2024 at 12:04 PM
+-- Generation Time: Dec 11, 2024 at 12:03 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -641,7 +641,8 @@ CREATE TABLE `trans_invoice` (
 
 INSERT INTO `trans_invoice` (`id`, `customer_id`, `customer_email`, `invoice_bill_address`, `invoice_shipping_address`, `invoice_ship_via`, `invoice_ship_date`, `invoice_date`, `invoice_duedate`, `invoice_track_no`, `invoice_no`, `transaction_no`, `tax_type`, `payment_status`, `total_amount`, `sales_tax`, `grand_total`, `remarks`, `isVoid`, `created_at`, `updated_at`) VALUES
 (1, 3, 'test2@gmail.com', 'test', 'test', NULL, '2024-12-13', '2024-12-10', '2024-12-11', 'inv001', NULL, 'INV-20241210-001', 3, 'paid', 330.00, 0.00, 330.00, NULL, 0, '2024-12-10 06:05:35', NULL),
-(2, 1, NULL, 'test', 'test', NULL, '2024-12-13', '2024-12-10', '2024-12-11', 'inv002', NULL, 'INV-20241210-002', 3, 'paid', 100.00, 0.00, 100.00, NULL, 0, '2024-12-10 06:30:48', NULL);
+(2, 1, NULL, 'test', 'test', NULL, NULL, '2024-12-10', '2024-12-11', NULL, NULL, 'INV-20241210-002', 3, 'paid', 125.00, 0.00, 125.00, NULL, 0, '2024-12-10 06:30:48', '2024-12-11 08:18:03'),
+(3, 1, 'ecxdev03@gmail.com', 'test', 'test', 'test', '2024-12-14', '2024-12-11', '2024-12-12', 'tk002', NULL, 'INV-20241211-001', 3, 'paid', 163.00, 0.00, 163.00, NULL, 0, '2024-12-11 08:19:07', NULL);
 
 -- --------------------------------------------------------
 
@@ -676,7 +677,9 @@ INSERT INTO `trans_item` (`item_id`, `transaction_no`, `product_sku`, `item_barc
 (5, 'BILL-20241210-002', 'BR00002', '', 5, 15.00, NULL, 75.00, 'bill', '0000-00-00', NULL, '2024-12-10 06:27:25'),
 (6, 'BILL-20241210-002', 'SN00002', '', 5, 15.00, NULL, 75.00, 'bill', '0000-00-00', NULL, '2024-12-10 06:27:25'),
 (7, 'INV-20241210-002', 'BR00002', '', 2, 25.00, NULL, 50.00, 'invoice', '0000-00-00', NULL, '2024-12-10 06:30:48'),
-(8, 'INV-20241210-002', 'SN00002', '', 2, 25.00, NULL, 50.00, 'invoice', '0000-00-00', NULL, '2024-12-10 06:30:48');
+(8, 'INV-20241210-002', 'SN00002', '', 3, 25.00, NULL, 75.00, 'invoice', '0000-00-00', NULL, '2024-12-10 06:30:48'),
+(9, 'INV-20241211-001', 'SN00001', '', 3, 40.00, NULL, 120.00, 'invoice', '0000-00-00', NULL, '2024-12-11 08:19:07'),
+(10, 'INV-20241211-001', 'BR00002', '', 2, 21.50, NULL, 43.00, 'invoice', '0000-00-00', NULL, '2024-12-11 08:19:07');
 
 -- --------------------------------------------------------
 
@@ -1007,13 +1010,13 @@ ALTER TABLE `trans_expense`
 -- AUTO_INCREMENT for table `trans_invoice`
 --
 ALTER TABLE `trans_invoice`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `trans_item`
 --
 ALTER TABLE `trans_item`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `users`

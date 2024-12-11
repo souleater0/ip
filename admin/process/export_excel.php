@@ -5,23 +5,47 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
-// Check if the required POST data is available
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['groupedData'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['groupedData'], $_POST['filters'])) {
     $groupedData = json_decode($_POST['groupedData'], true);
+    $filters = json_decode($_POST['filters'], true);
+    $currentDate = date('F d, Y');
 
     $spreadsheet = new Spreadsheet();
     $sheet = $spreadsheet->getActiveSheet();
     $row = 1;
-    $grandTotalAmount = 0; // Variable to hold the grand total amount
-    $grandTotalQty = 0;    // Variable to hold the grand total qty
-    $grandTotalPercentage = 0; // Variable to hold the grand total % of Sales
-    $grandTotalAvgPrice = 0;   // Variable to hold the grand total Avg Price
+
+    // Set document title/header
+    $sheet->mergeCells("A$row:F$row");
+    $sheet->setCellValue("A$row", "Summary Report");
+    $sheet->getStyle("A$row")->applyFromArray([
+        'font' => ['bold' => true, 'size' => 16],
+        'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+    ]);
+    $row++;
+
+    // Add filters as sub-header
+    $sheet->mergeCells("A$row:F$row");
+    $filterDetails = "Filters - Transaction Type: " . $filters['transactionType'] . 
+        ", Date Range: " . ($filters['dateFilter'] === "custom" ? 
+        $filters['startDate'] . " to " . $filters['endDate'] : $filters['dateFilter']);
+    $sheet->setCellValue("A$row", $filterDetails);
+    $sheet->getStyle("A$row")->applyFromArray([
+        'font' => ['italic' => true, 'size' => 12],
+        'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+    ]);
+    $row += 2;
+
+    $grandTotalAmount = 0;
+    $grandTotalQty = 0;
+    $grandTotalPercentage = 0;
+    $grandTotalAvgPrice = 0;
 
     foreach ($groupedData as $categoryName => $products) {
         // Add category name as a header and make it bold
         $sheet->setCellValue("A$row", $categoryName);
-        $sheet->getStyle("A$row")->getFont()->setBold(true); // Bold category name
+        $sheet->getStyle("A$row")->getFont()->setBold(true);
         $row++;
 
         // Add table headers with borders
@@ -36,19 +60,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['groupedData'])) {
         $sheet->getStyle("A$row:F$row")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         $row++;
 
-        $categoryTotalAmount = 0;    // Variable to hold the category total amount
-        $categoryTotalQty = 0;       // Variable to hold the category total qty
-        $categoryTotalPercentage = 0; // Variable to hold the category total % of Sales
-        $categoryTotalAvgPrice = 0;   // Variable to hold the category total Avg Price
+        $categoryTotalAmount = 0;
+        $categoryTotalQty = 0;
+        $categoryTotalPercentage = 0;
+        $categoryTotalAvgPrice = 0;
 
         // Add product data
         foreach ($products as $product) {
             $sheet->setCellValue("A$row", $product['ProductSKU'])
                   ->setCellValue("B$row", $product['ProductName'])
                   ->setCellValue("C$row", $product['Qty'])
-                  ->setCellValue("D$row", $product['Amount'])
-                  ->setCellValue("E$row", $product['PercentageOfSales'])
-                  ->setCellValue("F$row", $product['AvgPrice']);
+                  ->setCellValue("D$row", number_format($product['Amount'], 2))  // This ensures .00 is added
+                  ->setCellValue("E$row", number_format($product['PercentageOfSales'], 2) . '%')  // Add '%' symbol
+                  ->setCellValue("F$row", number_format($product['AvgPrice'], 2));
 
             // Apply borders to each product row
             $sheet->getStyle("A$row:F$row")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
@@ -64,10 +88,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['groupedData'])) {
         // Add subtotals for each column
         $sheet->setCellValue("A$row", "Subtotal")
               ->setCellValue("C$row", $categoryTotalQty)
-              ->setCellValue("D$row", $categoryTotalAmount)
-              ->setCellValue("E$row", $categoryTotalPercentage)
-              ->setCellValue("F$row", $categoryTotalAvgPrice);
-        $sheet->getStyle("A$row:F$row")->getFont()->setBold(true); // Bold subtotal row
+              ->setCellValue("D$row", number_format($categoryTotalAmount, 2))
+              ->setCellValue("E$row", number_format($categoryTotalPercentage, 2). '%')
+              ->setCellValue("F$row", number_format($categoryTotalAvgPrice, 2));
+        $sheet->getStyle("A$row:F$row")->getFont()->setBold(true);
         $sheet->getStyle("A$row:F$row")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         $row++;
 
@@ -83,15 +107,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['groupedData'])) {
     // Add the grand total
     $sheet->setCellValue("A$row", "Grand Total")
           ->setCellValue("C$row", $grandTotalQty)
-          ->setCellValue("D$row", $grandTotalAmount)
-          ->setCellValue("E$row", $grandTotalPercentage)
-          ->setCellValue("F$row", $grandTotalAvgPrice);
-    $sheet->getStyle("A$row:F$row")->getFont()->setBold(true); // Bold grand total row
+          ->setCellValue("D$row", number_format($grandTotalAmount, 2))
+          ->setCellValue("E$row", number_format($grandTotalPercentage, 2). '%')
+          ->setCellValue("F$row", number_format($grandTotalAvgPrice, 2));
+    $sheet->getStyle("A$row:F$row")->getFont()->setBold(true);
     $sheet->getStyle("A$row:F$row")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
+    $fileName = 'Summary_Report_' . date('Ymd');
     // Set headers for download
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    header('Content-Disposition: attachment; filename="Sales_Report.xlsx"');
+    header('Content-Disposition: attachment; filename="' . $fileName . '.xlsx"');
     header('Cache-Control: max-age=0');
 
     $writer = new Xlsx($spreadsheet);
