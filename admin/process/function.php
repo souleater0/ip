@@ -2236,6 +2236,7 @@ function getProductList($pdo) {
             return array('success' => false, 'message' => 'Failed to add transaction: ' . $e->getMessage());
         }
 }
+
 function updateTransaction($pdo) {
     // Get form data from $_POST
     $formType = !empty($_POST['formType']) ? $_POST['formType'] : null;
@@ -2489,18 +2490,81 @@ function generateTransactionNo($pdo, $transactionType) {
 }
 
     
-function handleFileUpload($file) {
-    if (isset($file) && $file['error'] === UPLOAD_ERR_OK) {
-        $fileTmpPath = $file['tmp_name'];
-        $fileName = $file['name'];
-        $uploadFileDir = '../../assets/uploads/';
-        $dest_path = $uploadFileDir . basename($fileName);
+function handleFileUpload($fileInput, $transactionNo) {
+    $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    $maxFileSize = 5 * 1024 * 1024; // 5MB
+    $uploadDir = __DIR__ . '/../../uploads/';
 
-        if (!move_uploaded_file($fileTmpPath, $dest_path)) {
-            throw new Exception('Error moving the uploaded file!');
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
+
+    $responses = [];
+
+    foreach ($fileInput['name'] as $index => $name) {
+        $file = [
+            'name' => $name,
+            'type' => $fileInput['type'][$index],
+            'tmp_name' => $fileInput['tmp_name'][$index],
+            'error' => $fileInput['error'][$index],
+            'size' => $fileInput['size'][$index],
+        ];
+
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            $responses[] = [
+                'success' => false,
+                'message' => 'File upload error! Code: ' . $file['error'],
+                'fileName' => $file['name']
+            ];
+            continue;
+        }
+
+        // Check for valid file type
+        if (!in_array($file['type'], $allowedTypes)) {
+            $responses[] = [
+                'success' => false,
+                'message' => 'Invalid file type! Allowed types: ' . implode(', ', $allowedTypes),
+                'fileName' => $file['name']
+            ];
+            continue;
+        }
+
+        // Check file size
+        if ($file['size'] > $maxFileSize) {
+            $responses[] = [
+                'success' => false,
+                'message' => 'File size exceeds the limit of 5MB.',
+                'fileName' => $file['name']
+            ];
+            continue;
+        }
+
+        // Create unique file name to avoid collisions
+        $fileExt = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $uniqueFileName = $transactionNo . '_' . time() . '.' . $fileExt;
+        $filePath = $uploadDir . $uniqueFileName;
+
+        // Move file to upload directory
+        if (move_uploaded_file($file['tmp_name'], $filePath)) {
+            // Optionally, log or insert file details into the database
+            $responses[] = [
+                'success' => true,
+                'message' => 'File uploaded successfully.',
+                'fileName' => $uniqueFileName,
+                'filePath' => $filePath
+            ];
+        } else {
+            $responses[] = [
+                'success' => false,
+                'message' => 'Failed to move uploaded file.',
+                'fileName' => $file['name']
+            ];
         }
     }
+
+    return $responses;
 }
+
 
 function RetrieveBarcodeDetails(){
     
@@ -3297,12 +3361,22 @@ function getProductAndTransactions($pdo, $sku, $transactionType, $dateFilter, $s
     }
 
     // Build the base query for fetching transactions
-    $query = "SELECT ti.*, p.product_name, b.bill_date, e.expense_date, i.invoice_date
+    $query = "SELECT ti.*, p.product_name, u.short_name,
+                     b.bill_date, e.expense_date, i.invoice_date,
+                     CASE 
+                         WHEN b.transaction_no IS NOT NULL THEN s.vendor_name
+                         WHEN e.transaction_no IS NOT NULL THEN s.vendor_name
+                         WHEN i.transaction_no IS NOT NULL THEN c.customer_name
+                         ELSE NULL
+                     END AS person_name
               FROM trans_item ti
               LEFT JOIN product p ON p.product_sku = ti.product_sku
+              LEFT JOIN unit u ON u.unit_id = p.unit_id
               LEFT JOIN trans_bill b ON b.transaction_no = ti.transaction_no
               LEFT JOIN trans_expense e ON e.transaction_no = ti.transaction_no
               LEFT JOIN trans_invoice i ON i.transaction_no = ti.transaction_no
+              LEFT JOIN supplier s ON s.id = b.supplier_id OR s.id = e.payee_id
+              LEFT JOIN customer c ON c.id = i.customer_id
               WHERE ti.product_sku = :sku";
 
     // Add transaction type filter
@@ -3335,5 +3409,6 @@ function getProductAndTransactions($pdo, $sku, $transactionType, $dateFilter, $s
 
     return ['product' => $product, 'transactions' => $transactions];
 }
+
 
 ?>

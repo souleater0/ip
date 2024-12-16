@@ -22,7 +22,6 @@ $transactionResult = $data['transactions'];
           </div>
           <div class="col text-end">
             <?php if ($product && $transactionResult): ?>
-              <!-- Export Buttons -->
               <button id="exportPdf" class="btn btn-danger">Export to PDF</button>
               <button id="exportExcel" class="btn btn-success">Export to Excel</button>
             <?php endif; ?>
@@ -31,15 +30,17 @@ $transactionResult = $data['transactions'];
       </div>
       <div class="card-body">
         <?php if ($product): ?>
-          <h3>Product: <?php echo htmlspecialchars($product['product_name']); ?></h3>
+          <h3 id="productText"><?php echo htmlspecialchars($product['product_name']); ?></h3>
           <table class="table table-striped">
             <thead>
               <tr>
                 <th>Transaction Type</th>
                 <th>Date of Transaction</th>
                 <th>Transaction No</th>
+                <th>Name</th>
                 <th>Product Name</th>
                 <th>Quantity</th>
+                <th>U/M</th>
                 <th>Unit Price</th>
                 <th>Total Amount</th>
               </tr>
@@ -51,8 +52,10 @@ $transactionResult = $data['transactions'];
                     <td class="text-dark"><?php echo ucfirst(htmlspecialchars($transaction['transaction_type'])); ?></td>
                     <td class="text-dark"><?php echo date('Y-m-d', strtotime($transaction['created_at'])); ?></td>
                     <td class="text-dark"><?php echo htmlspecialchars($transaction['transaction_no']); ?></td>
+                    <td class="text-dark"><?php echo htmlspecialchars($transaction['person_name']); ?></td>
                     <td class="text-dark"><?php echo htmlspecialchars($transaction['product_name']); ?></td>
                     <td class="text-dark"><?php echo htmlspecialchars($transaction['item_qty']); ?></td>
+                    <td class="text-dark"><?php echo htmlspecialchars($transaction['short_name']); ?></td>
                     <td class="text-dark"><?php echo number_format($transaction['item_rate'], 2); ?></td>
                     <td class="text-dark"><?php echo number_format($transaction['item_amount'], 2); ?></td>
                   </tr>
@@ -74,64 +77,53 @@ $transactionResult = $data['transactions'];
 
 <script>
 $(document).ready(function() {
-  // Trigger export to PDF
+  // Trigger the export for PDF or Excel
   $('#exportPdf').click(function() {
     exportData('pdf');
   });
 
-  // Trigger export to Excel
   $('#exportExcel').click(function() {
     exportData('excel');
   });
 
-  function exportData(format) {
-    // Get data from PHP variables
-    var sku = '<?php echo htmlspecialchars($sku, ENT_QUOTES, "UTF-8"); ?>';
-    var transactionType = '<?php echo htmlspecialchars($transactionType, ENT_QUOTES, "UTF-8"); ?>';
-    var dateFilter = '<?php echo htmlspecialchars($dateFilter, ENT_QUOTES, "UTF-8"); ?>';
-    var startDate = '<?php echo htmlspecialchars($startDate, ENT_QUOTES, "UTF-8"); ?>';
-    var endDate = '<?php echo htmlspecialchars($endDate, ENT_QUOTES, "UTF-8"); ?>';
-    var transactions = <?php echo json_encode($transactionResult); ?>;
-
-    // Prepare the request data
-    var requestData = {
-      format: format,
-      sku: sku,
-      transactionType: transactionType,
-      dateFilter: dateFilter,
-      startDate: startDate,
-      endDate: endDate,
-      transactions: transactions
+// Function to handle data export
+function exportData(format) {
+    const requestData = {
+        format: format,
+        product: '<?php echo htmlspecialchars($product['product_name']); ?>', // Dynamic product name
+        sku: '<?php echo htmlspecialchars($sku); ?>', // Dynamic SKU
+        transactionType: '<?php echo htmlspecialchars($transactionType); ?>', // Dynamic transaction type
+        dateFilter: '<?php echo htmlspecialchars($dateFilter); ?>', // Dynamic date filter
+        startDate: '<?php echo htmlspecialchars($startDate); ?>', // Dynamic start date
+        endDate: '<?php echo htmlspecialchars($endDate); ?>', // Dynamic end date
+        transactions: <?php echo json_encode($transactionResult); ?> // Dynamic transaction data
     };
 
-    // Make AJAX call to export data
-    $.ajax({
-      url: 'admin/process/export_detail.php', // Change the URL as necessary
-      type: 'POST',
-      data: JSON.stringify(requestData), // Send data as JSON
-      contentType: 'application/json', // Set content type to JSON
-      dataType: 'json', // Expect JSON response
-      success: function(response) {
-        if (response.success) {
-          // If format is PDF, open in a new tab with base64-encoded PDF
-          if (format === 'pdf') {
-            var pdfUrl = response.pdfUrl;
-            var win = window.open();
-            win.document.write('<iframe src="' + pdfUrl + '" width="100%" height="100%"></iframe>');
-          } else if (format === 'excel') {
-            // Handle Excel file generation if needed
-            window.location.href = response.excelUrl;
-          }
-        } else {
-          alert('Export failed: ' + response.message || 'An error occurred.');
-        }
-      },
-      error: function(xhr, status, error) {
-        console.error('AJAX Error: ', status, error); // Log any AJAX errors
-        alert('An error occurred while exporting the data.');
-      }
-    });
-  }
-});
+    console.log(requestData); // Log the request data for debugging
 
+    const form = $('<form>', {
+        action: 'admin/process/export_detail.php',
+        method: 'POST',
+        target: '_blank', // Open the PDF in a new tab
+    }).append($('<input>', {
+        type: 'hidden',
+        name: 'groupedData',
+        value: JSON.stringify(requestData),
+    })).append($('<input>', {
+        type: 'hidden',
+        name: 'filters',
+        value: JSON.stringify({ 
+            transactionType: requestData.transactionType, 
+            dateFilter: requestData.dateFilter,  // Include dateFilter in the PDF filters
+            startDate: requestData.startDate, 
+            endDate: requestData.endDate 
+        }),
+    }));
+
+    // Append, submit, and remove the form
+    $('body').append(form);
+    form.submit();
+    form.remove();
+}
+});
 </script>

@@ -909,11 +909,6 @@ require_once 'function.php';
                 $response['message'] = 'Add at least one product!';
             } else {
                 try {
-                    // Prepare data based on form type
-                    // $transactionData = [
-                    //     'items' => $validItems
-                    // ];
-    
                     if ($formType === 'bill') {
                         // Validate bill form fields
                         if (empty($_POST['billSupplier'])) {
@@ -925,14 +920,9 @@ require_once 'function.php';
                         } else {
                             // Call the addTransaction function
                             $transactionResult = addTransaction($pdo);
-    
                             if ($transactionResult['success']) {
-                                // Handle file upload for bill
-                                if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
-                                    handleFileUpload($_FILES['attachment']);
-                                }
                                 $response['success'] = true;
-                                $response['message'] = 'Bill submitted successfully!';
+                                $response['message'] = 'Invoice submitted successfully!';
                             } else {
                                 $response['message'] = $transactionResult['message'];
                             }
@@ -948,14 +938,9 @@ require_once 'function.php';
                         } else {
                             // Call the addTransaction function
                             $transactionResult = addTransaction($pdo);
-    
                             if ($transactionResult['success']) {
-                                // Handle file upload for expense
-                                if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
-                                    handleFileUpload($_FILES['attachment']);
-                                }
                                 $response['success'] = true;
-                                $response['message'] = 'Expense submitted successfully!';
+                                $response['message'] = 'Invoice submitted successfully!';
                             } else {
                                 $response['message'] = $transactionResult['message'];
                             }
@@ -973,12 +958,7 @@ require_once 'function.php';
                         } else {
                             // Call the addTransaction function
                             $transactionResult = addTransaction($pdo);
-    
                             if ($transactionResult['success']) {
-                                // Handle file upload for invoice
-                                if (isset($_FILES['attachment']) && $_FILES['attachment']['error'] === UPLOAD_ERR_OK) {
-                                    handleFileUpload($_FILES['attachment']);
-                                }
                                 $response['success'] = true;
                                 $response['message'] = 'Invoice submitted successfully!';
                             } else {

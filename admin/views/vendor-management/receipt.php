@@ -311,26 +311,26 @@ foreach ($productlists as $productlist) {
 <script>
 $(document).ready(function() {
   // Register FilePond plugins
-  // FilePond.registerPlugin(FilePondPluginImagePreview);
-  // $('.attachment_file').filepond();
+  FilePond.registerPlugin(FilePondPluginImagePreview);
+  $('.attachment_file').filepond();
 
-  // // Turn input element into a pond with configuration options
-  // $('.attachment_file').filepond({
-  //   allowMultiple: true,   // Allow multiple file uploads
-  //   maxFiles: 20,           // Max files limit
-  //   imagePreviewHeight: 100,  // Set the preview height for images (optional)
-  //   imagePreviewMaxHeight: 200,  // Maximum height of the image preview (optional)
-  //   imagePreviewMaxWidth: 200,  // Maximum width of the image preview (optional)
-  //   allowImagePreview: true,    // Allow image preview (enabled by default)
-  //   allowFileTypeValidation: true,  // Validate file type (optional)
-  //   fileValidateTypeLabelExpectedTypes: 'Image only',  // Custom message for invalid types
-  //   fileValidateTypeDetectType: true   // Automatically detect file types
-  // });
+  // Turn input element into a pond with configuration options
+  $('.attachment_file').filepond({
+    allowMultiple: true,   // Allow multiple file uploads
+    maxFiles: 20,           // Max files limit
+    imagePreviewHeight: 100,  // Set the preview height for images (optional)
+    imagePreviewMaxHeight: 200,  // Maximum height of the image preview (optional)
+    imagePreviewMaxWidth: 200,  // Maximum width of the image preview (optional)
+    allowImagePreview: true,    // Allow image preview (enabled by default)
+    allowFileTypeValidation: true,
+    acceptedFileTypes: ['image/*', 'application/pdf'],  // Custom message for invalid types
+    fileValidateTypeDetectType: true   // Automatically detect file types
+  });
 
-  // // Listen for addfile event
-  // $('.attachment_file').on('FilePond:addfile', function (e) {
-  //     console.log('file added event', e);
-  // });
+  // Listen for addfile event
+  $('.attachment_file').on('FilePond:addfile', function (e) {
+      console.log('file added event', e);
+  });
 
   $('#payBillsTable').on('input', '.payment-input', function() {
         let value = $(this).val().replace(/\D/g, ''); // Remove non-digit characters
@@ -1353,12 +1353,14 @@ function updateTotalAmount() {
       formData.append('grand_total', $('#totalAmount').val());
     }
 
-    // Attach remarks and file from `attachForm`
+    // Attach remarks
     formData.append('remarks', $('#attach_Remarks').val());
-    var attachmentFile = $('#attach_File')[0].files[0]; // Get the first file from attach_File input
-    if (attachmentFile) {
-      formData.append('attachment', attachmentFile);
-    }
+    // Attach all files uploaded via FilePond
+    const uploadedFiles = $('.attachment_file').filepond('getFiles');
+    uploadedFiles.forEach((file, index) => {
+        formData.append(`attachments[${index}]`, file.file); // Append each file with a unique name
+    });
+
     Swal.fire({
       title: "Do you want to save the changes?",
       showDenyButton: true,

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 11, 2024 at 12:03 PM
+-- Generation Time: Dec 16, 2024 at 01:01 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -105,6 +105,28 @@ INSERT INTO `customer` (`id`, `customer_name`, `customer_email`, `company_name`,
 (5, 'MATS DONUT FOOD HOUSE', 'test4@gmail.com', NULL, NULL, '2024-10-30 04:47:18', '2024-10-30 10:14:04'),
 (6, 'EC SOLUTIONS BPO', 'test5@gmail.com', NULL, NULL, '2024-10-30 04:47:28', '2024-10-30 10:14:04'),
 (7, 'BAZAAR & EVENTS', 'test6@gmail.com', NULL, NULL, '2024-10-30 04:47:40', '2024-10-30 10:14:04');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `file_upload`
+--
+
+CREATE TABLE `file_upload` (
+  `id` int(11) NOT NULL,
+  `transaction_no` varchar(11) DEFAULT NULL,
+  `file_name` varchar(255) DEFAULT NULL,
+  `file_path` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `file_upload`
+--
+
+INSERT INTO `file_upload` (`id`, `transaction_no`, `file_name`, `file_path`, `created_at`, `updated_at`) VALUES
+(1, NULL, '675fef41bdeb3_Sales_Report.pdf', 'C:\\xampp\\htdocs\\ip\\admin\\process/../../uploads/675fef41bdeb3_Sales_Report.pdf', '2024-12-16 09:13:37', NULL);
 
 -- --------------------------------------------------------
 
@@ -640,9 +662,9 @@ CREATE TABLE `trans_invoice` (
 --
 
 INSERT INTO `trans_invoice` (`id`, `customer_id`, `customer_email`, `invoice_bill_address`, `invoice_shipping_address`, `invoice_ship_via`, `invoice_ship_date`, `invoice_date`, `invoice_duedate`, `invoice_track_no`, `invoice_no`, `transaction_no`, `tax_type`, `payment_status`, `total_amount`, `sales_tax`, `grand_total`, `remarks`, `isVoid`, `created_at`, `updated_at`) VALUES
-(1, 3, 'test2@gmail.com', 'test', 'test', NULL, '2024-12-13', '2024-12-10', '2024-12-11', 'inv001', NULL, 'INV-20241210-001', 3, 'paid', 330.00, 0.00, 330.00, NULL, 0, '2024-12-10 06:05:35', NULL),
-(2, 1, NULL, 'test', 'test', NULL, NULL, '2024-12-10', '2024-12-11', NULL, NULL, 'INV-20241210-002', 3, 'paid', 125.00, 0.00, 125.00, NULL, 0, '2024-12-10 06:30:48', '2024-12-11 08:18:03'),
-(3, 1, 'ecxdev03@gmail.com', 'test', 'test', 'test', '2024-12-14', '2024-12-11', '2024-12-12', 'tk002', NULL, 'INV-20241211-001', 3, 'paid', 163.00, 0.00, 163.00, NULL, 0, '2024-12-11 08:19:07', NULL);
+(1, 3, 'test2@gmail.com', 'test', 'test', NULL, '2024-12-13', '2024-12-10', '2024-12-11', 'inv001', NULL, 'INV-20241210-001', 3, 'paid', 330.00, 0.00, 330.00, NULL, 0, '2024-12-10 06:05:35', '2024-12-16 06:20:37'),
+(2, 2, NULL, 'test', 'test', NULL, NULL, '2024-12-10', '2024-12-11', NULL, NULL, 'INV-20241210-002', 3, 'paid', 125.00, 0.00, 125.00, NULL, 0, '2024-12-10 06:30:48', '2024-12-16 06:20:38'),
+(3, 2, 'ecxdev03@gmail.com', 'test', 'test', 'test', '2024-12-14', '2024-12-11', '2024-12-12', 'tk002', NULL, 'INV-20241211-001', 3, 'paid', 163.00, 0.00, 163.00, NULL, 0, '2024-12-11 08:19:07', '2024-12-16 06:20:39');
 
 -- --------------------------------------------------------
 
@@ -794,6 +816,12 @@ ALTER TABLE `customer`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `file_upload`
+--
+ALTER TABLE `file_upload`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `modules`
 --
 ALTER TABLE `modules`
@@ -941,6 +969,12 @@ ALTER TABLE `customer`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
+-- AUTO_INCREMENT for table `file_upload`
+--
+ALTER TABLE `file_upload`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `modules`
 --
 ALTER TABLE `modules`
@@ -998,7 +1032,7 @@ ALTER TABLE `system_option`
 -- AUTO_INCREMENT for table `trans_bill`
 --
 ALTER TABLE `trans_bill`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `trans_expense`
@@ -1016,7 +1050,7 @@ ALTER TABLE `trans_invoice`
 -- AUTO_INCREMENT for table `trans_item`
 --
 ALTER TABLE `trans_item`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
 
 --
 -- AUTO_INCREMENT for table `users`
