@@ -7,13 +7,17 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['groupedData'], $_POST['filters'])) {
-    $groupedData = json_decode($_POST['groupedData'], true);
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['summaryData'], $_POST['detailedData'], $_POST['filters'])) {
+    $summaryData = json_decode($_POST['summaryData'], true);
+    $detailedData = json_decode($_POST['detailedData'], true);
     $filters = json_decode($_POST['filters'], true);
     $currentDate = date('F d, Y');
 
     $spreadsheet = new Spreadsheet();
+
+    // Create Summary Sheet
     $sheet = $spreadsheet->getActiveSheet();
+    $sheet->setTitle('Summary');
     $row = 1;
 
     // Set document title/header
@@ -42,8 +46,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['groupedData'], $_POST
     $grandTotalPercentage = 0;
     $grandTotalAvgPrice = 0;
 
-    foreach ($groupedData as $categoryName => $products) {
-        // Add category name as a header and make it bold
+    foreach ($summaryData as $categoryName => $products) {
+        // Add category name as a header
         $sheet->setCellValue("A$row", $categoryName);
         $sheet->getStyle("A$row")->getFont()->setBold(true);
         $row++;
@@ -113,8 +117,106 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['groupedData'], $_POST
     $sheet->getStyle("A$row:F$row")->getFont()->setBold(true);
     $sheet->getStyle("A$row:F$row")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
-    $fileName = 'Summary_Report_' . date('Ymd');
+    // Create Detailed Sheet
+    $spreadsheet->createSheet();
+    $sheet = $spreadsheet->setActiveSheetIndex(1);
+    $sheet->setTitle('Detailed');
+    $row = 1;
+
+    // Set document title/header
+    $sheet->mergeCells("A$row:I$row");
+    $sheet->setCellValue("A$row", "Detailed Report");
+    $sheet->getStyle("A$row")->applyFromArray([
+        'font' => ['bold' => true, 'size' => 16],
+        'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+    ]);
+    $row++;
+
+    // Add filters as sub-header
+    $sheet->mergeCells("A$row:I$row");
+    $sheet->setCellValue("A$row", $filterDetails);
+    $sheet->getStyle("A$row")->applyFromArray([
+        'font' => ['italic' => true, 'size' => 12],
+        'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+    ]);
+    $row += 2;
+
+    // Initialize grand totals for the detailed section
+    $grandQty = 0;
+    $grandTotalAmountDetail = 0;
+
+    // Add product data from detailedData
+    foreach ($detailedData as $productKey => $transactions) {
+        list($productSKU, $productName) = explode(" (", rtrim($productKey, ")"));
+
+        // Add category header above each table
+        $sheet->setCellValue("A$row", $productSKU . " (" . $productName . ")");
+        $sheet->getStyle("A$row")->getFont()->setBold(true);
+        $row++;
+
+        // Add table headers with borders
+        $sheet->setCellValue("A$row", "Product SKU")
+              ->setCellValue("B$row", "Product Name")
+              ->setCellValue("C$row", "Transaction Type")
+              ->setCellValue("D$row", "Transaction Date")
+              ->setCellValue("E$row", "Transaction No.")
+              ->setCellValue("F$row", "Person Name")
+              ->setCellValue("G$row", "Quantity")
+              ->setCellValue("H$row", "Unit Price")
+              ->setCellValue("I$row", "Total Amount");
+
+        // Apply border to the header row
+        $sheet->getStyle("A$row:I$row")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $row++;
+
+        $categoryQty = 0;
+        $categoryTotalAmount = 0;
+
+        // Add product data for each transaction
+        foreach ($transactions as $transaction) {
+            $sheet->setCellValue("A$row", $productSKU)
+                  ->setCellValue("B$row", $productName)
+                  ->setCellValue("C$row", $transaction['TransactionType'])
+                  ->setCellValue("D$row", $transaction['TransactionDate'])
+                  ->setCellValue("E$row", $transaction['TransactionNo'])
+                  ->setCellValue("F$row", $transaction['PersonName'])
+                  ->setCellValue("G$row", $transaction['Quantity'])
+                  ->setCellValue("H$row", number_format($transaction['UnitPrice'], 2))
+                  ->setCellValue("I$row", number_format($transaction['TotalAmount'], 2));
+
+            // Apply borders to each product row
+            $sheet->getStyle("A$row:I$row")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $row++;
+
+            // Add to category totals
+            $categoryQty += $transaction['Quantity'];
+            $categoryTotalAmount += $transaction['TotalAmount'];
+        }
+
+        // Add subtotals for each table (Qty, Total, Amount)
+        $sheet->setCellValue("A$row", "Subtotal")
+              ->setCellValue("G$row", $categoryQty)
+              ->setCellValue("I$row", number_format($categoryTotalAmount, 2));
+        $sheet->getStyle("A$row:I$row")->getFont()->setBold(true);
+        $sheet->getStyle("A$row:I$row")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $row++;
+
+        // Add to grand totals
+        $grandQty += $categoryQty;
+        $grandTotalAmountDetail += $categoryTotalAmount;
+
+        $row++; // Add space between each product category table
+    }
+
+    // Add the grand total for detailed section
+    $sheet->setCellValue("A$row", "Grand Total")
+          ->setCellValue("G$row", $grandQty)
+          ->setCellValue("I$row", number_format($grandTotalAmountDetail, 2));
+    $sheet->getStyle("A$row:I$row")->getFont()->setBold(true);
+    $sheet->getStyle("A$row:I$row")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
     // Set headers for download
+    $fileName = 'Sales_Report_' . date('Ymd');
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     header('Content-Disposition: attachment; filename="' . $fileName . '.xlsx"');
     header('Cache-Control: max-age=0');

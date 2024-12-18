@@ -2,9 +2,10 @@
 require_once __DIR__ . '/../../vendor/autoload.php'; // Load TCPDF
 
 // Check if the required POST data is available
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['groupedData'])) {
-    $groupedData = json_decode($_POST['groupedData'], true);
-    $filters = json_decode($_POST['filters'], true); // Assuming 'filters' is passed in POST data
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['summaryData'], $_POST['detailedData'], $_POST['filters'])) {
+    $summaryData = json_decode($_POST['summaryData'], true);  // Summary data
+    $detailedData = json_decode($_POST['detailedData'], true);  // Detailed data
+    $filters = json_decode($_POST['filters'], true);  // Assuming 'filters' is passed in POST data
     $currentDate = date('F d, Y');
 
     // Extract filters and ensure 'dateFilter' exists
@@ -16,7 +17,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['groupedData'])) {
     : (!empty($filters['startDate']) && !empty($filters['endDate'])
         ? date('F d, Y', strtotime($filters['startDate'])) . ' - ' . date('F d, Y', strtotime($filters['endDate']))
         : '');
-
 
     // Create new PDF instance
     $pdf = new TCPDF('P', 'mm', 'LEGAL'); // 'L' for Landscape, 'mm' for millimeters, 'A4' for paper size
@@ -43,16 +43,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['groupedData'])) {
     ];
 
     // The rest of the PDF content generation remains the same
-    // Determine column widths dynamically
+    // Determine column widths dynamically for summary data
     $columnWidths = [];
     foreach ($columnHeaders as $header => $key) {
         $columnWidths[$key] = $pdf->GetStringWidth($header) + 10; // Minimum width to fit the header
     }
 
-
-
     // Adjust column widths based on content
-    foreach ($groupedData as $categoryName => $products) {
+    foreach ($summaryData as $categoryName => $products) {
         foreach ($products as $product) {
             foreach ($columnHeaders as $header => $key) {
                 $contentWidth = $pdf->GetStringWidth($product[$key]) + 10; // Add padding
@@ -68,12 +66,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['groupedData'])) {
     $grandTotalPercentage = 0;
     $grandTotalAvgPrice = 0;
 
-    foreach ($groupedData as $categoryName => $products) {
+    // Loop through summary data and generate the report
+    foreach ($summaryData as $categoryName => $products) {
         $pdf->Ln(5); // Line break
         $pdf->SetFont('helvetica', 'B', 12);
         $pdf->Cell(0, 10, $categoryName, 0, 1); // Category name
 
-        // Table header
+        // Table header for summary data
         $pdf->SetFont('helvetica', '', 10);
         foreach ($columnHeaders as $header => $key) {
             $pdf->Cell($columnWidths[$key], 10, $header, 1, 0, 'C');
@@ -85,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['groupedData'])) {
         $categoryTotalPercentage = 0;
         $categoryTotalAvgPrice = 0;
 
-        // Add product data
+        // Add product data for each category
         foreach ($products as $product) {
             foreach ($columnHeaders as $header => $key) {
                 $align = in_array($key, ['Qty', 'Amount', 'PercentageOfSales', 'AvgPrice']) ? 'R' : 'L';
@@ -125,11 +124,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['groupedData'])) {
     $pdf->Cell($columnWidths['PercentageOfSales'], 10, number_format($grandTotalPercentage, 2). '%', 1, 0, 'R');
     $pdf->Cell($columnWidths['AvgPrice'], 10, number_format($grandTotalAvgPrice, 2), 1, 1, 'R');
 
-    // Output the PDF (open in new tab)
-    $pdf->Output('Summary_Report' . date('Ymd') . '.pdf', 'I'); // 'I' will display the PDF in a new tab
-} else {
-    echo "Invalid request.";
-    exit;
-}
+    // Add a page for the detailed data
+    $pdf->AddPage();
 
+    // Header for detailed transactions
+    $pdf->SetFont('helvetica', 'B', 14);
+    $pdf->Cell(0, 10, 'Detailed Transaction Report', 0, 1, 'C');
+
+    // Loop through detailed data and add transaction details for each product
+    $pdf->Ln(10); // Add some space before detailed data
+    $grandTotalDetailedQty = 0;
+    $grandTotalDetailedAmount = 0;
+
+    foreach ($detailedData as $productKey => $transactions) {
+        $pdf->SetFont('helvetica', 'B', 12);
+        $pdf->Cell(0, 10, $productKey, 0, 1); // Product Name with SKU
+        $pdf->SetFont('helvetica', '', 10);
+        
+        // Determine column widths for detailed data based on headers
+        $detailedColumnHeaders = [
+            'Transaction Type' => 'TransactionType',
+            'Transaction No' => 'TransactionNo',
+            'Person Name' => 'PersonName',
+            'Quantity' => 'Quantity',
+            'Total Amount' => 'TotalAmount',
+        ];
+
+        $detailedColumnWidths = [];
+        foreach ($detailedColumnHeaders as $header => $key) {
+            $detailedColumnWidths[$key] = $pdf->GetStringWidth($header) + 10;
+        }
+
+        // Adjust column widths based on content in detailed data
+        foreach ($transactions as $transaction) {
+            foreach ($detailedColumnHeaders as $header => $key) {
+                $contentWidth = $pdf->GetStringWidth($transaction[$key]) + 10;
+                if ($contentWidth > $detailedColumnWidths[$key]) {
+                    $detailedColumnWidths[$key] = $contentWidth;
+                }
+            }
+        }
+
+        // Table header for detailed transactions
+        $pdf->Cell($detailedColumnWidths['TransactionType'], 10, 'Transaction Type', 1, 0, 'C');
+        $pdf->Cell($detailedColumnWidths['TransactionNo'], 10, 'Transaction No', 1, 0, 'C');
+        $pdf->Cell($detailedColumnWidths['PersonName'], 10, 'Person Name', 1, 0, 'C');
+        $pdf->Cell($detailedColumnWidths['Quantity'], 10, 'Quantity', 1, 0, 'C');
+        $pdf->Cell($detailedColumnWidths['TotalAmount'], 10, 'Total Amount', 1, 1, 'C');
+
+        // Initialize totals for detailed data
+        $detailedTotalQty = 0;
+        $detailedTotalAmount = 0;
+
+        // Add transaction data
+        foreach ($transactions as $transaction) {
+            $pdf->Cell($detailedColumnWidths['TransactionType'], 10, $transaction['TransactionType'], 1, 0, 'C');
+            $pdf->Cell($detailedColumnWidths['TransactionNo'], 10, $transaction['TransactionNo'], 1, 0, 'C');
+            $pdf->Cell($detailedColumnWidths['PersonName'], 10, $transaction['PersonName'], 1, 0, 'C');
+            $pdf->Cell($detailedColumnWidths['Quantity'], 10, $transaction['Quantity'], 1, 0, 'C');
+            $pdf->Cell($detailedColumnWidths['TotalAmount'], 10, number_format($transaction['TotalAmount'], 2), 1, 1, 'C');
+
+            // Add to the detailed totals
+            $detailedTotalQty += $transaction['Quantity'];
+            $detailedTotalAmount += $transaction['TotalAmount'];
+        }
+
+        // Add subtotals for detailed transactions
+        $pdf->SetFont('helvetica', 'B', 10);
+        $pdf->Cell(array_sum($detailedColumnWidths) - $detailedColumnWidths['Quantity'] - $detailedColumnWidths['TotalAmount'], 10, 'Subtotal', 1, 0, 'R');
+        $pdf->Cell($detailedColumnWidths['Quantity'], 10, $detailedTotalQty, 1, 0, 'R');
+        $pdf->Cell($detailedColumnWidths['TotalAmount'], 10, number_format($detailedTotalAmount, 2), 1, 1, 'R');
+
+        // Add the detailed totals to the grand total
+        $grandTotalDetailedQty += $detailedTotalQty;
+        $grandTotalDetailedAmount += $detailedTotalAmount;
+
+        $pdf->Ln(2); // Space after each product
+    }
+
+    // Add the grand total for detailed transactions
+    $pdf->SetFont('helvetica', 'B', 12);
+    $pdf->Cell(array_sum($detailedColumnWidths) - $detailedColumnWidths['Quantity'] - $detailedColumnWidths['TotalAmount'], 10, 'Grand Total', 1, 0, 'R');
+    $pdf->Cell($detailedColumnWidths['Quantity'], 10, $grandTotalDetailedQty, 1, 0, 'R');
+    $pdf->Cell($detailedColumnWidths['TotalAmount'], 10, number_format($grandTotalDetailedAmount, 2), 1, 1, 'R');
+
+    // Output PDF to browser
+    $pdf->Output('report_summary.pdf', 'I');
+}
 ?>

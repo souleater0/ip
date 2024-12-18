@@ -244,12 +244,12 @@ $route = $_GET['route'] ?? 'home';
                 <span class="hide-menu">Product History Report</span>
               </a>
             </li>
-            <!-- <li class="sidebar-item">
+            <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=supplier-transaction" aria-expanded="false">
                 <iconify-icon icon="carbon:scis-transparent-supply"></iconify-icon>
                 <span class="hide-menu">Supplier Transaction</span>
               </a>
-            </li> -->
+            </li>
             <!-- <li class="sidebar-item">
               <a class="sidebar-link" href="index.php?route=customer-transaction" aria-expanded="false">
                 <iconify-icon icon="carbon:scis-transparent-supply"></iconify-icon>

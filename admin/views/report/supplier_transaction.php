@@ -3,7 +3,7 @@
     <!-- Transactions Table -->
     <div class="row">
       <div class="col-3">
-        <div class="card shadow-sm">
+        <div class="card shadow-sm h-100">
           <div class="card-header bg-transparent border-bottom">
             <div class="row">
               <div class="col">
@@ -20,11 +20,11 @@
         </div>
       </div>
       <div class="col-9">
-        <div class="card shadow-sm">
+        <div class="card shadow-sm h-100">
           <div class="card-header bg-transparent border-bottom">
             <div class="row">
               <div class="col">
-                <h5 class="mt-1 mb-0">Supplier Details</h5>
+                <h5 class="mt-1 mb-0">Transaction Details</h5>
               </div>
             </div>
           </div>

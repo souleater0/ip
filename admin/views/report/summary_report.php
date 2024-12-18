@@ -95,7 +95,7 @@ $(document).ready(function () {
             },
             success: function (response) {
                 if (response.success) {
-                    const groupedData = response.data;
+                    const groupedData = response.summary;
                     let reportHTML = "";
                     let grandTotal = 0; // Initialize grand total
 
@@ -220,7 +220,8 @@ $(document).ready(function () {
             loader.remove();
 
             if (response.success) {
-                const groupedData = response.data;
+                const summaryData = response.summary; // Summary data from the response
+                const detailedData = response.detailed; // Detailed data from the response
                 const filters = {
                     transactionType: transactionType,
                     dateFilter: dateFilter,
@@ -234,8 +235,12 @@ $(document).ready(function () {
                     method: 'POST'
                 }).append($('<input>', {
                     type: 'hidden',
-                    name: 'groupedData',
-                    value: JSON.stringify(groupedData)
+                    name: 'summaryData',
+                    value: JSON.stringify(summaryData)
+                })).append($('<input>', {
+                    type: 'hidden',
+                    name: 'detailedData',
+                    value: JSON.stringify(detailedData)
                 })).append($('<input>', {
                     type: 'hidden',
                     name: 'filters',
@@ -260,7 +265,7 @@ $(document).ready(function () {
     });
 });
 
-    $("#generatePDF").click(function () {
+$("#generatePDF").click(function () {
     // Get filter values used for report generation
     const transactionType = $("#trans_type").val();
     const dateFilter = $("#dateFilter").val();
@@ -294,7 +299,8 @@ $(document).ready(function () {
         success: function (response) {
             // Parse the response
             if (response.success) {
-                const groupedData = response.data;
+                const summaryData = response.summary; // Summary data from the response
+                const detailedData = response.detailed; // Detailed data from the response
 
                 // Create a form dynamically for PDF export
                 const form = $('<form>', {
@@ -303,8 +309,12 @@ $(document).ready(function () {
                     target: '_blank', // Open the PDF in a new tab
                 }).append($('<input>', {
                     type: 'hidden',
-                    name: 'groupedData',
-                    value: JSON.stringify(groupedData),
+                    name: 'summaryData',
+                    value: JSON.stringify(summaryData),
+                })).append($('<input>', {
+                    type: 'hidden',
+                    name: 'detailedData',
+                    value: JSON.stringify(detailedData),
                 })).append($('<input>', {
                     type: 'hidden',
                     name: 'filters',
@@ -330,6 +340,7 @@ $(document).ready(function () {
         },
     });
 });
+
 
 
 

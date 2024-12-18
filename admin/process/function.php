@@ -3285,9 +3285,74 @@ function deleteTransaction($pdo) {
     }
 }
 
+// function generateSalesReport($pdo, $filters) {
+//     try {
+//         // Build the base query
+//         $query = "
+//             SELECT 
+//                 c.category_name AS CategoryName, 
+//                 p.product_sku AS ProductSKU, 
+//                 p.product_name AS ProductName, 
+//                 SUM(ti.item_qty) AS Qty, 
+//                 SUM(ti.item_amount) AS Amount, 
+//                 ROUND(SUM(ti.item_amount) * 100.0 / 
+//                       (SELECT SUM(item_amount) FROM trans_item WHERE transaction_type = 'invoice'), 2) AS PercentageOfSales, 
+//                 ROUND(AVG(ti.item_rate), 2) AS AvgPrice 
+//             FROM 
+//                 trans_item ti 
+//             LEFT JOIN product p ON ti.product_sku = p.product_sku 
+//             LEFT JOIN category c ON p.category_id = c.category_id 
+//             WHERE 1=1
+//         ";
+
+//         // Add transaction type filter if provided
+//         if (!empty($filters['transactionType']) && $filters['transactionType'] !== 'none') {
+//             $query .= " AND ti.transaction_type = :transactionType";
+//         }
+
+//         // Add date range filter if provided
+//         if (!empty($filters['dateFilter']) && $filters['dateFilter'] === 'custom') {
+//             $query .= " AND DATE(ti.created_at) BETWEEN :startDate AND :endDate";
+//         }
+
+//         // Group by category and product
+//         $query .= " GROUP BY c.category_name, p.product_sku ORDER BY c.category_name, p.product_name";
+
+//         // Prepare the query
+//         $stmt = $pdo->prepare($query);
+
+//         // Bind transaction type filter
+//         if (!empty($filters['transactionType']) && $filters['transactionType'] !== 'none') {
+//             $stmt->bindParam(':transactionType', $filters['transactionType'], PDO::PARAM_STR);
+//         }
+
+//         // Bind date range filters
+//         if (!empty($filters['dateFilter']) && $filters['dateFilter'] === 'custom') {
+//             $stmt->bindParam(':startDate', $filters['startDate'], PDO::PARAM_STR);
+//             $stmt->bindParam(':endDate', $filters['endDate'], PDO::PARAM_STR);
+//         }
+
+//         // Execute the query
+//         $stmt->execute();
+
+//         // Fetch the data
+//         $reportData = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+//         // Group data by category
+//         $groupedData = [];
+//         foreach ($reportData as $row) {
+//             $groupedData[$row['CategoryName']][] = $row;
+//         }
+
+//         return ['success' => true, 'summary' => $groupedData];
+//     } catch (Exception $e) {
+//         return ['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()];
+//     }
+// }
+
 function generateSalesReport($pdo, $filters) {
     try {
-        // Build the base query
+        // Base query for summary
         $query = "
             SELECT 
                 c.category_name AS CategoryName, 
@@ -3305,50 +3370,111 @@ function generateSalesReport($pdo, $filters) {
             WHERE 1=1
         ";
 
-        // Add transaction type filter if provided
+        // Add filters
         if (!empty($filters['transactionType']) && $filters['transactionType'] !== 'none') {
             $query .= " AND ti.transaction_type = :transactionType";
         }
-
-        // Add date range filter if provided
         if (!empty($filters['dateFilter']) && $filters['dateFilter'] === 'custom') {
             $query .= " AND DATE(ti.created_at) BETWEEN :startDate AND :endDate";
         }
 
-        // Group by category and product
-        $query .= " GROUP BY c.category_name, p.product_sku ORDER BY c.category_name, p.product_name";
+        // Group and order by category and product
+        $query .= " GROUP BY c.category_name, p.product_sku ORDER BY p.product_sku";
 
-        // Prepare the query
         $stmt = $pdo->prepare($query);
 
-        // Bind transaction type filter
+        // Bind filters
         if (!empty($filters['transactionType']) && $filters['transactionType'] !== 'none') {
             $stmt->bindParam(':transactionType', $filters['transactionType'], PDO::PARAM_STR);
         }
-
-        // Bind date range filters
         if (!empty($filters['dateFilter']) && $filters['dateFilter'] === 'custom') {
             $stmt->bindParam(':startDate', $filters['startDate'], PDO::PARAM_STR);
             $stmt->bindParam(':endDate', $filters['endDate'], PDO::PARAM_STR);
         }
 
-        // Execute the query
+        // Execute and fetch grouped summary data
         $stmt->execute();
+        $summaryData = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Fetch the data
-        $reportData = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // Group data by category
+        // Group summary data by category
         $groupedData = [];
-        foreach ($reportData as $row) {
+        $productSKUs = []; // Track SKUs for ordering in detailed report
+        foreach ($summaryData as $row) {
             $groupedData[$row['CategoryName']][] = $row;
+            $productSKUs[] = $row['ProductSKU'];
         }
 
-        return ['success' => true, 'data' => $groupedData];
+        // Query for detailed data
+        $detailedQuery = "
+            SELECT 
+                ti.transaction_type AS TransactionType,
+                COALESCE(b.bill_date, e.expense_date, i.invoice_date) AS TransactionDate,
+                ti.transaction_no AS TransactionNo,
+                CASE 
+                    WHEN b.transaction_no IS NOT NULL THEN s.vendor_name
+                    WHEN e.transaction_no IS NOT NULL THEN s.vendor_name
+                    WHEN i.transaction_no IS NOT NULL THEN c.customer_name
+                    ELSE NULL
+                END AS PersonName,
+                p.product_name AS ProductName,
+                ti.item_qty AS Quantity,
+                u.short_name AS Unit,
+                ti.item_rate AS UnitPrice,
+                ti.item_amount AS TotalAmount,
+                ti.product_sku AS ProductSKU
+            FROM 
+                trans_item ti
+            LEFT JOIN product p ON ti.product_sku = p.product_sku
+            LEFT JOIN unit u ON u.unit_id = p.unit_id
+            LEFT JOIN trans_bill b ON b.transaction_no = ti.transaction_no
+            LEFT JOIN trans_expense e ON e.transaction_no = ti.transaction_no
+            LEFT JOIN trans_invoice i ON i.transaction_no = ti.transaction_no
+            LEFT JOIN supplier s ON s.id = b.supplier_id OR s.id = e.payee_id
+            LEFT JOIN customer c ON c.id = i.customer_id
+            WHERE 1=1
+        ";
+
+        // Reuse filters for detailed query
+        if (!empty($filters['transactionType']) && $filters['transactionType'] !== 'none') {
+            $detailedQuery .= " AND ti.transaction_type = :transactionType";
+        }
+        if (!empty($filters['dateFilter']) && $filters['dateFilter'] === 'custom') {
+            $detailedQuery .= " AND DATE(ti.created_at) BETWEEN :startDate AND :endDate";
+        }
+
+        $detailedQuery .= " ORDER BY FIELD(ti.product_sku, " . implode(',', array_map(function($sku) {
+            return "'" . $sku . "'";
+        }, $productSKUs)) . "), ti.transaction_no";
+
+        $detailedStmt = $pdo->prepare($detailedQuery);
+
+        // Bind filters for detailed query
+        if (!empty($filters['transactionType']) && $filters['transactionType'] !== 'none') {
+            $detailedStmt->bindParam(':transactionType', $filters['transactionType'], PDO::PARAM_STR);
+        }
+        if (!empty($filters['dateFilter']) && $filters['dateFilter'] === 'custom') {
+            $detailedStmt->bindParam(':startDate', $filters['startDate'], PDO::PARAM_STR);
+            $detailedStmt->bindParam(':endDate', $filters['endDate'], PDO::PARAM_STR);
+        }
+
+        // Execute and fetch detailed data
+        $detailedStmt->execute();
+        $detailedDataRaw = $detailedStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Organize detailed data by SKU
+        $detailedData = [];
+        foreach ($detailedDataRaw as $row) {
+            $key = "{$row['ProductSKU']} ({$row['ProductName']})";
+            $detailedData[$key][] = $row;
+        }
+
+        return ['success' => true, 'summary' => $groupedData, 'detailed' => $detailedData];
     } catch (Exception $e) {
         return ['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()];
     }
 }
+
+
 
 function getProductAndTransactions($pdo, $sku, $transactionType, $dateFilter, $startDate, $endDate) {
     // Fetch product data based on SKU
