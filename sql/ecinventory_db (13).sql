@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 18, 2024 at 11:55 AM
+-- Generation Time: Dec 19, 2024 at 12:02 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -114,7 +114,7 @@ INSERT INTO `customer` (`id`, `customer_name`, `customer_email`, `company_name`,
 
 CREATE TABLE `file_upload` (
   `id` int(11) NOT NULL,
-  `transaction_no` varchar(11) DEFAULT NULL,
+  `transaction_no` varchar(255) DEFAULT NULL,
   `file_name` varchar(255) DEFAULT NULL,
   `file_path` varchar(255) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT current_timestamp(),
@@ -126,7 +126,11 @@ CREATE TABLE `file_upload` (
 --
 
 INSERT INTO `file_upload` (`id`, `transaction_no`, `file_name`, `file_path`, `created_at`, `updated_at`) VALUES
-(1, NULL, '675fef41bdeb3_Sales_Report.pdf', 'C:\\xampp\\htdocs\\ip\\admin\\process/../../uploads/675fef41bdeb3_Sales_Report.pdf', '2024-12-16 09:13:37', NULL);
+(34, 'BILL-20241219-001', '1000010983.jpg', '2024/12/BILL-20241219-001_d32b8d78_6763f60f4d8754.34080016.jpg', '2024-12-19 10:31:43', NULL),
+(35, 'BILL-20241219-001', '1000010984.jpg', '2024/12/BILL-20241219-001_56b08a9d_6763f60f4edef9.14314581.jpg', '2024-12-19 10:31:43', NULL),
+(36, 'BILL-20241219-001', 'test.jpg', '2024/12/BILL-20241219-001_fc481fdf_6763f60f4fa3a2.42965329.jpg', '2024-12-19 10:31:43', NULL),
+(37, 'BILL-20241219-001', '0e8d11eb-a471-4996-89af-6a9d20433583.jpg', '2024/12/BILL-20241219-001_e5fbcc68_6763f671ba73c2.50833199.jpg', '2024-12-19 10:33:21', NULL),
+(38, 'BILL-20241219-001', 'ChatGPT.pdf', '2024/12/BILL-20241219-001_ba201bec_6763fa8ec3e947.81500817.pdf', '2024-12-19 10:50:54', NULL);
 
 -- --------------------------------------------------------
 
@@ -595,7 +599,8 @@ CREATE TABLE `trans_bill` (
 
 INSERT INTO `trans_bill` (`id`, `supplier_id`, `bill_address`, `bill_date`, `bill_due_date`, `bill_no`, `transaction_no`, `tax_type`, `total_amount`, `sales_tax`, `grand_total`, `payment_status`, `remarks`, `isVoid`, `created_at`, `updated_at`) VALUES
 (1, 1, NULL, '2024-12-10', '2024-12-10', 'bill001', 'BILL-20241210-001', 3, 450.00, 0.00, 450.00, 'unpaid', NULL, 0, '2024-12-10 06:04:34', '2024-12-10 06:04:34'),
-(2, 1, NULL, '2024-12-10', '2024-12-10', NULL, 'BILL-20241210-002', 3, 150.00, 0.00, 150.00, 'unpaid', NULL, 0, '2024-12-10 06:27:25', '2024-12-10 06:27:25');
+(2, 1, NULL, '2024-12-10', '2024-12-10', NULL, 'BILL-20241210-002', 3, 150.00, 0.00, 150.00, 'unpaid', NULL, 0, '2024-12-10 06:27:25', '2024-12-10 06:27:25'),
+(68, 1, 'test', '2024-12-19', '2024-12-19', 'test', 'BILL-20241219-001', 3, 60.00, 0.00, 60.00, 'unpaid', '', 0, '2024-12-19 10:50:54', '2024-12-19 10:50:54');
 
 -- --------------------------------------------------------
 
@@ -701,7 +706,8 @@ INSERT INTO `trans_item` (`item_id`, `transaction_no`, `product_sku`, `item_barc
 (7, 'INV-20241210-002', 'BR00002', '', 2, 25.00, NULL, 50.00, 'invoice', '0000-00-00', NULL, '2024-12-10 06:30:48'),
 (8, 'INV-20241210-002', 'SN00002', '', 3, 25.00, NULL, 75.00, 'invoice', '0000-00-00', NULL, '2024-12-10 06:30:48'),
 (9, 'INV-20241211-001', 'SN00001', '', 3, 40.00, NULL, 120.00, 'invoice', '0000-00-00', NULL, '2024-12-11 08:19:07'),
-(10, 'INV-20241211-001', 'BR00002', '', 2, 21.50, NULL, 43.00, 'invoice', '0000-00-00', NULL, '2024-12-11 08:19:07');
+(10, 'INV-20241211-001', 'BR00002', '', 2, 21.50, NULL, 43.00, 'invoice', '0000-00-00', NULL, '2024-12-11 08:19:07'),
+(83, 'BILL-20241219-001', 'SN00001', '', 2, 30.00, NULL, 60.00, 'bill', '0000-00-00', NULL, '2024-12-19 10:50:54');
 
 -- --------------------------------------------------------
 
@@ -972,7 +978,7 @@ ALTER TABLE `customer`
 -- AUTO_INCREMENT for table `file_upload`
 --
 ALTER TABLE `file_upload`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
 -- AUTO_INCREMENT for table `modules`
@@ -1032,7 +1038,7 @@ ALTER TABLE `system_option`
 -- AUTO_INCREMENT for table `trans_bill`
 --
 ALTER TABLE `trans_bill`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
 
 --
 -- AUTO_INCREMENT for table `trans_expense`
@@ -1050,7 +1056,7 @@ ALTER TABLE `trans_invoice`
 -- AUTO_INCREMENT for table `trans_item`
 --
 ALTER TABLE `trans_item`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=84;
 
 --
 -- AUTO_INCREMENT for table `users`

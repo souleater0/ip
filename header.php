@@ -54,6 +54,8 @@ $route = $_GET['route'] ?? 'home';
 
   <link href="https://unpkg.com/filepond@^4/dist/filepond.css" rel="stylesheet" />
   <link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css" rel="stylesheet"/>
+  <script src="https://unpkg.com/filepond-plugin-file-validate-type/dist/filepond-plugin-file-validate-type.js"></script>
+
   <script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.js"></script>
   <script src="https://unpkg.com/filepond/dist/filepond.min.js"></script>
   <script src="https://unpkg.com/jquery-filepond/filepond.jquery.js"></script>
@@ -204,6 +206,12 @@ $route = $_GET['route'] ?? 'home';
               </a>
             </li>
             <?php } ?>
+            <li class="sidebar-item">
+              <a class="sidebar-link <?php echo ($route == 'manage-receipt' )? 'active' : ''; ?>" href="index.php?route=manage-receipt" aria-expanded="false">
+                <iconify-icon icon="ic:baseline-receipt-long"></iconify-icon>
+                <span class="hide-menu">Transaction</span>
+              </a>
+            </li>
             </div>
             <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_inventory_stock') || userHasPermission($pdo, $_SESSION["user_id"], 'manage_stock_valuation') || userHasPermission($pdo, $_SESSION["user_id"], 'manage_stock_movement') || userHasPermission($pdo, $_SESSION["user_id"], 'manage_product_history')){?>
             <li>

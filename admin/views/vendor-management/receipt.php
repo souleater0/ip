@@ -246,7 +246,12 @@ foreach ($productlists as $productlist) {
               </div>
               <div class="col-3">
                 <label for="attach_File" class="form-label">Attachment</label>
-                <input class="attachment_file" type="file" id="attach_File">
+                <input class="attachment_file" type="file" id="attach_File"/>
+              </div>
+              <div class="col-3">
+                <span class="text-dark fw-bold">Current Attachment</span>
+                <div id="file_attached" class="container">
+                </div>
               </div>
             </div>
         </div>
@@ -312,20 +317,24 @@ foreach ($productlists as $productlist) {
 $(document).ready(function() {
   // Register FilePond plugins
   FilePond.registerPlugin(FilePondPluginImagePreview);
-  $('.attachment_file').filepond();
-
-  // Turn input element into a pond with configuration options
+  FilePond.registerPlugin(FilePondPluginFileValidateType);
+  // Initialize FilePond
   $('.attachment_file').filepond({
-    allowMultiple: true,   // Allow multiple file uploads
-    maxFiles: 20,           // Max files limit
-    imagePreviewHeight: 100,  // Set the preview height for images (optional)
-    imagePreviewMaxHeight: 200,  // Maximum height of the image preview (optional)
-    imagePreviewMaxWidth: 200,  // Maximum width of the image preview (optional)
-    allowImagePreview: true,    // Allow image preview (enabled by default)
-    allowFileTypeValidation: true,
-    acceptedFileTypes: ['image/*', 'application/pdf'],  // Custom message for invalid types
-    fileValidateTypeDetectType: true   // Automatically detect file types
+    allowMultiple: true,                // Allow multiple file uploads
+    maxFiles: 20,                       // Max files limit
+    imagePreviewHeight: 100,            // Set the preview height for images (optional)
+    imagePreviewMaxHeight: 200,        // Maximum height of the image preview (optional)
+    imagePreviewMaxWidth: 200,         // Maximum width of the image preview (optional)
+    allowImagePreview: true,           // Allow image preview (enabled by default)
+    allowFileTypeValidation: true,     // Allow file type validation
+    acceptedFileTypes: ['image/jpeg', 'image/png', 'application/pdf'], // Allow only JPG, PNG, and PDF
+    fileValidateTypeDetectType: true,  // Automatically detect file types
+    labelFileTypeNotAllowed: 'This file type is not allowed', // Custom error message
   });
+
+
+  // Manually set the 'accept' attribute after FilePond initializes
+  $('.attachment_file').attr('accept', 'image/jpeg', 'image/png','application/pdf');
 
   // Listen for addfile event
   $('.attachment_file').on('FilePond:addfile', function (e) {
@@ -533,12 +542,26 @@ $(document).ready(function() {
         }
     }
 <?php } ?>
-
-
-
     ]
 });
 
+function LoadTransactionTable(){
+        $.ajax({
+            url: 'admin/process/table.php?table_type=transaction-list',
+            dataType: 'json',
+            success: function(data) {
+              tableTransaction.clear().rows.add(data.data).draw(false); // Update data without redrawing
+            
+              // Reload the DataTable after a delay (e.g., 1 second) to reflect any changes in the table structure or formatting
+              setTimeout(function() {
+                tableTransaction.ajax.reload(null, false); // Reload the DataTable without resetting current page
+              }, 1000); // Adjust delay as needed
+            },
+            error: function () {
+                alert('Failed to retrieve categories.');
+            }
+        });
+}
     $('#transactionTable').on('click', 'button.btn-view', function () {
       var data = tableTransaction.row($(this).parents('tr')).data();
 
@@ -757,6 +780,35 @@ $(document).ready(function() {
       }).draw(false);
     });
     $('.selected-product').selectpicker('refresh');
+      // Populate the file attachments section
+  const fileAttachedContainer = $('#file_attached');
+  fileAttachedContainer.empty(); // Clear existing content
+
+  if (data.files && data.files.length > 0) {
+    data.files.forEach(file => {
+      const fileRow = `
+        <div class="row mb-2">
+          <div class="col d-flex justify-content-between align-items-center border p-2">
+            <div class="text-dark">${file.file_name}</div>
+            <div>
+              <a href="http://localhost/ip/uploads/${file.file_path}" target="_blank">
+                <iconify-icon icon="line-md:download-loop" width="24" height="24"></iconify-icon>
+              </a>
+            </div>
+          </div>
+        </div>`;
+      fileAttachedContainer.append(fileRow);
+    });
+  } else {
+    // Show "No Files Uploaded" if no files are available
+    fileAttachedContainer.html(`
+      <div class="row mb-2">
+        <div class="col d-flex justify-content-between align-items-center border p-2">
+          <div>No Files Uploaded</div>
+        </div>
+      </div>
+    `);
+  }
       // Update total amount or any other summary fields based on the retrieved data
       updateTotalAmount();
   }
@@ -1284,6 +1336,33 @@ function updateTotalAmount() {
 
   // Form submission
   $('#submitForm').on('click', function() {
+    // File validation first
+    const uploadedFiles = $('.attachment_file').filepond('getFiles');
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    const maxFileSize = 5 * 1024 * 1024; // 5MB
+    
+    // Validate uploaded files
+    for (const file of uploadedFiles) {
+        // Check file type
+        if (!allowedTypes.includes(file.fileType)) {
+            Swal.fire({
+                title: "Invalid File Type",
+                text: `File "${file.filename}" is not allowed. Only JPG, PNG and PDF files are permitted.`,
+                icon: "error"
+            });
+            return;
+        }
+        
+        // Check file size
+        if (file.size > maxFileSize) {
+            Swal.fire({
+                title: "File Too Large",
+                text: `File "${file.filename}" exceeds 5MB limit.`,
+                icon: "error"
+            });
+            return;
+        }
+    }
     // Determine which form is currently active (Bill or Expense)
     var activeForm;
     if ($('#billForm').is(':visible')) {
@@ -1356,7 +1435,6 @@ function updateTotalAmount() {
     // Attach remarks
     formData.append('remarks', $('#attach_Remarks').val());
     // Attach all files uploaded via FilePond
-    const uploadedFiles = $('.attachment_file').filepond('getFiles');
     uploadedFiles.forEach((file, index) => {
         formData.append(`attachments[${index}]`, file.file); // Append each file with a unique name
     });
@@ -1385,20 +1463,26 @@ function updateTotalAmount() {
                 if (response.success) {
                     // Reset the active form
                     if (activeForm === 'bill') {
+                        
                         $('#billForm')[0].reset(); // Reset the bill form
                         $('#attach_Remarks').val("");
                         Swal.fire("Saved!", response.message, "success");
                     } else if (activeForm === 'expense') {
+                       
                         $('#expenseForm')[0].reset(); // Reset the expense form
                         Swal.fire("Saved!", response.message, "success");
                         $('#attach_Remarks').val("");
                     }
                     else if (activeForm === 'invoice') {
+                        
                         $('#invoiceForm')[0].reset(); // Reset the expense form
                         Swal.fire("Saved!", response.message, "success");
                         $('#attach_Remarks').val("");
                     }
                     clearRows();
+                    $('#transactionModal').modal('hide');
+                    LoadTransactionTable();
+                    $('.attachment_file').filepond('removeFiles');
                 } else {
                     console.log(response.message);
                     // toastr.error(response.message);
@@ -1417,6 +1501,33 @@ function updateTotalAmount() {
   });
   
   $('#updateForm').on('click', function() {
+        // File validation first
+        const uploadedFiles = $('.attachment_file').filepond('getFiles');
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+    const maxFileSize = 5 * 1024 * 1024; // 5MB
+    
+    // Validate uploaded files
+    for (const file of uploadedFiles) {
+        // Check file type
+        if (!allowedTypes.includes(file.fileType)) {
+            Swal.fire({
+                title: "Invalid File Type",
+                text: `File "${file.filename}" is not allowed. Only JPG, PNG and PDF files are permitted.`,
+                icon: "error"
+            });
+            return;
+        }
+        
+        // Check file size
+        if (file.size > maxFileSize) {
+            Swal.fire({
+                title: "File Too Large",
+                text: `File "${file.filename}" exceeds 5MB limit.`,
+                icon: "error"
+            });
+            return;
+        }
+    }
     // Retrieve transaction details from the URL parameters
     const params = new URLSearchParams(window.location.search);
     const transactionNo = params.get('transacNo');
@@ -1427,7 +1538,6 @@ function updateTotalAmount() {
         Swal.fire("Error", "Transaction details are missing", "error");
         return;
     }
-
     // Determine which form is currently active (Bill, Expense, or Invoice)
     var activeForm;
     if ($('#billForm').is(':visible')) {
@@ -1508,13 +1618,12 @@ function updateTotalAmount() {
         formData.append('grand_total', $('#totalAmount').val());
     }
 
-    // Attach remarks and file from `attachForm`
+    // Attach remarks
     formData.append('remarks', $('#attach_Remarks').val());
-    var attachmentFile = $('#attach_File')[0].files[0]; // Get the first file from attach_File input
-    if (attachmentFile) {
-        formData.append('attachment', attachmentFile);
-    }
-
+    // Attach all files uploaded via FilePond
+    uploadedFiles.forEach((file, index) => {
+        formData.append(`attachments[${index}]`, file.file); // Append each file with a unique name
+    });
     // Confirm before saving changes
     Swal.fire({
         title: "Do you want to save the changes?",
@@ -1551,7 +1660,11 @@ function updateTotalAmount() {
                             $('#invoiceForm')[0].reset();
                             Swal.fire("Saved!", response.message, "success");
                         }
-                        clearRows(); // Optionally clear rows
+                    clearRows(); // Optionally clear rows
+                    // Reload DataTable
+                    $('#transactionModal').modal('hide');
+                    LoadTransactionTable();
+                    $('.attachment_file').filepond('removeFiles');
                     } else {
                         Swal.fire("Error!", response.message, "error");
                     }

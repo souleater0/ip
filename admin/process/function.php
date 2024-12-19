@@ -2223,7 +2223,37 @@ function getProductList($pdo) {
                     }
                 }
             }
-
+            if (!empty($_FILES['attachments'])) {
+                $fileUploadResults = handleFileUpload($_FILES['attachments'], $transactionNo);
+                
+                // Modified SQL to match your actual table structure
+                $fileSql = "INSERT INTO file_upload 
+                            (transaction_no, file_name, file_path, created_at) 
+                            VALUES (:transaction_no, :file_name, :file_path, NOW())";
+                $fileStmt = $pdo->prepare($fileSql);
+                
+                foreach ($fileUploadResults as $result) {
+                    if ($result['success']) {
+                        try {
+                            $fileStmt->execute([
+                                'transaction_no' => $transactionNo,
+                                'file_name' => $result['fileName'],  // Original filename
+                                'file_path' => $result['filePath']   // Path where file is stored
+                            ]);
+            
+                            if ($fileStmt->rowCount() === 0) {
+                                error_log("No rows were inserted for file: " . $result['fileName']);
+                            }
+                        } catch (Exception $e) {
+                            error_log("Failed to insert file record: " . $e->getMessage());
+                            // You might want to add this to see the actual SQL error
+                            error_log("SQL Error: " . json_encode($fileStmt->errorInfo()));
+                        }
+                    } else {
+                        error_log("File upload failed: " . $result['message']);
+                    }
+                }
+            }
             // Commit the transaction
             $pdo->commit();
             return array('success' => true, 'message' => 'Transaction and items added successfully.');
@@ -2256,192 +2286,169 @@ function updateTransaction($pdo) {
         // Start a PDO transaction
         $pdo->beginTransaction();
 
-        // Determine transaction details based on formType
-        $stmtParams = [];
+        // Delete the existing transaction and associated items
+        $deleteItemsSQL = "DELETE FROM trans_item WHERE transaction_no = :transaction_no";
+        $deleteTransactionSQL = "DELETE FROM " . ($formType === 'bill' ? 'trans_bill' : ($formType === 'expense' ? 'trans_expense' : 'trans_invoice')) . " WHERE transaction_no = :transaction_no";
+        $pdo->prepare($deleteItemsSQL)->execute(['transaction_no' => $transactionNo]);
+        $pdo->prepare($deleteTransactionSQL)->execute(['transaction_no' => $transactionNo]);
+
+        // Insert the new transaction
         switch ($formType) {
             case 'bill':
-                $supplierID = !empty($_POST['billSupplier']) ? $_POST['billSupplier'] : null;
-                $address = !empty($_POST['billAddress']) ? $_POST['billAddress'] : null;
-                $date = !empty($_POST['billDate']) ? $_POST['billDate'] : null;
-                $dueDate = !empty($_POST['billdueDate']) ? $_POST['billdueDate'] : null;
-                $subTotal = !empty($_POST['sub_total']) ? $_POST['sub_total'] : 0;
-                $total_tax = !empty($_POST['total_tax']) ? $_POST['total_tax'] : 0;
-                $grand_total = !empty($_POST['grand_total']) ? $_POST['grand_total'] : 0;
-                $tax_type = !empty($_POST['tax_type']) ? $_POST['tax_type'] : null;
-                $remarks = !empty($_POST['remarks']) ? $_POST['remarks'] : null;
-
-                // Update trans_bill table
-                $sql = "
-                    UPDATE trans_bill SET
-                        supplier_id = :supplier_id,
-                        bill_address = :bill_address,
-                        bill_date = :bill_date,
-                        bill_due_date = :bill_due_date,
-                        total_amount = :total_amount,
-                        sales_tax = :sales_tax,
-                        grand_total = :grand_total,
-                        tax_type = :tax_type,
-                        remarks = :remarks
-                    WHERE transaction_no = :transaction_no
-                ";
+                $insertTransactionSQL = "
+                    INSERT INTO trans_bill (
+                        transaction_no, supplier_id, bill_address, bill_date, bill_due_date, bill_no, 
+                        total_amount, sales_tax, grand_total, tax_type, remarks
+                    ) VALUES (
+                        :transaction_no, :supplier_id, :bill_address, :bill_date, :bill_due_date, :bill_no, 
+                        :total_amount, :sales_tax, :grand_total, :tax_type, :remarks
+                    )";
                 $stmtParams = [
-                    'supplier_id' => $supplierID,
-                    'bill_address' => $address,
-                    'bill_date' => $date,
-                    'bill_due_date' => $dueDate,
-                    'total_amount' => $subTotal,
-                    'sales_tax' => $total_tax,
-                    'grand_total' => $grand_total,
                     'transaction_no' => $transactionNo,
-                    'tax_type' => $tax_type,
-                    'remarks' => $remarks
+                    'supplier_id' => $_POST['billSupplier'] ?? null,
+                    'bill_address' => $_POST['billAddress'] ?? null,
+                    'bill_date' => $_POST['billDate'] ?? null,
+                    'bill_due_date' => $_POST['billdueDate'] ?? null,
+                    'bill_no' => !empty($_POST['billNo']) ? $_POST['billNo'] : null,
+                    'total_amount' => $_POST['sub_total'] ?? 0,
+                    'sales_tax' => $_POST['total_tax'] ?? 0,
+                    'grand_total' => $_POST['grand_total'] ?? 0,
+                    'tax_type' => $_POST['tax_type'] ?? null,
+                    'remarks' => $_POST['remarks'] ?? null,
                 ];
                 break;
 
             case 'expense':
-                $supplierID = !empty($_POST['payee_id']) ? $_POST['payee_id'] : null;
-                $date = !empty($_POST['expenseDate']) ? $_POST['expenseDate'] : null;
-                $paymentMethod = !empty($_POST['expense_payment_method']) ? $_POST['expense_payment_method'] : null;
-                $expenseNo = !empty($_POST['expenseNo']) ? $_POST['expenseNo'] : null;
-                $subTotal = !empty($_POST['sub_total']) ? $_POST['sub_total'] : 0;
-                $totalTax = !empty($_POST['total_tax']) ? $_POST['total_tax'] : 0;
-                $grandTotal = !empty($_POST['grand_total']) ? $_POST['grand_total'] : 0;
-                $tax_type = !empty($_POST['tax_type']) ? $_POST['tax_type'] : null;
-                $remarks = !empty($_POST['remarks']) ? $_POST['remarks'] : null;
-
-                // Update trans_expense table
-                $sql = "
-                    UPDATE trans_expense SET
-                        payee_id = :payee_id,
-                        expense_date = :expense_date,
-                        expense_payment_method = :expense_payment_method,
-                        expense_no = :expense_no,
-                        tax_type = :tax_type,
-                        total_amount = :total_amount,
-                        sales_tax = :sales_tax,
-                        grand_total = :grand_total,
-                        remarks = :remarks
-                    WHERE transaction_no = :transaction_no
-                ";
+                $insertTransactionSQL = "
+                    INSERT INTO trans_expense (
+                        transaction_no, payee_id, expense_date, expense_payment_method, expense_no, 
+                        total_amount, sales_tax, grand_total, tax_type, remarks
+                    ) VALUES (
+                        :transaction_no, :payee_id, :expense_date, :expense_payment_method, :expense_no, 
+                        :total_amount, :sales_tax, :grand_total, :tax_type, :remarks
+                    )";
                 $stmtParams = [
-                    'payee_id' => $supplierID,
-                    'expense_date' => $date,
-                    'expense_payment_method' => $paymentMethod,
-                    'expense_no' => $expenseNo,
                     'transaction_no' => $transactionNo,
-                    'tax_type' => $tax_type,
-                    'total_amount' => $subTotal,
-                    'sales_tax' => $totalTax,
-                    'grand_total' => $grandTotal,
-                    'remarks' => $remarks
+                    'payee_id' => $_POST['payee_id'] ?? null,
+                    'expense_date' => $_POST['expenseDate'] ?? null,
+                    'expense_payment_method' => $_POST['expense_payment_method'] ?? null,
+                    'expense_no' => $_POST['expenseNo'] ?? null,
+                    'total_amount' => $_POST['sub_total'] ?? 0,
+                    'sales_tax' => $_POST['total_tax'] ?? 0,
+                    'grand_total' => $_POST['grand_total'] ?? 0,
+                    'tax_type' => $_POST['tax_type'] ?? null,
+                    'remarks' => $_POST['remarks'] ?? null,
                 ];
                 break;
 
             case 'invoice':
-                $customerID = !empty($_POST['customer_id']) ? $_POST['customer_id'] : null;
-                $customerEmail = !empty($_POST['customer_email']) ? $_POST['customer_email'] : null;
-                $billingAddress = !empty($_POST['invoice_bill_address']) ? $_POST['invoice_bill_address'] : null;
-                $invoiceDate = !empty($_POST['invoice_date']) ? $_POST['invoice_date'] : null;
-                $dueDate = !empty($_POST['invoice_duedate']) ? $_POST['invoice_duedate'] : null;
-                $shippingAddress = !empty($_POST['invoice_ship_address']) ? $_POST['invoice_ship_address'] : null;
-                $shipVia = !empty($_POST['invoice_ship_via']) ? $_POST['invoice_ship_via'] : null;
-                $shipDate = !empty($_POST['invoice_ship_date']) ? $_POST['invoice_ship_date'] : null;
-                $trackNo = !empty($_POST['invoice_track_no']) ? $_POST['invoice_track_no'] : null;
-                $subTotal = !empty($_POST['sub_total']) ? $_POST['sub_total'] : 0;
-                $totalTax = !empty($_POST['total_tax']) ? $_POST['total_tax'] : 0;
-                $grandTotal = !empty($_POST['grand_total']) ? $_POST['grand_total'] : 0;
-                $tax_type = !empty($_POST['tax_type']) ? $_POST['tax_type'] : null;
-                $remarks = !empty($_POST['remarks']) ? $_POST['remarks'] : null;
-
-                // Update trans_invoice table
-                $sql = "
-                    UPDATE trans_invoice SET
-                        customer_id = :customer_id,
-                        customer_email = :customer_email,
-                        invoice_bill_address = :invoice_bill_address,
-                        invoice_date = :invoice_date,
-                        invoice_duedate = :invoice_duedate,
-                        invoice_shipping_address = :invoice_shipping_address,
-                        invoice_ship_via = :invoice_ship_via,
-                        invoice_ship_date = :invoice_ship_date,
-                        invoice_track_no = :invoice_track_no,
-                        total_amount = :total_amount,
-                        sales_tax = :sales_tax,
-                        grand_total = :grand_total,
-                        tax_type = :tax_type,
-                        remarks = :remarks
-                    WHERE transaction_no = :transaction_no
-                ";
+                $insertTransactionSQL = "
+                    INSERT INTO trans_invoice (
+                        transaction_no, customer_id, customer_email, invoice_bill_address, invoice_date, 
+                        invoice_duedate, invoice_shipping_address, invoice_ship_via, invoice_ship_date, 
+                        invoice_track_no, total_amount, sales_tax, grand_total, tax_type, remarks
+                    ) VALUES (
+                        :transaction_no, :customer_id, :customer_email, :invoice_bill_address, :invoice_date, 
+                        :invoice_duedate, :invoice_shipping_address, :invoice_ship_via, :invoice_ship_date, 
+                        :invoice_track_no, :total_amount, :sales_tax, :grand_total, :tax_type, :remarks
+                    )";
                 $stmtParams = [
-                    'customer_id' => $customerID,
-                    'customer_email' => $customerEmail,
-                    'invoice_bill_address' => $billingAddress,
-                    'invoice_date' => $invoiceDate,
-                    'invoice_duedate' => $dueDate,
-                    'invoice_shipping_address' => $shippingAddress,
-                    'invoice_ship_via' => $shipVia,
-                    'invoice_ship_date' => $shipDate,
-                    'invoice_track_no' => $trackNo,
-                    'total_amount' => $subTotal,
-                    'sales_tax' => $totalTax,
-                    'grand_total' => $grandTotal,
                     'transaction_no' => $transactionNo,
-                    'tax_type' => $tax_type,
-                    'remarks' => $remarks
+                    'customer_id' => $_POST['customer_id'] ?? null,
+                    'customer_email' => $_POST['customer_email'] ?? null,
+                    'invoice_bill_address' => $_POST['invoice_bill_address'] ?? null,
+                    'invoice_date' => $_POST['invoice_date'] ?? null,
+                    'invoice_duedate' => $_POST['invoice_duedate'] ?? null,
+                    'invoice_shipping_address' => $_POST['invoice_ship_address'] ?? null,
+                    'invoice_ship_via' => $_POST['invoice_ship_via'] ?? null,
+                    'invoice_ship_date' => $_POST['invoice_ship_date'] ?? null,
+                    'invoice_track_no' => $_POST['invoice_track_no'] ?? null,
+                    'total_amount' => $_POST['sub_total'] ?? 0,
+                    'sales_tax' => $_POST['total_tax'] ?? 0,
+                    'grand_total' => $_POST['grand_total'] ?? 0,
+                    'tax_type' => $_POST['tax_type'] ?? null,
+                    'remarks' => $_POST['remarks'] ?? null,
                 ];
                 break;
 
             default:
-                throw new Exception('Invalid form type');
+                throw new Exception('Invalid form type.');
         }
 
-        // Prepare and execute the main update SQL
-        $stmt = $pdo->prepare($sql);
+        $stmt = $pdo->prepare($insertTransactionSQL);
         $stmt->execute($stmtParams);
 
-        // Update trans_item table with items
+        // Insert the associated items
         $itemSQL = "
-            UPDATE trans_item SET
-                product_sku = :product_sku,
-                item_barcode = :item_barcode,
-                item_qty = :item_qty,
-                item_rate = :item_rate,
-                item_tax = :item_tax,
-                item_amount = :item_amount,
-                transaction_type = :transaction_type,
-                item_expiry = :item_expiry
-            WHERE transaction_no = :transaction_no AND product_sku = :product_sku
-        ";
+            INSERT INTO trans_item (
+                transaction_no, product_sku, item_barcode, item_qty, item_rate, 
+                item_tax, item_amount, transaction_type, item_expiry
+            ) VALUES (
+                :transaction_no, :product_sku, :item_barcode, :item_qty, :item_rate, 
+                :item_tax, :item_amount, :transaction_type, :item_expiry
+            )";
         $itemStmt = $pdo->prepare($itemSQL);
 
         foreach ($items as $item) {
-            if (!empty($item['sku']) && !empty($item['qty']) && !empty($item['rate']) && !empty($item['amount'])) {
-                $itemStmt->execute([
-                    'transaction_no' => $transactionNo,
-                    'product_sku' => $item['sku'],
-                    'item_barcode' => $item['barcode'] ?? null,
-                    'item_qty' => $item['qty'],
-                    'item_rate' => $item['rate'],
-                    'item_tax' => $item['tax'] ?? null,
-                    'item_amount' => $item['amount'],
-                    'transaction_type' => $formType,
-                    'item_expiry' => $item['expiry'] ?? null
-                ]);
+            $itemStmt->execute([
+                'transaction_no' => $transactionNo,
+                'product_sku' => $item['sku'],
+                'item_barcode' => $item['barcode'] ?? null,
+                'item_qty' => $item['qty'],
+                'item_rate' => $item['rate'],
+                'item_tax' => $item['tax'] ?? null,
+                'item_amount' => $item['amount'],
+                'transaction_type' => $formType,
+                'item_expiry' => $item['expiry'] ?? null,
+            ]);
+        }
+
+        // Handle file attachments
+        if (!empty($_FILES['attachments'])) {
+            $fileUploadResults = handleFileUpload($_FILES['attachments'], $transactionNo);
+            
+            // Modified SQL to match your actual table structure
+            $fileSql = "INSERT INTO file_upload 
+                        (transaction_no, file_name, file_path, created_at) 
+                        VALUES (:transaction_no, :file_name, :file_path, NOW())";
+            $fileStmt = $pdo->prepare($fileSql);
+            
+            foreach ($fileUploadResults as $result) {
+                if ($result['success']) {
+                    try {
+                        $fileStmt->execute([
+                            'transaction_no' => $transactionNo,
+                            'file_name' => $result['fileName'],  // Original filename
+                            'file_path' => $result['filePath']   // Path where file is stored
+                        ]);
+        
+                        if ($fileStmt->rowCount() === 0) {
+                            error_log("No rows were inserted for file: " . $result['fileName']);
+                        }
+                    } catch (Exception $e) {
+                        error_log("Failed to insert file record: " . $e->getMessage());
+                        // You might want to add this to see the actual SQL error
+                        error_log("SQL Error: " . json_encode($fileStmt->errorInfo()));
+                    }
+                } else {
+                    error_log("File upload failed: " . $result['message']);
+                }
             }
         }
 
         // Commit the transaction
         $pdo->commit();
-        return array('success' => true, 'message' => 'Transaction and items updated successfully.');
+        return array('success' => true, 'message' => 'Transaction successfully replaced.');
 
     } catch (Exception $e) {
-        // Roll back the transaction if any error occurs
+        // Roll back the transaction in case of an error
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
         }
         return array('success' => false, 'message' => 'Error: ' . $e->getMessage());
     }
 }
+
 
 
 
@@ -2491,16 +2498,34 @@ function generateTransactionNo($pdo, $transactionType) {
 
     
 function handleFileUpload($fileInput, $transactionNo) {
-    $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
-    $maxFileSize = 5 * 1024 * 1024; // 5MB
-    $uploadDir = __DIR__ . '/../../uploads/';
+    // Configuration
+    $config = [
+        'allowedTypes' => [
+            'image/jpeg' => 'jpg',
+            'image/jpg' => 'jpg',
+            'image/png' => 'png',
+            'application/pdf' => 'pdf'
+        ],
+        'maxFileSize' => 5 * 1024 * 1024, // 5MB
+        'uploadDir' => __DIR__ . '/../../uploads/',
+        'maxFilenameLength' => 255,
+        'maxFiles' => 10 // Maximum number of files allowed per transaction
+    ];
 
-    if (!is_dir($uploadDir)) {
-        mkdir($uploadDir, 0755, true);
+    // Initialize response array
+    $responses = [];
+    
+    // Validate upload directory
+    if (!validateUploadDirectory($config['uploadDir'])) {
+        return [['success' => false, 'message' => 'Server configuration error: Upload directory not accessible']];
     }
 
-    $responses = [];
+    // Validate number of files
+    if (count($fileInput['name']) > $config['maxFiles']) {
+        return [['success' => false, 'message' => "Maximum {$config['maxFiles']} files allowed per transaction"]];
+    }
 
+    // Process each file
     foreach ($fileInput['name'] as $index => $name) {
         $file = [
             'name' => $name,
@@ -2510,59 +2535,155 @@ function handleFileUpload($fileInput, $transactionNo) {
             'size' => $fileInput['size'][$index],
         ];
 
-        if ($file['error'] !== UPLOAD_ERR_OK) {
+        // Initial validation
+        $validationResult = validateFile($file, $config);
+        if (!$validationResult['success']) {
             $responses[] = [
                 'success' => false,
-                'message' => 'File upload error! Code: ' . $file['error'],
+                'message' => $validationResult['message'],
                 'fileName' => $file['name']
             ];
             continue;
         }
 
-        // Check for valid file type
-        if (!in_array($file['type'], $allowedTypes)) {
-            $responses[] = [
-                'success' => false,
-                'message' => 'Invalid file type! Allowed types: ' . implode(', ', $allowedTypes),
-                'fileName' => $file['name']
-            ];
-            continue;
+        // Generate secure filename
+        $fileInfo = generateSecureFilename($file, $transactionNo, $config['allowedTypes'][$file['type']]);
+        
+        // Create final filepath
+        $yearMonth = date('Y/m');
+        $uploadPath = $config['uploadDir'] . $yearMonth . '/';
+        if (!is_dir($uploadPath)) {
+            mkdir($uploadPath, 0755, true);
         }
+        
+        $filePath = $uploadPath . $fileInfo['filename'];
 
-        // Check file size
-        if ($file['size'] > $maxFileSize) {
+        // Process upload
+        try {
+            if (processFileUpload($file['tmp_name'], $filePath)) {
+                $responses[] = [
+                    'success' => true,
+                    'message' => 'File uploaded successfully',
+                    'fileName' => $fileInfo['originalName'],
+                    'filePath' => $yearMonth . '/' . $fileInfo['filename'],
+                    'fileType' => $file['type'],
+                    'fileSize' => $file['size']
+                ];
+            } else {
+                throw new Exception('Failed to move uploaded file');
+            }
+        } catch (Exception $e) {
             $responses[] = [
                 'success' => false,
-                'message' => 'File size exceeds the limit of 5MB.',
-                'fileName' => $file['name']
-            ];
-            continue;
-        }
-
-        // Create unique file name to avoid collisions
-        $fileExt = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $uniqueFileName = $transactionNo . '_' . time() . '.' . $fileExt;
-        $filePath = $uploadDir . $uniqueFileName;
-
-        // Move file to upload directory
-        if (move_uploaded_file($file['tmp_name'], $filePath)) {
-            // Optionally, log or insert file details into the database
-            $responses[] = [
-                'success' => true,
-                'message' => 'File uploaded successfully.',
-                'fileName' => $uniqueFileName,
-                'filePath' => $filePath
-            ];
-        } else {
-            $responses[] = [
-                'success' => false,
-                'message' => 'Failed to move uploaded file.',
+                'message' => 'File upload failed: ' . $e->getMessage(),
                 'fileName' => $file['name']
             ];
         }
     }
 
     return $responses;
+}
+
+function validateUploadDirectory($uploadDir) {
+    if (!is_dir($uploadDir)) {
+        try {
+            mkdir($uploadDir, 0755, true);
+        } catch (Exception $e) {
+            error_log("Failed to create upload directory: " . $e->getMessage());
+            return false;
+        }
+    }
+    return is_writable($uploadDir);
+}
+
+function validateFile($file, $config) {
+    // Check for upload errors
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        $errorMessage = getUploadErrorMessage($file['error']);
+        return ['success' => false, 'message' => $errorMessage];
+    }
+
+    // Validate file existence and readability
+    if (!is_uploaded_file($file['tmp_name']) || !is_readable($file['tmp_name'])) {
+        return ['success' => false, 'message' => 'Invalid upload or file not readable'];
+    }
+
+    // Check file type
+    if (!isset($config['allowedTypes'][$file['type']])) {
+        return ['success' => false, 'message' => 'Invalid file type'];
+    }
+
+    // Verify MIME type
+    $finfo = new finfo(FILEINFO_MIME_TYPE);
+    $mimeType = $finfo->file($file['tmp_name']);
+    if (!isset($config['allowedTypes'][$mimeType])) {
+        return ['success' => false, 'message' => 'File type verification failed'];
+    }
+
+    // Check file size
+    if ($file['size'] > $config['maxFileSize']) {
+        return ['success' => false, 'message' => 'File size exceeds limit'];
+    }
+
+    // Validate filename length
+    if (strlen($file['name']) > $config['maxFilenameLength']) {
+        return ['success' => false, 'message' => 'Filename too long'];
+    }
+
+    return ['success' => true];
+}
+
+function generateSecureFilename($file, $transactionNo, $extension) {
+    $originalName = pathinfo($file['name'], PATHINFO_FILENAME);
+    // Sanitize original filename
+    $sanitizedName = preg_replace('/[^a-zA-Z0-9-_.]/', '', $originalName);
+    
+    // Create unique filename
+    $uniqueId = uniqid('', true);
+    $hash = substr(hash('sha256', $file['tmp_name'] . $uniqueId), 0, 8);
+    
+    return [
+        'filename' => sprintf('%s_%s_%s.%s', 
+            $transactionNo,
+            $hash,
+            $uniqueId,
+            $extension
+        ),
+        'originalName' => $file['name']
+    ];
+}
+
+function processFileUpload($tempFile, $destination) {
+    // Ensure atomic file operations
+    if (!copy($tempFile, $destination . '.part')) {
+        return false;
+    }
+
+    if (!rename($destination . '.part', $destination)) {
+        unlink($destination . '.part');
+        return false;
+    }
+
+    // Set proper file permissions
+    chmod($destination, 0644);
+    
+    return true;
+}
+
+function getUploadErrorMessage($errorCode) {
+    $errors = [
+        UPLOAD_ERR_INI_SIZE => 'File exceeds PHP maximum file size limit',
+        UPLOAD_ERR_FORM_SIZE => 'File exceeds form maximum file size limit',
+        UPLOAD_ERR_PARTIAL => 'File was only partially uploaded',
+        UPLOAD_ERR_NO_FILE => 'No file was uploaded',
+        UPLOAD_ERR_NO_TMP_DIR => 'Missing temporary folder',
+        UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk',
+        UPLOAD_ERR_EXTENSION => 'A PHP extension stopped the file upload'
+    ];
+    
+    return isset($errors[$errorCode]) 
+        ? $errors[$errorCode] 
+        : 'Unknown upload error';
 }
 
 
@@ -2591,10 +2712,68 @@ function generatePaymentRefNo($pdo) {
     return $newPaymentRefNo;
 }
 
+// function getTransactionDetails($pdo) {
+//     try {
+//         $transactionType = !empty($_POST['transactionType']) ? $_POST['transactionType'] : null;
+//         $transactionNo = !empty($_POST['transactionNo']) ? $_POST['transactionNo'] : null;
+//         // Initialize an empty array to hold the transaction details
+//         $transactionDetails = [];
+
+//         // Determine which tables to query based on the transaction type
+//         switch ($transactionType) {
+//             case 'bill':
+//                 $transactionTable = 'trans_bill';
+//                 $transactionQuery = "SELECT * FROM $transactionTable WHERE transaction_no = :transactionNo";
+//                 break;
+
+//             case 'expense':
+//                 $transactionTable = 'trans_expense';
+//                 $transactionQuery = "SELECT * FROM $transactionTable WHERE transaction_no = :transactionNo";
+//                 break;
+
+//             case 'invoice':
+//                 $transactionTable = 'trans_invoice';
+//                 $transactionQuery = "SELECT * FROM $transactionTable WHERE transaction_no = :transactionNo";
+//                 break;
+
+//             default:
+//                 throw new Exception("Invalid transaction type");
+//         }
+
+//         // Prepare and execute the main transaction query
+//         $stmt = $pdo->prepare($transactionQuery);
+//         $stmt->execute(['transactionNo' => $transactionNo]);
+//         $transactionDetails['transaction'] = $stmt->fetch(PDO::FETCH_ASSOC);
+
+//         // If no transaction was found, return an empty result
+//         if (!$transactionDetails['transaction']) {
+//             return array("message" => "Transaction not found.");
+//         }
+
+//         // Retrieve associated items from trans_item table
+//         $itemsQuery = "
+//             SELECT ti.*, p.product_name 
+//             FROM trans_item AS ti
+//             JOIN product AS p ON ti.product_sku = p.product_sku
+//             WHERE ti.transaction_no = :transactionNo
+//         ";
+//         $stmt = $pdo->prepare($itemsQuery);
+//         $stmt->execute(['transactionNo' => $transactionNo]);
+//         $transactionDetails['items'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+//         return $transactionDetails;
+
+//     } catch (PDOException $e) {
+//         // Handle database errors
+//         echo "Error: " . $e->getMessage();
+//         return array(); // Return an empty array if an error occurs
+//     }
+// }
 function getTransactionDetails($pdo) {
     try {
         $transactionType = !empty($_POST['transactionType']) ? $_POST['transactionType'] : null;
         $transactionNo = !empty($_POST['transactionNo']) ? $_POST['transactionNo'] : null;
+
         // Initialize an empty array to hold the transaction details
         $transactionDetails = [];
 
@@ -2629,7 +2808,7 @@ function getTransactionDetails($pdo) {
             return array("message" => "Transaction not found.");
         }
 
-        // Retrieve associated items from trans_item table
+        // Retrieve associated items from the trans_item table
         $itemsQuery = "
             SELECT ti.*, p.product_name 
             FROM trans_item AS ti
@@ -2640,14 +2819,29 @@ function getTransactionDetails($pdo) {
         $stmt->execute(['transactionNo' => $transactionNo]);
         $transactionDetails['items'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+        // Retrieve associated files from the file_upload table
+        $filesQuery = "
+            SELECT file_name, file_path, created_at 
+            FROM file_upload 
+            WHERE transaction_no = :transactionNo
+        ";
+        $stmt = $pdo->prepare($filesQuery);
+        $stmt->execute(['transactionNo' => $transactionNo]);
+        $transactionDetails['files'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
         return $transactionDetails;
 
     } catch (PDOException $e) {
         // Handle database errors
         echo "Error: " . $e->getMessage();
         return array(); // Return an empty array if an error occurs
+    } catch (Exception $e) {
+        // Handle other exceptions
+        echo "Error: " . $e->getMessage();
+        return array();
     }
 }
+
 function generatePaymentReference($pdo) {
     try {
         // Define the prefix with current date in "YYYYMMDD" format
@@ -3227,6 +3421,64 @@ function voidTransaction($pdo) {
     }
 }
 
+// function deleteTransaction($pdo) {
+//     // Retrieve transaction type and number from POST request
+//     $transac_type = $_POST['transac_type'] ?? null;
+//     $transac_no = $_POST['transac_no'] ?? null;
+
+//     if (!$transac_type || !$transac_no) {
+//         return ['success' => false, 'message' => 'Invalid transaction type or number'];
+//     }
+
+//     try {
+//         // Begin transaction
+//         $pdo->beginTransaction();
+
+//         // Determine the main table query based on transaction type
+//         if ($transac_type === 'bill') {
+//             $mainQuery = "DELETE FROM trans_bill WHERE transaction_no = :transaction_no";
+//         } elseif ($transac_type === 'expense') {
+//             $mainQuery = "DELETE FROM trans_expense WHERE transaction_no = :transaction_no";
+//         } elseif ($transac_type === 'invoice') {
+//             $mainQuery = "DELETE FROM trans_invoice WHERE transaction_no = :transaction_no";
+//         } else {
+//             return ['success' => false, 'message' => 'Unknown transaction type'];
+//         }
+
+//         // Delete from main transaction table
+//         $stmt = $pdo->prepare($mainQuery);
+//         $stmt->bindParam(':transaction_no', $transac_no, PDO::PARAM_STR);
+//         $stmt->execute();
+
+//         // Check if the main transaction was found and deleted
+//         if ($stmt->rowCount() === 0) {
+//             $pdo->rollBack();
+//             return [
+//                 'success' => false,
+//                 'message' => "Transaction No: $transac_no of type $transac_type not found or already deleted."
+//             ];
+//         }
+
+//         // Delete associated items from `trans_item`
+//         $itemQuery = "DELETE FROM trans_item WHERE transaction_no = :transaction_no";
+//         $itemStmt = $pdo->prepare($itemQuery);
+//         $itemStmt->bindParam(':transaction_no', $transac_no, PDO::PARAM_STR);
+//         $itemStmt->execute();
+
+//         // Commit transaction
+//         $pdo->commit();
+
+//         return [
+//             'success' => true,
+//             'message' => "Transaction No: $transac_no of type $transac_type and all associated items have been successfully deleted!"
+//         ];
+//     } catch (Exception $e) {
+//         // Roll back transaction in case of error
+//         $pdo->rollBack();
+//         return ['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()];
+//     }
+// }
+
 function deleteTransaction($pdo) {
     // Retrieve transaction type and number from POST request
     $transac_type = $_POST['transac_type'] ?? null;
@@ -3271,12 +3523,32 @@ function deleteTransaction($pdo) {
         $itemStmt->bindParam(':transaction_no', $transac_no, PDO::PARAM_STR);
         $itemStmt->execute();
 
+        // Handle file deletion
+        $fileQuery = "SELECT file_path FROM file_upload WHERE transaction_no = :transaction_no";
+        $fileStmt = $pdo->prepare($fileQuery);
+        $fileStmt->bindParam(':transaction_no', $transac_no, PDO::PARAM_STR);
+        $fileStmt->execute();
+        $files = $fileStmt->fetchAll(PDO::FETCH_COLUMN);
+
+        foreach ($files as $file) {
+            $fullPath = __DIR__ . '/../../uploads/' . $file; // Adjust the base path if needed
+            if (file_exists($fullPath)) {
+                unlink($fullPath); // Delete the file from the filesystem
+            }
+        }
+
+        // Delete file records from `file_upload`
+        $deleteFilesQuery = "DELETE FROM file_upload WHERE transaction_no = :transaction_no";
+        $deleteFilesStmt = $pdo->prepare($deleteFilesQuery);
+        $deleteFilesStmt->bindParam(':transaction_no', $transac_no, PDO::PARAM_STR);
+        $deleteFilesStmt->execute();
+
         // Commit transaction
         $pdo->commit();
 
         return [
             'success' => true,
-            'message' => "Transaction No: $transac_no of type $transac_type and all associated items have been successfully deleted!"
+            'message' => "Transaction No: $transac_no of type $transac_type, associated items, and files have been successfully deleted!"
         ];
     } catch (Exception $e) {
         // Roll back transaction in case of error
@@ -3284,6 +3556,7 @@ function deleteTransaction($pdo) {
         return ['success' => false, 'message' => 'An error occurred: ' . $e->getMessage()];
     }
 }
+
 
 // function generateSalesReport($pdo, $filters) {
 //     try {
