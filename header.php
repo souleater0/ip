@@ -169,13 +169,23 @@ $route = $_GET['route'] ?? 'home';
               <iconify-icon icon="solar:menu-dots-linear" class="nav-small-cap-icon fs-4"></iconify-icon>
               <span class="hide-menu text-uppercase">Vendor Management</span>
             </li>
+<<<<<<< HEAD
             <div class="collapse show" id="collapseVendor">
+=======
+            <div class="collapse <?php echo ($route == 'manage-supplier'|| $route == 'manage-transaction' || $route == 'manage-customer') ? 'show' : ''; ?>" id="collapseVendor">
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_supplier')){?>
+>>>>>>> 1ca3fb739b6885eaf984d22b2876d14bfb0f4801
             <li class="sidebar-item">
               <a class="sidebar-link <?php echo ($route == 'manage-supplier' )? 'active' : ''; ?>" href="index.php?route=manage-supplier" aria-expanded="false">
                 <iconify-icon icon="carbon:scis-transparent-supply"></iconify-icon>
                 <span class="hide-menu">Supplier</span>
               </a>
             </li>
+<<<<<<< HEAD
+=======
+            <?php } ?>
+            <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_customer')){?>
+>>>>>>> 1ca3fb739b6885eaf984d22b2876d14bfb0f4801
             <li class="sidebar-item">
               <a class="sidebar-link <?php echo ($route == 'manage-customer' )? 'active' : ''; ?>" href="index.php?route=manage-customer" aria-expanded="false">
                 <iconify-icon icon="carbon:scis-transparent-supply"></iconify-icon>
@@ -188,6 +198,16 @@ $route = $_GET['route'] ?? 'home';
                 <span class="hide-menu">Transaction</span>
               </a>
             </li>
+<<<<<<< HEAD
+=======
+            <?php } ?>
+            <!-- <li class="sidebar-item">
+              <a class="sidebar-link <?php echo ($route == 'manage-receipt' )? 'active' : ''; ?>" href="index.php?route=manage-receipt" aria-expanded="false">
+                <iconify-icon icon="ic:baseline-receipt-long"></iconify-icon>
+                <span class="hide-menu">Transaction</span>
+              </a>
+            </li> -->
+>>>>>>> 1ca3fb739b6885eaf984d22b2876d14bfb0f4801
             </div>
             <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'manage_summary_report') || userHasPermission($pdo, $_SESSION["user_id"], 'manage_inventory_stock') || userHasPermission($pdo, $_SESSION["user_id"], 'manage_stock_valuation') || userHasPermission($pdo, $_SESSION["user_id"], 'manage_stock_movement') || userHasPermission($pdo, $_SESSION["user_id"], 'manage_product_history')){?>
             <li>
