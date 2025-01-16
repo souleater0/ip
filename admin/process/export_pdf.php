@@ -178,15 +178,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['summaryData'], $_POST
 
         // Add transaction data
         foreach ($transactions as $transaction) {
+            $qtyAdjustment = 0;
+            if ($transaction['TransactionType'] == 'invoice') {
+                $qtyAdjustment -= $transaction['Quantity'];  // Subtract for invoice
+            } else if (in_array($transaction['TransactionType'], ['bill', 'expense'])) {
+                $qtyAdjustment += $transaction['Quantity'];  // Add for bill/expense
+            }
+        
+            // Adjust the totals based on the transaction type
+            $detailedTotalQty += $qtyAdjustment;
+            $detailedTotalAmount += $transaction['TotalAmount'];
+        
+            // Add transaction details to PDF
             $pdf->Cell($detailedColumnWidths['TransactionType'], 10, $transaction['TransactionType'], 1, 0, 'C');
             $pdf->Cell($detailedColumnWidths['TransactionNo'], 10, $transaction['TransactionNo'], 1, 0, 'C');
             $pdf->Cell($detailedColumnWidths['PersonName'], 10, $transaction['PersonName'], 1, 0, 'C');
             $pdf->Cell($detailedColumnWidths['Quantity'], 10, $transaction['Quantity'], 1, 0, 'C');
             $pdf->Cell($detailedColumnWidths['TotalAmount'], 10, number_format($transaction['TotalAmount'], 2), 1, 1, 'C');
-
-            // Add to the detailed totals
-            $detailedTotalQty += $transaction['Quantity'];
-            $detailedTotalAmount += $transaction['TotalAmount'];
         }
 
         // Add subtotals for detailed transactions

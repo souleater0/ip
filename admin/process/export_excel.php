@@ -174,24 +174,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['summaryData'], $_POST
 
         // Add product data for each transaction
         foreach ($transactions as $transaction) {
+            // Adjust quantity based on transaction type
+            $adjustedQty = 0;
+            if ($transaction['TransactionType'] == 'invoice') {
+                $adjustedQty = -$transaction['Quantity']; // Subtract for invoice
+            } elseif (in_array($transaction['TransactionType'], ['bill', 'expense'])) {
+                $adjustedQty = $transaction['Quantity']; // Add for bill/expense
+            }
+
             $sheet->setCellValue("A$row", $productSKU)
-                  ->setCellValue("B$row", $productName)
-                  ->setCellValue("C$row", $transaction['TransactionType'])
-                  ->setCellValue("D$row", $transaction['TransactionDate'])
-                  ->setCellValue("E$row", $transaction['TransactionNo'])
-                  ->setCellValue("F$row", $transaction['PersonName'])
-                  ->setCellValue("G$row", $transaction['Quantity'])
-                  ->setCellValue("H$row", number_format($transaction['UnitPrice'], 2))
-                  ->setCellValue("I$row", number_format($transaction['TotalAmount'], 2));
+                ->setCellValue("B$row", $productName)
+                ->setCellValue("C$row", $transaction['TransactionType'])
+                ->setCellValue("D$row", $transaction['TransactionDate'])
+                ->setCellValue("E$row", $transaction['TransactionNo'])
+                ->setCellValue("F$row", $transaction['PersonName'])
+                ->setCellValue("G$row", $adjustedQty) // Use adjusted quantity
+                ->setCellValue("H$row", number_format($transaction['UnitPrice'], 2))
+                ->setCellValue("I$row", number_format($transaction['TotalAmount'], 2));
 
             // Apply borders to each product row
             $sheet->getStyle("A$row:I$row")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
             $row++;
 
             // Add to category totals
-            $categoryQty += $transaction['Quantity'];
+            $categoryQty += $adjustedQty; // Use adjusted quantity for totals
             $categoryTotalAmount += $transaction['TotalAmount'];
         }
+
 
         // Add subtotals for each table (Qty, Total, Amount)
         $sheet->setCellValue("A$row", "Subtotal")
