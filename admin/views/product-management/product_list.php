@@ -122,40 +122,31 @@ $(document).ready( function () {
       $(this).val($(this).val().replace(/\D/g,''));
   });
 
-  $('#category_id').change(function () {  
+  // Function to handle the AJAX request
+  function fetchSKU(category_id) {
+    $.ajax({
+      url: 'admin/process/admin_action.php',
+      method: 'POST',
+      data: { category_id: category_id, action: 'getSKUID' },
+      success: function (response) {
+        $('#sku_id').val(response);
+      },
+      error: function (xhr, status, error) {
+        alert(error);
+      }
+    });
+  }
+
+  // Trigger on load
+  var initialCategoryId = $('#category_id').val();
+  if (initialCategoryId) {
+    fetchSKU(initialCategoryId);
+  }
+
+  // Trigger on change
+  $('#category_id').change(function () {
     var category_id = $(this).val();
-    //alert(category_id);
-    // If category_id is not empty, trigger the AJAX request
-    if (category_id !== '') {
-      $.ajax({
-        url: 'admin/process/admin_action.php',
-        method: 'POST',
-        data: { category_id: category_id, action : 'getSKUID' },
-        success: function(response) {
-          //alert(response);
-          $('#sku_id').val(response);
-        },
-        error: function(xhr, status, error) {
-          // console.error(xhr.responseText);
-          alert(error);
-        }
-      });
-    } else {
-      // If category_id is empty, set default SKU prefix
-      $.ajax({
-        url: 'admin/process/admin_action.php',
-        method: 'POST',
-        data: { category_id: category_id, action : 'getSKUID' },
-        success: function(response) {
-          //alert(response);
-          $('#sku_id').val(response);
-        },
-        error: function(xhr, status, error) {
-          // console.error(xhr.responseText);
-          alert(error);
-        }
-      });
-    }
+    fetchSKU(category_id);
   });
   var table = $('#productTable').DataTable({
         order: [[1, 'desc']],
@@ -297,7 +288,10 @@ $(document).ready( function () {
     }
     setInterval(LoadTable, 15000);
     $('#addProductBTN').click(function(){
-      
+      var initialCategoryId = $('#category_id').val();
+      if (initialCategoryId) {
+        fetchSKU(initialCategoryId);
+      }
       $('#sku_id').val('');
       $('#product_name').val('');
       $('#product_desc').val('');
