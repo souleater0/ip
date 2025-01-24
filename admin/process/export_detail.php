@@ -113,9 +113,14 @@ function generatePDF($product, $dateFilter, $startDate, $endDate,$transactionTyp
         $pdf->Cell($columnWidths[7], 10, number_format($transaction['item_rate'], 2), 1, 0, 'C');
         $pdf->Cell($columnWidths[8], 10, number_format($transaction['item_amount'], 2), 1, 1, 'C');
 
-        // Update totals
-        $totalQty += $transaction['item_qty'];
-        $totalAmount += $transaction['item_amount'];
+        // Update totals based on transaction type
+        if (in_array(strtolower($transaction['transaction_type']), ['bill', 'expense'])) {
+            $totalQty += $transaction['item_qty'];
+            $totalAmount += $transaction['item_amount'];
+        } elseif (strtolower($transaction['transaction_type']) === 'invoice') {
+            $totalQty -= $transaction['item_qty'];
+            $totalAmount -= $transaction['item_amount'];
+        }
     }
 
     // Add total row at the end of the table
@@ -183,9 +188,14 @@ function generateExcel($product, $dateFilter, $startDate, $endDate, $transaction
         $sheet->setCellValue('H' . $row, number_format($transaction['item_rate'], 2));
         $sheet->setCellValue('I' . $row, number_format($transaction['item_amount'], 2));
 
-        // Update totals
-        $totalQty += $transaction['item_qty'];
-        $totalAmount += $transaction['item_amount'];
+        // Update totals based on transaction type
+        if (in_array(strtolower($transaction['transaction_type']), ['bill', 'expense'])) {
+            $totalQty += $transaction['item_qty'];
+            $totalAmount += $transaction['item_amount'];
+        } elseif (strtolower($transaction['transaction_type']) === 'invoice') {
+            $totalQty -= $transaction['item_qty'];
+            $totalAmount -= $transaction['item_amount'];
+        }
         $row++;
     }
 

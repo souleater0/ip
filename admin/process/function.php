@@ -3623,6 +3623,7 @@ function deleteTransaction($pdo) {
 //     }
 // }
 
+
 function generateSalesReport($pdo, $filters) {
     try {
         // Base query for summary
@@ -3631,11 +3632,21 @@ function generateSalesReport($pdo, $filters) {
                 c.category_name AS CategoryName, 
                 p.product_sku AS ProductSKU, 
                 p.product_name AS ProductName, 
-                SUM(ti.item_qty) AS Qty, 
+                SUM(
+                    CASE 
+                        WHEN ti.transaction_type = 'invoice' THEN -ti.item_qty 
+                        WHEN ti.transaction_type IN ('bill', 'expense') THEN ti.item_qty 
+                        ELSE 0 
+                    END
+                ) AS Qty, 
                 SUM(ti.item_amount) AS Amount, 
-                ROUND(SUM(ti.item_amount) * 100.0 / 
-                      (SELECT SUM(item_amount) FROM trans_item WHERE transaction_type = 'invoice'), 2) AS PercentageOfSales, 
-                ROUND(AVG(ti.item_rate), 2) AS AvgPrice 
+                ROUND(
+                    (
+                        SUM(CASE WHEN ti.transaction_type = 'invoice' THEN ti.item_qty ELSE 0 END) * 100.0 /
+                        NULLIF(SUM(CASE WHEN ti.transaction_type IN ('bill', 'expense') THEN ti.item_qty ELSE 0 END), 0)
+                    ), 2
+                ) AS PercentageOfSales, 
+                ROUND(AVG(ti.item_rate), 2) AS AvgPrice
             FROM 
                 trans_item ti 
             LEFT JOIN product p ON ti.product_sku = p.product_sku 

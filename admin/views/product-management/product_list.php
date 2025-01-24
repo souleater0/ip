@@ -16,6 +16,7 @@
                   <?php if(userHasPermission($pdo, $_SESSION["user_id"], 'create_product')){?>
                   <div class="col">
                   <button class="btn btn-primary btn-sm float-end" id="addProductBTN" data-bs-toggle="modal" data-bs-target="#productModal"><i class="fa-solid fa-plus"></i>Add Product</button>
+                  <button class="btn btn-primary btn-sm float-end mx-2" id="adjustBtn" data-bs-toggle="modal" data-bs-target="#adjustModal"><i class="fa-solid fa-plus"></i>Adjust Qty</button>
                   </div>
                   <?php } ?>
                   </div>
@@ -115,6 +116,25 @@
   </div>
 </div>
 <!-- END -->
+<!-- MODAL START -->
+<div class="modal fade" id="adjustModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="adjustModal">
+  <div class="modal-dialog modal-fullscreen">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5 fw-bolder" id="adjustModal">Inventory Adjustment</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body border">
+        
+      </div>
+      <div class="modal-footer">
+      <button type="button" class="btn btn-secondary " data-bs-dismiss="modal">Close</button>
+      <button type="button" class="btn btn-primary" id="submitForm">Save & Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- END -->
 <script>
 $(document).ready( function () {
 
@@ -153,8 +173,9 @@ $(document).ready( function () {
         paging: true,
         scrollCollapse: true,
         scrollX: true,
-        scrollY: 300,
+        scrollY: 450,
         responsive: true,
+        pageLength: 20, // Default number of entries per page
         autoWidth: false,
         ajax:{
           url: 'admin/process/table.php?table_type=product',
